@@ -1,0 +1,85 @@
+// orderTrackingPage.scss
+.order-page {
+  padding: 40px 20px;
+  max-width: 1000px;
+  margin: auto;
+  font-family: 'Segoe UI', sans-serif;
+
+  h2 {
+    text-align: center;
+    font-size: 30px;
+    color: #333;
+    margin-bottom: 30px;
+  }
+
+  .order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .order-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-left: 6px solid #007bff;
+
+    h4 {
+      margin-bottom: 12px;
+      color: #007bff;
+    }
+
+    .order-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .order-items {
+      border-top: 1px dashed #ccc;
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .item {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+
+        img {
+          width: 60px;
+          height: 60px;
+          object-fit: contain;
+          border-radius: 8px;
+          border: 1px solid #eee;
+        }
+
+        p {
+          margin: 2px 0;
+          font-size: 14px;
+          color: #333;
+        }
+      }
+    }
+  }
+}
+
+.cancel-btn {
+  margin-top: 10px;
+  background: #dc3545;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #c82333;
+  }
+}

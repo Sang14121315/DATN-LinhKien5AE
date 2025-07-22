@@ -1,0 +1,10 @@
+// src/styles/layouts/admin.layout.scss
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  
+  .admin-content {
+    flex-grow: 1;
+    background-color: #f5f6fa;
+  }
+}

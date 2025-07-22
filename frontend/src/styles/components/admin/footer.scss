@@ -1,0 +1,18 @@
+.admin-footer {
+  padding: 16px 24px;
+  background-color: #fff;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+
+  .divider {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin-bottom: 12px;
+  }
+
+  .footer-text {
+    font-weight: 500;
+  }
+}

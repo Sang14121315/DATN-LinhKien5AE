@@ -1,0 +1,172 @@
+.container {
+  border-radius: 12px;
+  padding: 0px;
+  max-width: 1200px;
+  margin: 30px auto;
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  
+}
+
+h2 {
+  width: 100%;
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.left, .right {
+  flex: 1;
+  min-width: 320px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #fafafa;
+  transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #00a693;
+  background-color: #fff;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.two-columns {
+  display: flex;
+  gap: 20px;
+}
+
+.two-columns > div {
+  flex: 1;
+}
+
+.upload-box {
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  color: #777;
+  background-color: #fafafa;
+}
+
+.upload-box button {
+  margin-top: 14px;
+  padding: 8px 14px;
+  background-color: #e0f7f3;
+  color: #00a693;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.upload-box button:hover {
+  background-color: #c8f1ec;
+}
+
+.upload-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.upload-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.upload-thumb {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #e0e0e0;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background-color: #e6e6e6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar > div {
+  height: 100%;
+  background-color: #3f51b5;
+  width: 100%;
+}
+
+.checkmark {
+  color: #00a693;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.buttons {
+  display: flex;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.buttons button {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.buttons .update {
+  background-color: #1f1f1f;
+  color: white;
+}
+
+.buttons .delete {
+  background-color: #003366;
+  color: white;
+}
+
+.buttons .back {
+  background-color: #f5f5f5;
+  color: #333;
+}

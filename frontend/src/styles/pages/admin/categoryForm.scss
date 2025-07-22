@@ -1,0 +1,134 @@
+.category-detail-page {
+  padding: 24px;
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+
+  .detail-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+
+    .image-upload-box {
+      width: 100%;
+      max-width: 300px;
+
+      p {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .image-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border: 2px dashed #ccc;
+        border-radius: 12px;
+        background-color: #fafafa;
+        cursor: pointer;
+
+        .image-placeholder {
+          width: 100%;
+          height: 180px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #888;
+          font-size: 14px;
+          background-color: #f0f0f0;
+          border-radius: 8px;
+        }
+
+        img {
+          max-width: 100%;
+          max-height: 180px;
+          border-radius: 8px;
+        }
+
+        button {
+          padding: 6px 12px;
+          background-color: #e5f0ff;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .info-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      label {
+        display: flex;
+        flex-direction: column;
+        font-weight: 500;
+        font-size: 14px;
+
+        input,
+        textarea {
+          margin-top: 6px;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          font-size: 14px;
+          background-color: #fdfdfd;
+        }
+
+        input[disabled] {
+          background-color: #f2f2f2;
+        }
+      }
+
+      .actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+
+        button {
+          padding: 10px 18px;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .update {
+          background-color: #222;
+          color: #fff;
+        }
+
+        .delete {
+          background-color: #00446d;
+          color: #fff;
+        }
+
+        .back {
+          background-color: #fff;
+          border: 1px solid #ccc;
+          color: #333;
+        }
+      }
+    }
+  }
+}
+
+.row-flex {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+
+  .half-width {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}

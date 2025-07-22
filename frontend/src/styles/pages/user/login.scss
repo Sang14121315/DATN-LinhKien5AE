@@ -1,0 +1,35 @@
+@import './register.scss';
+
+.login-layout {
+  @extend .register-layout;
+
+  .auth-tabs {
+    span {
+      a {
+        color: #333;
+      }
+
+      &.active a {
+        color: #ff7a00;
+      }
+
+      &:hover a {
+        color: #ff7a00;
+      }
+    }
+  }
+}
+.error-message {
+  background-color: #fff3f3;
+  color: #d93025;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 15px;
+  border-left: 4px solid #d93025;
+}
+.success-message {
+  background-color: #e6f7e6;
+  color: #0f9d58;
+  border-left: 4px solid #0f9d58;
+}

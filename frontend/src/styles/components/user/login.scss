@@ -1,0 +1,155 @@
+.login-layout {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  padding: 40px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fdfdfd;
+
+  .sidebar {
+    width: 250px;
+    background: #fff;
+    margin-right: 40px;
+
+    h4 {
+      font-weight: bold;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 8px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li {
+        padding: 6px 0;
+        font-size: 14px;
+        cursor: pointer;
+        color: #333;
+
+        &:hover {
+          color: #ff9f0d;
+        }
+      }
+    }
+  }
+
+  .main-auth-content {
+    flex: 1;
+
+    .top-menu {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #333;
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+    }
+
+    .auth-form-container {
+      background-color: rgba(0, 0, 0, 0.05);
+      padding: 40px;
+      border-radius: 8px;
+      width: 420px;
+      max-width: 90%;
+      margin: 0 auto;
+
+      .auth-tabs {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+
+        span {
+          padding: 10px 20px;
+          font-weight: 500;
+          color: #555;
+          cursor: pointer;
+
+          &.active {
+            color: #000;
+            border-bottom: 2px solid #000;
+          }
+
+          a {
+            text-decoration: none;
+            color: #555;
+
+            &:hover {
+              color: #000;
+            }
+          }
+        }
+
+        span + span {
+          margin-left: 16px;
+        }
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+
+        input {
+          width: 100%;
+          padding: 10px 12px;
+          font-size: 14px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+
+          &:focus {
+            outline: none;
+            border-color: #ff9f0d;
+          }
+        }
+      }
+
+      .recaptcha-note {
+        font-size: 11px;
+        color: #777;
+        margin: 10px 0;
+        line-height: 1.4;
+      }
+
+      .submit-button {
+        width: 100%;
+        background-color: #ff9f0d;
+        color: #fff;
+        border: none;
+        padding: 12px;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover {
+          background-color: #e48a00;
+        }
+      }
+
+      .form-footer {
+        margin-top: 20px;
+        font-size: 13px;
+        text-align: center;
+
+        a {
+          color: #007bff;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+
+        p {
+          margin: 4px 0;
+        }
+      }
+    }
+  }
+}

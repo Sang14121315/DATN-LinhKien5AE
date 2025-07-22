@@ -1,0 +1,162 @@
+.admin-header {
+  height: 60px;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end; /* Căn phải toàn bộ nội dung */
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  .right-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #4b5563;
+      border: none;
+    }
+
+    .admin-dropdown {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+
+      .dropdown-menu {
+        display: none; /* Ẩn dropdown mặc định */
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        min-width: 210px;
+        z-index: 200;
+        left: auto;
+        right: 0;
+        top: 110%;
+        margin-top: 8px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s;
+        .dropdown-item {
+          padding: 14px 20px;
+          font-size: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #222;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-weight: 500;
+          border-radius: 8px;
+          transition: background 0.18s;
+          &:hover {
+            background-color: #f3f4f6;
+          }
+          &:not(:last-child) {
+            border-bottom: 1px solid #e5e7eb;
+          }
+        }
+      }
+      &.open .dropdown-menu {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+        animation: fadeIn 0.18s;
+      }
+    }
+  }
+}
+.notification-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 80px;
+  width: 320px;
+  background: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 10px;
+  z-index: 100;
+
+  h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .notification-list {
+    max-height: 250px;
+    overflow-y: auto;
+
+    li {
+      font-size: 14px;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+
+      &.unread {
+        font-weight: bold;
+      }
+
+      .time {
+        display: block;
+        font-size: 11px;
+        color: #888;
+      }
+    }
+  }
+
+  .notification-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+
+    button {
+      font-size: 13px;
+      background: none;
+      border: none;
+      color: #1a73e8;
+      cursor: pointer;
+    }
+
+    .view-all {
+      font-weight: 600;
+    }
+  }
+}
+
+.notification-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background-color: red;
+  border-radius: 50%;
+}
+
+.notification-list li.unread {
+  font-weight: bold;
+  background-color: #eef6ff;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

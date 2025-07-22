@@ -1,0 +1,116 @@
+.cart-page {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .cart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    background-color: #fff;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .cart-info {
+      flex: 1;
+
+      h4 {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        color: #222;
+      }
+
+      p {
+        font-weight: bold;
+        color: #e53935;
+      }
+
+      .cart-actions {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        input[type="number"] {
+          width: 60px;
+          padding: 6px;
+          font-size: 1rem;
+          text-align: center;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+
+        button {
+          background-color: transparent;
+          border: none;
+          color: #e53935;
+          font-size: 1.2rem;
+          cursor: pointer;
+          transition: color 0.2s;
+
+          &:hover {
+            color: #b71c1c;
+          }
+        }
+      }
+    }
+  }
+
+  .cart-summary {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #f9f9f9;
+    text-align: right;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+
+    h3 {
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .checkout-btn {
+      background-color: #0066cc;
+      color: #fff;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #004999;
+      }
+    }
+  }
+}

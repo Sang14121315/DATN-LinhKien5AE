@@ -1,0 +1,136 @@
+const express = require('express');
+const router = express.Router();
+const userController = require('../controllers/userController');
+const productController = require('../controllers/productController');
+const categoryController = require('../controllers/categoryController');
+const brandController = require('../controllers/brandController');
+const couponController = require('../controllers/couponController');
+const orderController = require('../controllers/orderController');
+const notificationController = require('../controllers/notificationController');
+const messageController = require('../controllers/messageController');
+const homeController = require('../controllers/homeController');
+const contactController = require('../controllers/contactController');
+const productTypeController = require('../controllers/productTypeController');
+const cartController = require('../controllers/cartController');
+const auth = require('../middleware/auth');
+const upload = require('../middleware/upload');
+
+// Home
+router.get('/home', homeController.getHomeData);
+
+// Search
+router.get('/search', auth, productController.searchProducts);
+
+// Contact
+router.post('/contact', contactController.createContact);
+
+
+// Auth
+router.post('/register', userController.register);
+router.post('/login', userController.login);
+router.post('/forgot-password', userController.forgotPassword);
+router.post('/reset-password', userController.resetPassword);
+
+
+// Cart
+router.post('/cart', auth, cartController.addItem);
+router.get('/cart', auth, cartController.getCart);
+router.put('/cart', auth, cartController.updateItem);
+router.delete('/cart', auth, cartController.removeItem);
+router.delete('/cart/clear', auth, cartController.clearCart);
+
+
+
+// Products
+router.get("/products/search", productController.searchProducts);
+router.get('/products', productController.getProducts);
+router.post('/products', auth, upload.single('image'), productController.createProduct);
+router.get('/products/:id', productController.getProductById);
+router.put('/products/:id', auth, upload.single('image'), productController.updateProduct);
+router.delete('/products/:id', auth, productController.deleteProduct);
+
+// Product Types
+
+router.get('/product-types/:id', productTypeController.getProductTypeById);
+router.get('/product-types', productTypeController.getProductTypes);
+
+router.get('/product-types', auth, productTypeController.getProductTypes);
+router.get('/product-types/:id', auth, productTypeController.getProductTypeById);
+
+router.get('/product-types', productTypeController.getProductTypes);
+router.get('/product-types/:id', productTypeController.getProductTypeById);
+
+router.get('/product-types/:id', productTypeController.getProductTypeById);
+router.get('/product-types', productTypeController.getProductTypes);
+router.get('/product-types', auth, productTypeController.getProductTypes);
+router.get('/product-types/:id', auth, productTypeController.getProductTypeById);
+router.get('/product-types', productTypeController.getProductTypes);
+router.get('/product-types/:id', productTypeController.getProductTypeById);
+router.post('/product-types', auth, productTypeController.createProductType);
+router.put('/product-types/:id', auth, productTypeController.updateProductType);
+router.delete('/product-types/:id', auth, productTypeController.deleteProductType);
+
+// Categories
+router.get('/categories', categoryController.getCategories);
+router.get('/categories/:id', categoryController.getCategoryById);
+router.post('/categories', categoryController.createCategory);
+router.put('/categories/:id', categoryController.updateCategory);
+router.delete('/categories/:id', categoryController.deleteCategory);
+
+// Brands
+router.get('/brands', brandController.getBrands);
+router.get('/brands/:id', brandController.getBrandById);
+router.post('/brands', upload.single('logo'), brandController.createBrand);
+router.put('/brands/:id', upload.single('logo'), brandController.updateBrand);
+router.delete('/brands/:id', brandController.deleteBrand);
+
+// Coupons
+
+router.get('/coupons',  couponController.getCoupons);
+router.get('/coupons/:id',  couponController.getCouponById);
+router.post('/coupons', couponController.createCoupon);
+router.put('/coupons/:id',  couponController.updateCoupon);
+router.delete('/coupons/:id',  couponController.deleteCoupon);
+router.get('/coupons', auth, couponController.getCoupons);
+router.get('/coupons/:id', auth, couponController.getCouponById);
+
+// Orders
+router.get('/orders', auth, orderController.getOrders);
+router.get('/orders/:id', auth, orderController.getOrderById);
+router.post('/orders', auth, orderController.createOrder);
+router.put('/orders/:id', auth, orderController.updateOrder);
+router.delete('/orders/:id', auth, orderController.deleteOrder);
+
+// Notifications
+router.get('/notifications', auth, notificationController.getNotifications);
+router.get('/notifications/:id', auth, notificationController.getNotificationById);
+router.post('/notifications', auth, notificationController.createNotification);
+router.put('/notifications/:id', auth, notificationController.updateNotification);
+router.delete('/notifications/:id', auth, notificationController.deleteNotification);
+
+// Messages
+router.get('/messages', auth, messageController.getConversation);
+router.post('/messages', auth, messageController.sendMessage);
+router.get('/admins', auth, messageController.getAdmins);
+
+// Momo payment
+
+router.post('/momo/create', auth, orderController.createMomoOrder);
+router.post('/momo/webhook', orderController.momoWebhook);
+
+// User management (admin)
+router.get('/users', userController.getUsers); // Lấy tất cả user
+router.get('/users/:id', userController.getUserById); // Lấy chi tiết user
+router.put('/users/:id', userController.updateUser); // Cập nhật user
+router.delete('/users/:id', userController.deleteUser); // Xóa user
+router.patch('/users/:id/block', userController.blockUser); // Khóa/mở khóa user
+
+// Contact management (admin)
+router.get('/contacts', contactController.getContacts); // Lấy danh sách liên hệ
+router.patch('/contacts/:id/status', contactController.updateContactStatus); // Cập nhật trạng thái liên hệ
+router.patch('/contacts/:id/open', contactController.openContact); // Mở lại liên hệ
+router.delete('/contacts/:id', contactController.deleteContact); // Xóa liên hệ
+router.get('/contacts/:id', contactController.getContactById); // Lấy chi tiết liên hệ
+router.post('/contacts/:id/reply', contactController.replyContact); // Trả lời phản hồi
+
+module.exports = router;

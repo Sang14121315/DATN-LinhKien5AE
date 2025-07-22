@@ -1,0 +1,62 @@
+.footer {
+  background-color: #1c1c1e;
+  padding: 40px 20px 20px;
+  font-family: sans-serif;
+  color: #ffffff;
+
+  &__content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 30px;
+    margin-bottom: 20px;
+  }
+
+  &__col {
+    h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    p, li {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #cccccc;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+
+    .cert-icon {
+      width: 120px;
+      margin: 12px 0;
+    }
+
+    .footer__socials {
+      display: flex;
+      gap: 12px;
+      font-size: 20px;
+      margin-top: 10px;
+
+      svg {
+        cursor: pointer;
+        color: #ffffff;
+        transition: 0.3s;
+        &:hover {
+          color: #00bfff;
+        }
+      }
+    }
+  }
+
+  &__bottom {
+    text-align: center;
+    font-size: 13px;
+    color: #aaaaaa;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+  }
+}

@@ -1,0 +1,80 @@
+@use "../variables" as *;
+
+.footer {
+  background-color: #005472;
+  color: white;
+  font-family: $font-family-primary;
+  padding-top: 40px;
+
+  &__container {
+    max-width: $max-width;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  &__content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding-bottom: 30px;
+  }
+
+  &__col {
+    flex: 1;
+    min-width: 220px;
+
+    h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+
+      svg {
+        margin-right: 6px;
+      }
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 8px;
+      }
+    }
+  }
+
+  &__social {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+
+    svg {
+      font-size: 18px;
+      color: white;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.2);
+        color: #00ffff;
+      }
+    }
+  }
+
+  &__bottom {
+    background-color: #003e56;
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #eee;
+  }
+}

@@ -1,0 +1,72 @@
+.about5ae {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 16px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: 400px; // 👈 chỉnh chiều cao cho phù hợp, có thể là 200px nếu muốn thấp hơn nữa
+    object-fit: cover; // để ảnh không bị méo, tự căn cắt giữ bố cục
+    border-radius: 8px;
+    margin-bottom: 32px;
+  }
+
+  .section {
+    margin-bottom: 40px;
+
+    h2 {
+      font-size: 22px;
+      color: #005472;
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    ul {
+      margin-left: 20px;
+      list-style-type: disc;
+
+      li {
+        margin-bottom: 8px;
+      }
+    }
+
+    .highlight {
+      background-color: #f5f5f5;
+      padding: 12px 16px;
+      border-left: 4px solid #005472;
+      margin-bottom: 16px;
+      font-style: italic;
+    }
+  }
+
+  .contact-info {
+    background-color: #f0f8ff;
+    padding: 20px;
+    border-radius: 8px;
+
+    p {
+      margin-bottom: 8px;
+      font-size: 15px;
+
+      strong {
+        display: inline-block;
+        min-width: 90px;
+        color: #333;
+      }
+    }
+  }
+}

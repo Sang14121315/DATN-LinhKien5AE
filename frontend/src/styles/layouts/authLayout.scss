@@ -1,0 +1,17 @@
+.cart-toggle-btn {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  background: red;
+  color: white;
+  border: none;
+  padding: 10px;
+  z-index: 1100;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+
+  &:hover {
+    background: darkred;
+  }
+}

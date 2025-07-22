@@ -1,0 +1,286 @@
+.checkout-page {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: auto;
+  font-family: 'Segoe UI', sans-serif;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+    color: #333;
+  }
+
+  .checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.2fr;
+    gap: 24px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .checkout-section {
+    background: #fff;
+    padding: 20px;
+    width: 95%;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+
+    h3 {
+      margin-bottom: 20px;
+      color: #444;
+      font-size: 20px;
+    }
+
+    form, .qr-container, .discount-code, .action-buttons, textarea {
+      margin-top: 16px;
+    }
+  }
+
+  input, select, textarea {
+  width: 95%;
+   max-width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+
+  &:focus {
+    border-color: #007bff;
+  }
+
+  // ✅ THÊM VÀO ĐÂY
+  margin-bottom: 12px;
+  
+}
+
+
+  .error {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 5px;
+  }
+
+  .payment-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+
+    &.selected {
+      border-color: #007bff;
+      background-color: #e8f1ff;
+    }
+
+    span {
+      font-size: 15px;
+    }
+
+    input {
+      width: auto;
+      margin: 0;
+    }
+  }
+
+  .qr-container {
+    text-align: center;
+
+    p {
+      margin-bottom: 10px;
+    }
+
+    .qr-image {
+      width: 160px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  }
+
+  .order-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 10px;
+
+    img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+
+    p {
+      margin: 3px 0;
+      font-size: 14px;
+    }
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-weight: 500;
+
+    &.total {
+      font-size: 18px;
+      color: #007bff;
+      font-weight: 600;
+    }
+  }
+
+  .discount-code {
+    display: flex;
+    gap: 10px;
+
+    input {
+      flex: 1;
+    }
+
+    .apply-btn {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+  }
+
+  textarea {
+    width: 100%;
+    height: 80px;
+    margin-top: 16px;
+    resize: none;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+
+    .continue-btn,
+    .confirm-btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .continue-btn {
+      background: #6c757d;
+      color: white;
+
+      &:hover {
+        background: #5a6268;
+      }
+    }
+
+    .confirm-btn {
+      background: #28a745;
+      color: white;
+
+      &:hover {
+        background: #218838;
+      }
+    }
+  }
+
+  .order-success-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+
+    .popup-content {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+      h3 {
+        color: #28a745;
+        margin-bottom: 10px;
+      }
+
+      p {
+        margin-bottom: 20px;
+      }
+
+      button {
+        padding: 10px 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        margin: 6px;
+        cursor: pointer;
+
+        &:hover {
+          background: #0056b3;
+        }
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 16px;
+        cursor: pointer;
+        font-size: 22px;
+        font-weight: bold;
+        color: #999;
+
+        &:hover {
+          color: #333;
+        }
+      }
+    }
+  }
+}
+.coupon-section {
+  margin-top: 20px;
+  input {
+    padding: 8px;
+    margin-right: 10px;
+    width: 200px;
+  }
+  button {
+    padding: 8px 12px;
+    background-color: #28a745;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+  .discount-info {
+    margin-top: 10px;
+    color: #2d995b;
+    font-weight: 500;
+  }
+}
