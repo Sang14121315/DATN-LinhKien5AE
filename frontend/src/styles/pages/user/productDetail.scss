@@ -212,6 +212,7 @@
       .discount {
         color: #d70018; // màu đỏ tươi cho giá sau giảm
         font-weight: bold;
+        background-color: white;
       }
 
       .original {
@@ -267,16 +268,16 @@
           }
         }
 
-        .discount-tag {
-          position: absolute;
-          top: 6px;
-          right: 6px;
-          background: #f33;
-          color: #fff;
-          font-size: 12px;
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
+        // .discount-tag {
+        //   position: absolute;
+        //   top: 6px;
+        //   right: 6px;
+        //   background: #f33;
+        //   color: #fff;
+        //   font-size: 12px;
+        //   padding: 2px 6px;
+        //   border-radius: 4px;
+        // }
 
         .add-to-cart {
           margin-top: auto;

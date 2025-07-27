@@ -36,8 +36,9 @@ const handleSendCode = async () => {
     setMessage('✅ ' + res.message);
     setShowOtpInput(true);
 
-  } catch (error: any) {
-    setMessage('❌ ' + (error.response?.data?.message || 'Gửi mã thất bại.'));
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Gửi mã thất bại.';
+    setMessage('❌ ' + errorMessage);
   } finally {
     setSending(false);
   }

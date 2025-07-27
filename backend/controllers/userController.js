@@ -160,3 +160,35 @@ exports.blockUser = async (req, res) => {
     res.status(500).json({ message: error.message || 'Error blocking user' });
   }
 };
+
+// Lấy thông tin user hiện tại
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await UserService.getById(req.user.id);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error fetching current user' });
+  }
+};
+
+// Cập nhật profile user hiện tại
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+    
+    // Validation schema cho update profile
+    const updateProfileSchema = Joi.object({
+      name: Joi.string().required(),
+      phone: Joi.string().allow(''),
+      address: Joi.string().allow('')
+    });
+
+    const { error } = updateProfileSchema.validate(req.body);
+    if (error) return res.status(400).json({ message: error.details[0].message });
+
+    const user = await UserService.update(req.user.id, { name, phone, address });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error updating profile' });
+  }
+};

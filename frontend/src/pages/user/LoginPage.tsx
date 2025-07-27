@@ -34,9 +34,10 @@ const LoginPage: React.FC = () => {
       } else {
         navigate('/');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Login - Error:', error);
-      setErrorMsg(error.response?.data?.message || 'Đăng nhập thất bại!');
+      const errorMessage = error instanceof Error ? error.message : 'Đăng nhập thất bại!';
+      setErrorMsg(errorMessage);
     }
   };
 

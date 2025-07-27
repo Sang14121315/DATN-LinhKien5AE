@@ -145,9 +145,12 @@ const ProductDetail: React.FC = () => {
           </div>
 
           <div className="cta">
-            <button className="add-cart" onClick={() => addToCart({ ...product, quantity: 1 })}>
-                    <FaCartPlus /> THÊM VÀO GIỎ
-                  </button>
+            <button
+              className="add-cart"
+              onClick={() => addToCart({ ...product, quantity: 1 })}
+            >
+              <FaCartPlus /> THÊM VÀO GIỎ
+            </button>
             <button className="buy-now">MUA NGAY</button>
           </div>
 
@@ -193,41 +196,42 @@ const ProductDetail: React.FC = () => {
         <h2>Sản phẩm liên quan</h2>
         <div className="product-grid">
           {relatedProducts.slice(0, 6).map((rp) => (
-  <div
-    className="product-card"
-    key={rp._id}
-    onClick={() => (window.location.href = `/product/${rp._id}`)}
-    style={{ cursor: "pointer" }}
-  >
-    <img src={rp.img_url} alt={rp.name} />
-    <p className="product-brand">
-      {typeof rp.brand_id === "object" ? rp.brand_id.name : rp.brand_id}
-    </p>
-    <h4 className="product-name">{rp.name}</h4>
-    <div className="price-block">
-      {rp.sale ? (
-        <>
-          <span className="discount">
-            {formatCurrency(rp.price * 0.66)}
-          </span>
-          <span className="original">{formatCurrency(rp.price)}</span>
-        </>
-      ) : (
-        <span className="discount">{formatCurrency(rp.price)}</span>
-      )}
-    </div>
-<button
-  className="add-cart"
-  onClick={(e) => {
-    e.stopPropagation(); 
-    addToCart({ ...rp, quantity: 1 }); 
-  }}
->
-  <FaCartPlus /> THÊM VÀO GIỎ
-</button>
-  </div>
-))}
-
+            <div
+              className="product-card"
+              key={rp._id}
+              onClick={() => (window.location.href = `/product/${rp._id}`)}
+              style={{ cursor: "pointer" }}
+            >
+              <img src={rp.img_url} alt={rp.name} />
+              <p className="product-brand">
+                {typeof rp.brand_id === "object"
+                  ? rp.brand_id.name
+                  : rp.brand_id}
+              </p>
+              <h4 className="product-name">{rp.name}</h4>
+              <div className="price-block">
+                {rp.sale ? (
+                  <>
+                    <span className="discount">
+                      {formatCurrency(rp.price * 0.66)}
+                    </span>
+                    <span className="original">{formatCurrency(rp.price)}</span>
+                  </>
+                ) : (
+                  <span className="discount">{formatCurrency(rp.price)}</span>
+                )}
+              </div>
+              <button
+                className="add-cart"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addToCart({ ...rp, quantity: 1 });
+                }}
+              >
+                <FaCartPlus /> THÊM VÀO GIỎ
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -268,9 +272,12 @@ const ProductDetail: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <button className="add-cart" onClick={() => addToCart({ ...product, quantity: 1 })}>
-                          <FaShoppingCart /> THÊM VÀO GIỎ
-                        </button>
+                  <button
+                    className="add-cart"
+                    onClick={() => addToCart({ ...product, quantity: 1 })}
+                  >
+                    <FaShoppingCart /> THÊM VÀO GIỎ
+                  </button>
                 </div>
               ))}
           </div>

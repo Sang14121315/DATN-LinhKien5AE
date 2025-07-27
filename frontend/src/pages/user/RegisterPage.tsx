@@ -25,11 +25,17 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      await registerUser({ name: fullName, email, password, address });
+      const result = await registerUser({ name: fullName, email, password, address });
+      // Lưu token vào localStorage nếu cần
+      if (result.token) {
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+      }
       setErrorMsg('Đăng ký thành công! Đang chuyển đến trang đăng nhập...');
       setTimeout(() => navigate('/login'), 1500);
-    } catch (error: any) {
-      setErrorMsg(error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại!');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Đăng ký thất bại. Vui lòng thử lại!';
+      setErrorMsg(errorMessage);
     }
   };
 

@@ -4,7 +4,7 @@ import {
   fetchUserById,
   User,
   blockUser,
-} from '../../api/userAPI';
+} from '../../api/user/userAPI';
 import '../../styles/pages/admin/userTable.scss';
 
 const PAGE_SIZE = 10;

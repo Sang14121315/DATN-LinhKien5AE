@@ -125,6 +125,10 @@ router.put('/users/:id', userController.updateUser); // Cập nhật user
 router.delete('/users/:id', userController.deleteUser); // Xóa user
 router.patch('/users/:id/block', userController.blockUser); // Khóa/mở khóa user
 
+// User profile (user)
+router.get('/profile', auth, userController.getCurrentUser); // Lấy thông tin user hiện tại
+router.put('/profile', auth, userController.updateProfile); // Cập nhật profile user hiện tại
+
 // Contact management (admin)
 router.get('/contacts', contactController.getContacts); // Lấy danh sách liên hệ
 router.patch('/contacts/:id/status', contactController.updateContactStatus); // Cập nhật trạng thái liên hệ
