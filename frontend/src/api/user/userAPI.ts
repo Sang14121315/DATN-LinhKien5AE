@@ -1,94 +1,95 @@
-import axiosInstance from '../axios'; // đường dẫn tới file axios.ts
+import axios from '../axios';
 
-
-// Định nghĩa kiểu dữ liệu User
 export interface User {
   _id: string;
   name: string;
   email: string;
-  password?: string;
   phone?: string;
   address?: string;
   role: 'user' | 'admin';
-  created_at?: string;
-  updated_at?: string;
+  isBlocked: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-// -------------------------
-// API: Đăng ký người dùng
-// -------------------------
-export const registerUser = async (userData: {
+export interface UpdateProfileData {
+  name: string;
+  phone?: string;
+  address?: string;
+}
+
+// Lấy thông tin user hiện tại
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await axios.get('/profile');
+  return response.data;
+};
+
+// Cập nhật profile user
+export const updateProfile = async (data: UpdateProfileData): Promise<User> => {
+  const response = await axios.put('/profile', data);
+  return response.data;
+};
+
+// Đăng ký
+export const registerUser = async (data: {
   name: string;
   email: string;
   password: string;
   phone?: string;
   address?: string;
-}): Promise<User> => {
-  const response = await axiosInstance.post(`/register`, userData);
+}) => {
+  const response = await axios.post('/register', data);
   return response.data;
 };
 
-// -------------------------
-// API: Đăng nhập
-// -------------------------
-export const loginUser = async (credentials: {
-  email: string;
-  password: string;
-}): Promise<{ token: string; user: User }> => {
-  const response = await axiosInstance.post(`/login`, credentials);
+// Đăng nhập
+export const loginUser = async (data: { email: string; password: string }) => {
+  const response = await axios.post('/login', data);
   return response.data;
 };
 
-// -------------------------
-// API: Quên mật khẩu
-// -------------------------
-export const forgotPassword = async (email: string): Promise<{ message: string }> => {
-  const response = await axiosInstance.post(`/forgot-password`, { email });
+// Quên mật khẩu
+export const forgotPassword = async (data: { email: string }) => {
+  const response = await axios.post('/forgot-password', data);
   return response.data;
 };
 
-// -------------------------
-// API: Đặt lại mật khẩu
-// -------------------------
-export const resetPassword = async (token: string, newPassword: string): Promise<{ message: string }> => {
-  const response = await axiosInstance.post(`/reset-password`, {
-    token,
-    newPassword,
-  });
+// Đặt lại mật khẩu
+export const resetPassword = async (data: { token: string; newPassword: string }) => {
+  const response = await axios.post('/reset-password', data);
   return response.data;
 };
 
-// -------------------------
-// API: Lấy tất cả người dùng (admin)
-// -------------------------
+// Admin functions
+// Lấy tất cả users (admin)
 export const fetchAllUsers = async (): Promise<User[]> => {
-  const response = await axiosInstance.get(`/users`);
+  const response = await axios.get('/users');
   return response.data;
 };
 
-// -------------------------
-// API: Lấy chi tiết người dùng theo ID
-// -------------------------
+// Lấy user theo ID (admin)
 export const fetchUserById = async (userId: string): Promise<User> => {
-  const response = await axiosInstance.get(`/users/${userId}`);
+  const response = await axios.get(`/users/${userId}`);
   return response.data;
 };
 
-// -------------------------
-// API: Cập nhật người dùng
-// -------------------------
+// Cập nhật user (admin)
 export const updateUser = async (
   userId: string,
   updatedData: Partial<Omit<User, '_id' | 'created_at' | 'updated_at' | 'role'>>
 ): Promise<User> => {
-  const response = await axiosInstance.put(`/users/${userId}`, updatedData);
+  const response = await axios.put(`/users/${userId}`, updatedData);
   return response.data;
 };
 
-// -------------------------
-// API: Xóa người dùng
-// -------------------------
+// Xóa user (admin)
 export const deleteUser = async (userId: string): Promise<{ message: string }> => {
-  const response = await axiosInstance.delete(`/users/${userId}`);
+  const response = await axios.delete(`/users/${userId}`);
+  return response.data;
+};
+
+// Khóa/mở khóa user (admin)
+export const blockUser = async (userId: string, block: boolean): Promise<User> => {
+  const response = await axios.patch(`/users/${userId}/block`, { block });
   return response.data;
 };

@@ -31,6 +31,9 @@ import SearchResultPage from "@/pages/user/searchResult";
 import OrderTrackingPage from "@/pages/user/OrderTrackingPage";
 import ContactPage from "@/pages/user/ContactPage";
 import MomoCallbackPage from "@/pages/user/MomoCallbackPage";
+import ProfilePage from "@/pages/user/ProfilePage";
+import PurchasePage from "@/pages/user/PurchasePage";
+import UserProfileLayout from "@/layouts/userProfile.layout";
 import ProductTablePage from "@/pages/admin/ProductTable";
 import ProductFormPage from "@/pages/admin/ProductForm";
 
@@ -81,6 +84,12 @@ const MainRouter = () => {
         <Route path="orders" element={<OrderTrackingPage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="momo-callback" element={<MomoCallbackPage />} />
+        
+        {/* User Profile Layout */}
+        <Route element={<UserProfileLayout />}>
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="purchase" element={<PurchasePage />} />
+        </Route>
       </Route>
     </Routes>
   );
