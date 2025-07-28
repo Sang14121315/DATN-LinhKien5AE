@@ -6,6 +6,7 @@ import { fetchCoupons } from "@/api/couponAPI";
 import "@/styles/pages/user/checkoutPage.scss";
 import { useNavigate } from "react-router-dom";
 import { createMomoOrder } from '@/api/momoAPI';
+import { sendOrderConfirmationEmail } from '@/utils/emailService';
 
 const CheckoutPage: React.FC = () => {
   const { cartItems, clearCart, forceClearCart, reloadCart } = useCart();
@@ -161,6 +162,33 @@ const CheckoutPage: React.FC = () => {
         const res = await createMomoOrder(payload);
         console.log('🔍 Checkout - MoMo response:', res);
         if (res && res.payUrl) {
+          // Gửi email xác nhận đơn hàng MoMo
+          try {
+            console.log('📧 Sending MoMo order confirmation email...');
+            const orderData = {
+              _id: res.orderId || 'MOMO_ORDER_' + Date.now(),
+              customer: {
+                name: formData.name,
+                email: formData.email || '',
+                phone: formData.phone,
+                address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
+              },
+              total: total,
+              payment_method: paymentMethod,
+              status: 'pending',
+              created_at: new Date().toISOString()
+            };
+
+            const emailResult = await sendOrderConfirmationEmail(orderData);
+            if (emailResult.success) {
+              console.log('✅ MoMo order confirmation email sent successfully!');
+            } else {
+              console.error('❌ Failed to send MoMo order confirmation email:', emailResult.error);
+            }
+          } catch (emailError) {
+            console.error('❌ Error sending MoMo order confirmation email:', emailError);
+          }
+
           // Xóa giỏ hàng ngay khi tạo đơn hàng MoMo thành công
           console.log('✅ Checkout - MoMo order created, clearing cart...');
           console.log('✅ Checkout - Cart items before clear:', cartItems);
@@ -182,10 +210,37 @@ const CheckoutPage: React.FC = () => {
       } else {
         console.log('🔍 Checkout - Creating COD order...');
         // COD logic cũ
-        await addOrder(payload);
+        const orderResult = await addOrder(payload);
         forceClearCart();
         setShowSuccess(true);
         setShowError(false);
+
+        // Gửi email xác nhận đơn hàng
+        try {
+          console.log('📧 Sending order confirmation email...');
+          const orderData = {
+            _id: orderResult?._id || 'ORDER_' + Date.now(),
+            customer: {
+              name: formData.name,
+              email: formData.email || '',
+              phone: formData.phone,
+              address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
+            },
+            total: total,
+            payment_method: paymentMethod,
+            status: 'pending',
+            created_at: new Date().toISOString()
+          };
+
+          const emailResult = await sendOrderConfirmationEmail(orderData);
+          if (emailResult.success) {
+            console.log('✅ Order confirmation email sent successfully!');
+          } else {
+            console.error('❌ Failed to send order confirmation email:', emailResult.error);
+          }
+        } catch (emailError) {
+          console.error('❌ Error sending order confirmation email:', emailError);
+        }
       }
     } catch (error: any) {
       console.error('❌ Checkout - Error when placing order:', error?.response?.data || error.message);
