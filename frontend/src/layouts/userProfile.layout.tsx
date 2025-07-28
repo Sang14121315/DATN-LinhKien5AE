@@ -54,10 +54,6 @@ const UserProfileLayout: React.FC = () => {
             </div>
             <div className="user-details">
               <div className="user-name">{user?.name || "Loading..."}</div>
-              <div className="edit-profile">
-                <FaUser />
-                Sửa Hồ Sơ
-              </div>
             </div>
           </div>
 

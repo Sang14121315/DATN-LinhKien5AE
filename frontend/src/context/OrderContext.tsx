@@ -26,7 +26,7 @@ interface OrderData {
   items: OrderItem[];
 }
 
-interface Order {
+export interface Order {
   _id: string;
   customer: CustomerInfo;
   total: number;
@@ -70,7 +70,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const cancelOrder = async (id: string) => {
     try {
-      await cancelOrderAPI(id, { status: 'cancelled' });
+      await cancelOrderAPI(id);
       setOrders(prev =>
         prev.map(order =>
           order._id === id ? { ...order, status: 'cancelled' } : order

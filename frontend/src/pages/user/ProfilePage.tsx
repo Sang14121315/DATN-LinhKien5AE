@@ -117,11 +117,6 @@ const ProfilePage: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Chat Button */}
-      <div className="chat-button">
-        Chat
-      </div>
     </div>
   );
 };
