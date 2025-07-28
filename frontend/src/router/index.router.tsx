@@ -7,7 +7,7 @@ import BrandTablePage from "@/pages/admin/BrandTable";
 import BrandFormPage from "@/pages/admin/BrandForm";
 import Orderfrom from "@/pages/admin/OrderPage";
 import AdminOrderDetailPage from "@/pages/admin/AdminOrderDetailPage";
-import CouponAdmin from "@/pages/admin/AdminCouponPage"
+import CouponAdmin from "@/pages/admin/AdminCouponPage";
 import ProductTypeTablePage from "@/pages/admin/ProductTypeTable";
 import ProductTypeFormPage from "@/pages/admin/ProductTypeForm";
 
@@ -37,7 +37,6 @@ import UserProfileLayout from "@/layouts/userProfile.layout";
 import ProductTablePage from "@/pages/admin/ProductTable";
 import ProductFormPage from "@/pages/admin/ProductForm";
 
-
 const MainRouter = () => {
   return (
     <Routes>
@@ -51,15 +50,17 @@ const MainRouter = () => {
         <Route path="brand/create" element={<BrandFormPage />} />
         <Route path="brand/:id/form" element={<BrandFormPage />} />
         <Route path="order" element={<Orderfrom />} />
-        <Route path="orders/:id" element={<AdminOrderDetailPage/>} />
-        <Route path="coupons" element={<CouponAdmin/>} />
-                <Route path="products" element={<ProductTablePage />} />
+        <Route path="orders/:id" element={<AdminOrderDetailPage />} />
+        <Route path="coupons" element={<CouponAdmin />} />
+        <Route path="products" element={<ProductTablePage />} />
         <Route path="products/create" element={<ProductFormPage />} />
         <Route path="products/:id/form" element={<ProductFormPage />} />
-                <Route path="product-types" element={<ProductTypeTablePage />} />
+        <Route path="product-types" element={<ProductTypeTablePage />} />
         <Route path="product-types/create" element={<ProductTypeFormPage />} />
-        <Route path="product-types/:id/form" element={<ProductTypeFormPage />} />
-        
+        <Route
+          path="product-types/:id/form"
+          element={<ProductTypeFormPage />}
+        />
 
         <Route path="users" element={<AdminUserPage />} />
         <Route path="feedback" element={<AdminContactPage />} />
@@ -84,7 +85,7 @@ const MainRouter = () => {
         <Route path="orders" element={<OrderTrackingPage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="momo-callback" element={<MomoCallbackPage />} />
-        
+
         {/* User Profile Layout */}
         <Route element={<UserProfileLayout />}>
           <Route path="profile" element={<ProfilePage />} />

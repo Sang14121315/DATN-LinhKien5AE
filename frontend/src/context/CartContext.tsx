@@ -6,6 +6,7 @@ import {
   removeCartItemAPI,
   clearCartAPI
 } from '@/api/user/cartAPI';
+import { fetchProductById } from '@/api/user/productAPI';
 
 interface CartItem {
   
@@ -30,6 +31,7 @@ interface CartContextType {
   clearCart: () => Promise<void>;
   forceClearCart: () => void;
   reloadCart: () => Promise<void>;
+  updateQuantity: (id: string, quantity: number) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -52,9 +54,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      setCartItems(data.items);
-    } catch (error: any) {
-      console.error('❌ Lỗi khi load cart:', error?.response?.data || error.message);
+      // Fill missing product info if needed
+      const itemsWithInfo = await Promise.all(
+        (data.items as CartItem[]).map(async (item) => {
+          if (item.name && item.price && item.img_url) return item;
+          // Type guard for _id or product_id
+          const productId = (item as { _id?: string; product_id?: string })._id || (item as { product_id?: string }).product_id;
+          if (!productId) return item;
+          try {
+            const product = await fetchProductById(productId);
+            return {
+              ...item,
+              _id: product._id,
+              name: product.name,
+              price: product.price,
+              img_url: product.img_url || '',
+            };
+          } catch {
+            return item;
+          }
+        })
+      );
+      setCartItems(itemsWithInfo);
+    } catch (error) {
+      console.error('❌ Lỗi khi load cart:', (error as Error).message);
     }
   };
 
@@ -140,6 +163,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const updateQuantity = async (id: string, quantity: number) => {
+    try {
+      await updateCartItemAPI(id, quantity);
+      await loadCart();
+    } catch (error) {
+      console.error('❌ Lỗi khi cập nhật số lượng:', error);
+    }
+  };
+
   const openCart = () => setIsSidebarOpen(true);
   const closeCart = () => setIsSidebarOpen(false);
 
@@ -159,6 +191,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearCart,
         forceClearCart,
         reloadCart,
+        updateQuantity,
       }}
     >
       {children}
