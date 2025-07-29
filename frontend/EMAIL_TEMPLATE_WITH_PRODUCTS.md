@@ -1,20 +1,6 @@
-# Hướng dẫn cấu hình EmailJS cho hệ thống
+# Template Email với Danh sách Sản phẩm
 
-## 🔧 **Bước 1: Cấu hình EmailJS Dashboard**
-
-### 1.1. Tạo Email Service
-1. Đăng nhập vào [EmailJS Dashboard](https://dashboard.emailjs.com/)
-2. Click **"Email Services"** trong sidebar
-3. Click **"+ Add New Service"**
-4. Chọn **"Gmail"**
-5. Đặt tên: `linhkien5anhem`
-6. Copy **Service ID**: `service_qi4c4fw`
-
-### 1.2. Tạo Email Template
-1. Click **"Email Templates"** trong sidebar
-2. Click **"+ Create New Template"**
-3. Đặt tên: **"Order Confirmation"**
-4. Copy template HTML này:
+## HTML Template cho EmailJS:
 
 ```html
 <!DOCTYPE html>
@@ -28,7 +14,14 @@
         .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 10px 10px; }
         .order-info { background: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #667eea; }
+        .products-table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; border-radius: 5px; overflow: hidden; }
+        .products-table th { background: #667eea; color: white; padding: 12px; text-align: left; }
+        .products-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .products-table tr:hover { background: #f8f9fa; }
         .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+        .product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
     </style>
 </head>
 <body>
@@ -48,6 +41,25 @@
                 <p><strong>Ngày đặt:</strong> {{order_date}}</p>
                 <p><strong>Phương thức thanh toán:</strong> {{payment_method}}</p>
                 <p><strong>Trạng thái:</strong> {{status}}</p>
+                <p><strong>Số lượng sản phẩm:</strong> {{products_count}} sản phẩm</p>
+            </div>
+
+            <div class="order-info">
+                <h3>🛍️ Chi tiết sản phẩm:</h3>
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center;">Hình ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th style="text-align: center;">Số lượng</th>
+                            <th style="text-align: right;">Đơn giá</th>
+                            <th style="text-align: right;">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{products_html}}
+                    </tbody>
+                </table>
             </div>
 
             <div class="order-info">
@@ -80,70 +92,23 @@
 </html>
 ```
 
-5. Click **"Save"**
-6. Copy **Template ID** (sẽ hiện sau khi save)
+## Cách sử dụng:
 
-### 1.3. Lấy Public Key
-1. Click **"Account"** trong sidebar
-2. Click **"API Keys"**
-3. Copy **Public Key**
+1. **Copy template HTML** trên vào EmailJS Dashboard
+2. **Tạo template mới** với tên "Order Confirmation with Products"
+3. **Lấy Template ID** mới
+4. **Cập nhật** `TEMPLATE_ID` trong `emailService.ts`
 
-## 🔧 **Bước 2: Cập nhật cấu hình trong code**
+## Biến được sử dụng:
 
-### 2.1. Cập nhật file `frontend/src/services/emailService.ts`:
-
-```typescript
-const EMAILJS_CONFIG = {
-  SERVICE_ID: 'service_qi4c4fw', // Service ID của bạn
-  TEMPLATE_ID: 'template_xyz789', // Template ID (thay bằng ID thật)
-  PUBLIC_KEY: 'your_public_key_here' // Public Key (thay bằng key thật)
-};
-```
-
-## 🧪 **Bước 3: Test EmailJS**
-
-### 3.1. Chạy frontend
-```bash
-cd frontend
-npm run dev
-```
-
-### 3.2. Test email khi đặt hàng
-1. Mở trình duyệt
-2. Truy cập: `http://localhost:5173`
-3. Thêm sản phẩm vào giỏ hàng
-4. Đi đến trang checkout
-5. Điền thông tin và đặt hàng
-6. Email xác nhận sẽ được gửi tự động
-7. Kiểm tra hộp thư (cả spam folder)
-
-## 🔍 **Troubleshooting**
-
-### Lỗi "Invalid Public Key"
-- Kiểm tra Public Key có đúng không
-- Đảm bảo đã copy đầy đủ key
-
-### Lỗi "Service not found"
-- Kiểm tra Service ID có đúng không
-- Đảm bảo Email Service đã được tạo
-
-### Lỗi "Template not found"
-- Kiểm tra Template ID có đúng không
-- Đảm bảo Email Template đã được tạo và save
-
-### Email không nhận được
-- Kiểm tra spam folder
-- Đảm bảo email đã được nhập đúng
-- Kiểm tra console để xem lỗi chi tiết
-
-## 📧 **Các loại email được gửi**
-
-1. **Email xác nhận đơn hàng** - Khi khách hàng đặt hàng thành công (COD hoặc MoMo)
-
-## 🎯 **Kết quả mong đợi**
-
-Sau khi cấu hình thành công:
-- ✅ EmailJS sẽ gửi email xác nhận khi đặt hàng
-- ✅ Email sẽ có template đẹp với thông tin đơn hàng
-- ✅ Không cần cấu hình Gmail App Password
-- ✅ Hoạt động ngay lập tức sau khi cấu hình 
+- `{{order_id}}` - Mã đơn hàng
+- `{{to_name}}` - Tên khách hàng
+- `{{order_date}}` - Ngày đặt hàng
+- `{{payment_method}}` - Phương thức thanh toán
+- `{{status}}` - Trạng thái đơn hàng
+- `{{products_count}}` - Số lượng sản phẩm
+- `{{products_html}}` - HTML danh sách sản phẩm
+- `{{total_amount}}` - Tổng tiền
+- `{{customer_phone}}` - Số điện thoại
+- `{{to_email}}` - Email khách hàng
+- `{{customer_address}}` - Địa chỉ giao hàng 

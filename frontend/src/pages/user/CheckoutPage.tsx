@@ -6,7 +6,7 @@ import { fetchCoupons } from "@/api/couponAPI";
 import "@/styles/pages/user/checkoutPage.scss";
 import { useNavigate } from "react-router-dom";
 import { createMomoOrder } from '@/api/momoAPI';
-import { sendOrderConfirmationEmail } from '@/utils/emailService';
+import { sendOrderConfirmationEmail } from '@/services/emailService';
 
 const CheckoutPage: React.FC = () => {
   const { cartItems, clearCart, forceClearCart, reloadCart } = useCart();
@@ -226,6 +226,7 @@ const CheckoutPage: React.FC = () => {
               phone: formData.phone,
               address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`
             },
+            items: cartItems, // Thêm danh sách sản phẩm
             total: total,
             payment_method: paymentMethod,
             status: 'pending',

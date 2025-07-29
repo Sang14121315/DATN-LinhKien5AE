@@ -29,10 +29,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Test email route (chỉ dùng trong development)
-if (process.env.NODE_ENV === 'development') {
-  app.use('/api/test', require('./routes/testEmail'));
-}
+// EmailJS được sử dụng ở frontend, không cần test route
 
 // Error Handler Middleware
 app.use(errorHandler);
