@@ -2,7 +2,6 @@ const OrderService = require('../services/orderService');
 const OrderDetailService = require('../services/OrderDetailService');
 const CartService = require('../services/CartService');
 const UserService = require('../services/userService');
-const EmailService = require('../services/emailService');
 const Joi = require('joi');
 const { createMomoPayment } = require('../services/orderService');
 
@@ -131,15 +130,8 @@ module.exports = {
       await OrderDetailService.createMany(detailDocs);
       await CartService.clearCart(userId);
 
-      // Gửi email xác nhận đơn hàng cho khách hàng
-      try {
-        const user = await UserService.getById(userId);
-        await EmailService.sendOrderConfirmation(order, detailDocs, user);
-        await EmailService.sendOrderNotificationToAdmin(order, detailDocs, user);
-      } catch (emailError) {
-        console.error('❌ Lỗi gửi email:', emailError);
-        // Không dừng quá trình tạo đơn hàng nếu gửi email thất bại
-      }
+      // Email sẽ được gửi từ frontend (EmailJS)
+      console.log('📧 Email sẽ được gửi từ frontend (EmailJS)');
 
       const io = req.app.get('io');
       if (io) {
@@ -180,16 +172,8 @@ module.exports = {
       const oldStatus = order.status;
       const updated = await OrderService.update(req.params.id, req.body);
 
-      // Gửi email cập nhật trạng thái nếu có thay đổi
-      if (req.body.status && req.body.status !== oldStatus) {
-        try {
-          const user = await UserService.getById(order.user_id);
-          await EmailService.sendOrderStatusUpdate(updated, user, oldStatus, req.body.status);
-        } catch (emailError) {
-          console.error('❌ Lỗi gửi email cập nhật trạng thái:', emailError);
-          // Không dừng quá trình cập nhật nếu gửi email thất bại
-        }
-      }
+      // Email cập nhật trạng thái sẽ được gửi từ frontend (EmailJS)
+      console.log('📧 Email cập nhật trạng thái sẽ được gửi từ frontend (EmailJS)');
 
       res.json(updated);
     } catch (error) {
@@ -253,15 +237,8 @@ module.exports = {
         console.error('❌ Error clearing cart when creating MoMo order:', cartError);
       }
 
-      // Gửi email xác nhận đơn hàng cho khách hàng (MoMo)
-      try {
-        const user = await UserService.getById(userId);
-        await EmailService.sendOrderConfirmation(order, detailDocs, user);
-        await EmailService.sendOrderNotificationToAdmin(order, detailDocs, user);
-      } catch (emailError) {
-        console.error('❌ Lỗi gửi email MoMo:', emailError);
-        // Không dừng quá trình tạo đơn hàng nếu gửi email thất bại
-      }
+      // Email xác nhận MoMo sẽ được gửi từ frontend (EmailJS)
+      console.log('📧 Email xác nhận MoMo sẽ được gửi từ frontend (EmailJS)');
 
       // Tạo link thanh toán Momo với orderId thực
       const orderId = order._id.toString();
@@ -327,14 +304,8 @@ module.exports = {
               // Tiếp tục xử lý ngay cả khi xóa giỏ hàng thất bại
             }
             
-            // Gửi email thông báo thanh toán thành công
-            try {
-              const user = await UserService.getById(updatedOrder.user_id);
-              const orderDetails = await OrderDetailService.getByOrderId(orderId);
-              await EmailService.sendOrderStatusUpdate(updatedOrder, user, 'pending', 'paid');
-            } catch (emailError) {
-              console.error('❌ Lỗi gửi email thanh toán thành công:', emailError);
-            }
+            // Email thông báo thanh toán thành công sẽ được gửi từ frontend (EmailJS)
+            console.log('📧 Email thông báo thanh toán thành công sẽ được gửi từ frontend (EmailJS)');
 
             // Gửi thông báo realtime
             const io = req.app.get('io');
