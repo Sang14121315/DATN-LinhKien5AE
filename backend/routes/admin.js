@@ -13,7 +13,7 @@ const messageController = require('../controllers/messageController');
 const couponController = require('../controllers/couponController');
 const contactController = require('../controllers/contactController');
 const categoryController = require('../controllers/categoryController');
-const EmailService = require('../services/emailService');
+// EmailService đã được chuyển sang frontend (EmailJS)
 console.log("🧪 categoryController =", categoryController);
 
  // ✅ THÊM DÒNG NÀY
@@ -70,22 +70,13 @@ router.post('/brands', auth, adminAuth, upload.single('logoFile'), brandControll
 router.put('/brands/:id', auth, adminAuth, upload.single('logoFile'), brandController.updateBrand);
 router.delete('/brands/:id', auth, adminAuth, brandController.deleteBrand);
 
-// Email admin info route
+// Email admin info route - EmailJS được sử dụng ở frontend
 router.get('/admin-emails', auth, adminAuth, async (req, res) => {
-  try {
-    const adminEmails = await EmailService.getAdminEmails();
-    res.json({
-      success: true,
-      adminEmails,
-      count: adminEmails.length
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Lỗi khi lấy danh sách email admin',
-      error: error.message
-    });
-  }
+  res.json({
+    success: true,
+    message: 'EmailJS được sử dụng ở frontend',
+    adminEmails: []
+  });
 });
 
 module.exports = router;
