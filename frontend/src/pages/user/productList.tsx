@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
 import "@/styles/pages/user/productList.scss";
 
@@ -17,6 +17,7 @@ const ProductListPage: React.FC = () => {
   const [selectedPrice, setSelectedPrice] = useState("all");
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
   const itemsPerPage = 16;
@@ -52,16 +53,22 @@ const ProductListPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem("productFilters");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setSelectedCategory(parsed.category || "all");
-      setSelectedBrand(parsed.brand || "all");
-      setSelectedPrice(parsed.price || "all");
-      setTimeout(() => window.scrollTo(0, parsed.scroll || 0), 50);
+    // Handle category from URL query parameter
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
+    } else {
+      const saved = sessionStorage.getItem("productFilters");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setSelectedCategory(parsed.category || "all");
+        setSelectedBrand(parsed.brand || "all");
+        setSelectedPrice(parsed.price || "all");
+        setTimeout(() => window.scrollTo(0, parsed.scroll || 0), 50);
+      }
     }
     setFiltersInitialized(true);
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!filtersInitialized) return;

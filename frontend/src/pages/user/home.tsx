@@ -16,6 +16,8 @@ const HomePage: React.FC = () => {
   const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
   const [allCategoryProducts, setAllCategoryProducts] = useState<Product[]>([]);
+  const [currentSaleIndex, setCurrentSaleIndex] = useState(0);
+
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
@@ -116,6 +118,20 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const nextSaleProducts = () => {
+    const nextIndex = currentSaleIndex + 4;
+    if (nextIndex < saleProducts.length) {
+      setCurrentSaleIndex(nextIndex);
+    }
+  };
+
+  const prevSaleProducts = () => {
+    const prevIndex = currentSaleIndex - 4;
+    if (prevIndex >= 0) {
+      setCurrentSaleIndex(prevIndex);
+    }
+  };
+
   const renderProductItem = (product: Product) => (
     <div key={product._id} className="product-item">
       <img
@@ -135,6 +151,9 @@ const HomePage: React.FC = () => {
       </button>
     </div>
   );
+
+  const selectedCategoryName = categories.find(c => c._id === selectedCategory)?.name || "Danh mục";
+  const selectedCategoryId = selectedCategory;
 
   return (
     <div className="home-page">
@@ -287,16 +306,47 @@ const HomePage: React.FC = () => {
       </section>
 
       <section className="km-products">
-        <h2>Sản phẩm khuyến mãi</h2>
-        <div className="product-list">
-          {saleProducts.map(renderProductItem)}
+        <div className="section-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <h2> Sản phẩm khuyến mãi</h2>
+          <button className="view-all-btn" onClick={() => navigate(`/product-list?category=${selectedCategoryId}`)}>Xem tất cả</button>
         </div>
-      </section>
-
-      <section className="km-products">
-        <h2>Sản phẩm bán chạy</h2>
-        <div className="product-list">
-          {bestSellerProducts.map(renderProductItem)}
+        <div className="product-list no-scroll">
+          {categoryProducts.slice(0, 5).map((product) => (
+            <div key={product._id} className="sale-product-card">
+              <div className="product-image small">
+                <img
+                  src={product.img_url || '/images/no-image.png'}
+                  alt={product.name}
+                  onClick={() => navigate(`/product/${product._id}`)}
+                />
+              </div>
+              <div className="product-details">
+                <div className="rating-section">
+                  <div className="stars">
+                    <span>★★★★★</span>
+                    <span className="rating-count">(0)</span>
+                  </div>
+                  <div className="product-code">MÃ: {product._id.slice(-8).toUpperCase()}</div>
+                </div>
+                <h4 className="product-name">{product.name}</h4>
+                <div className="price-section">
+                  <div className="original-price">{(product.price * 1.3).toLocaleString()}₫</div>
+                  <div className="savings">(Tiết kiệm: 30%)</div>
+                  <div className="current-price">{product.price.toLocaleString()}₫</div>
+                </div>
+                <div className="availability">
+                  <span className="check-icon">✓</span>
+                  <span>Sẵn hàng</span>
+                </div>
+                <button 
+                  className="add-to-cart-btn"
+                  onClick={() => addToCart({ ...product, quantity: 1 })}
+                >
+                  🛒
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -322,17 +372,38 @@ const HomePage: React.FC = () => {
                     )
                     .map((p) => (
                       <div key={p._id} className="product-card">
-                        <img
-                          src={p.img_url || '/images/no-image.png'}
-                          alt={p.name}
-                          onClick={() => navigate(`/product/${p._id}`)}
-                          style={{ cursor: 'pointer' }}
-                        />
-                        <h4>{p.name}</h4>
-                        <div className="price">{p.price.toLocaleString()}đ</div>
-                        <div className="old-price">{(p.price * 1.2).toLocaleString()}đ</div>
-                        <div className="discount">-20%</div>
-                        <button onClick={() => addToCart({ ...p, quantity: 1 })}>Thêm vào giỏ</button>
+                        <div className="product-image">
+                          <img
+                            src={p.img_url || '/images/no-image.png'}
+                            alt={p.name}
+                            onClick={() => navigate(`/product/${p._id}`)}
+                          />
+                        </div>
+                        <div className="product-details">
+                          <div className="rating-section">
+                            <div className="stars">
+                              <span>★★★★★</span>
+                              <span className="rating-count">(0)</span>
+                            </div>
+                            <div className="product-code">MÃ: {p._id.slice(-8).toUpperCase()}</div>
+                          </div>
+                          <h4 className="product-name">{p.name}</h4>
+                          <div className="price-section">
+                            <div className="original-price">{(p.price * 1.3).toLocaleString()}₫</div>
+                            <div className="savings">(Tiết kiệm: 30%)</div>
+                            <div className="current-price">{p.price.toLocaleString()}₫</div>
+                          </div>
+                          <div className="availability">
+                            <span className="check-icon">✓</span>
+                            <span>Sẵn hàng</span>
+                          </div>
+                          <button 
+                            className="add-to-cart-btn"
+                            onClick={() => addToCart({ ...p, quantity: 1 })}
+                          >
+                            🛒
+                          </button>
+                        </div>
                       </div>
                     ))}
                 </div>
@@ -345,29 +416,6 @@ const HomePage: React.FC = () => {
         </section>
       ))}
 
-      <section className="gaming-gear-section">
-        <h2>GAMING GEAR</h2>
-        <div className="gear-list">
-          {bestSellerProducts.slice(0, 6).map((p) => (
-            <div key={p._id} className="gear-item">
-              <img
-                src={p.img_url || '/images/no-image.png'}
-                alt={p.name}
-                onClick={() => navigate(`/product/${p._id}`)}
-                style={{ cursor: 'pointer' }}
-              />
-              <div className="gear-info">
-                <p className="gear-name">{p.name}</p>
-                <div className="gear-price">
-                  <span className="new-price">{p.price.toLocaleString()}đ</span>
-                  <span className="old-price">{(p.price * 1.1).toLocaleString()}đ</span>
-                  <span className="discount">-10%</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 };
