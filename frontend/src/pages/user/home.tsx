@@ -11,9 +11,21 @@ const HomePage: React.FC = () => {
   const [hotProducts, setHotProducts] = useState<Product[]>([]);
   const [saleProducts, setSaleProducts] = useState<Product[]>([]);
   const [bestSellerProducts, setBestSellerProducts] = useState<Product[]>([]);
-
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
+  const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [allCategoryProducts, setAllCategoryProducts] = useState<Product[]>([]);
   const navigate = useNavigate();
   const { addToCart } = useCart();
+
+  // Banner images array
+  const bannerImages = [
+    "/img/banner 1.webp",
+    "/img/anh2.jpg", 
+    "/img/slide_1_img.webp",
+    "/img/slide_3_img.jpg"
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +42,79 @@ const HomePage: React.FC = () => {
 
     fetchData();
   }, []);
+
+  // Fetch products by category
+  useEffect(() => {
+    const fetchProductsByCategory = async () => {
+      if (selectedCategory === 'all') {
+        setAllCategoryProducts(hotProducts);
+        setCategoryProducts(hotProducts.slice(0, 4));
+        setCurrentProductIndex(0);
+        return;
+      }
+
+      try {
+        const allProducts = await fetchAllProducts();
+        const filteredProducts = allProducts.filter(product => {
+          if (typeof product.category_id === 'object' && product.category_id) {
+            return (product.category_id as { _id: string })._id === selectedCategory;
+          }
+          return product.category_id === selectedCategory;
+        });
+        setAllCategoryProducts(filteredProducts);
+        setCategoryProducts(filteredProducts.slice(0, 4));
+        setCurrentProductIndex(0);
+      } catch (error) {
+        console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
+        setAllCategoryProducts(hotProducts);
+        setCategoryProducts(hotProducts.slice(0, 4));
+        setCurrentProductIndex(0);
+      }
+    };
+
+    fetchProductsByCategory();
+  }, [selectedCategory, hotProducts]);
+
+  // Auto slide effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [bannerImages.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + bannerImages.length) % bannerImages.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  const handleCategoryFilter = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const nextProducts = () => {
+    const nextIndex = currentProductIndex + 4;
+    if (nextIndex < allCategoryProducts.length) {
+      setCurrentProductIndex(nextIndex);
+      setCategoryProducts(allCategoryProducts.slice(nextIndex, nextIndex + 4));
+    }
+  };
+
+  const prevProducts = () => {
+    const prevIndex = currentProductIndex - 4;
+    if (prevIndex >= 0) {
+      setCurrentProductIndex(prevIndex);
+      setCategoryProducts(allCategoryProducts.slice(prevIndex, prevIndex + 4));
+    }
+  };
 
   const renderProductItem = (product: Product) => (
     <div key={product._id} className="product-item">
@@ -68,28 +153,136 @@ const HomePage: React.FC = () => {
               ))}
             </ul>
           </div>
+          
           <div className="content-right">
-            <div className="top-menu">
-              <div className="menu-item"><span>🛡️</span> <span>Chất lượng đảm bảo</span></div>
-              <div className="menu-item"><span>🚛</span> <span>Vận chuyển siêu nhanh</span></div>
-              <div className="menu-item"><span>📞</span> <span>Tư vấn: 0336713116 </span></div>
-            </div>
-            <div className="top-banner">
-              <img src="/img/anh2.jpg" alt="Banner" />
+            <div className="hero-banner">
+              <div className="main-banner">
+                <div className="slider-container">
+                  <div 
+                    className="slider-track"
+                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                  >
+                    {bannerImages.map((image, index) => (
+                      <div key={index} className="slide">
+                        <img src={image} alt={`Banner ${index + 1}`} />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Navigation arrows */}
+                  <button className="slider-arrow prev" onClick={prevSlide}>
+                    ‹
+                  </button>
+                  <button className="slider-arrow next" onClick={nextSlide}>
+                    ›
+                  </button>
+                  
+                  {/* Dots indicator */}
+                  <div className="slider-dots">
+                    {bannerImages.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`dot ${index === currentSlide ? 'active' : ''}`}
+                        onClick={() => goToSlide(index)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="promo-banners">
+                <div className="promo-banner">
+                  <img src="/img/p2.webp" alt="Banner khuyến mãi 1" />
+                </div>
+                <div className="promo-banner">
+                  <img src="/img/p3.webp" alt="Banner khuyến mãi 2" />
+                </div>
+                <div className="promo-banner">
+                  <img src="/img/p4.jpg" alt="Banner khuyến mãi 3" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="bottom-images">
-          {["anh2.jpg", "banner 1.webp", "slide_1_img.webp", "slide_3_img.jpg"].map((img, i) => (
-            <img key={i} src={`/img/${img}`} alt={`Ảnh ${i + 1}`} />
-          ))}
+        
+        <div className="bottom-long-banner">
+          <img src="/img/bannerphu.jpg" alt="Banner dài" />
         </div>
       </section>
 
       <section className="hot-products">
-        <h2>Sản phẩm nổi bật</h2>
-        <div className="product-list">
-          {hotProducts.map(renderProductItem)}
+        <div className="hot-sale-header">
+          <div className="header-left">
+            <div className="title-section">
+              <span className="flame-icon">🔥</span>
+              <h2>HOT SALE CUỐI TUẦN</h2>
+            </div>
+          </div>
+          <div className="category-filters">
+            <button 
+              className={`filter-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+              onClick={() => handleCategoryFilter('all')}
+            >
+              Tất cả
+            </button>
+            {categories.slice(0, 3).map((category) => (
+              <button
+                key={category._id}
+                className={`filter-btn ${selectedCategory === category._id ? 'active' : ''}`}
+                onClick={() => handleCategoryFilter(category._id)}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="product-carousel">
+          <button 
+            className="carousel-arrow prev" 
+            onClick={prevProducts}
+            disabled={currentProductIndex === 0}
+          >
+            ‹
+          </button>
+          <div className="product-list">
+            {categoryProducts.map((product) => (
+              <div key={product._id} className="hot-product-card">
+                <div className="card-header">
+                  <span className="discount-tag">Giảm 13%</span>
+                  <span className="installment-tag">Trả góp 0%</span>
+                </div>
+                <div className="product-image">
+                  <img
+                    src={product.img_url || '/images/no-image.png'}
+                    alt={product.name}
+                    onClick={() => navigate(`/product/${product._id}`)}
+                  />
+                </div>
+                <div className="product-info">
+                  <h4 className="product-name">{product.name}</h4>
+                  <div className="price-section">
+                    <span className="current-price">{product.price.toLocaleString()}₫</span>
+                    <span className="original-price">{(product.price * 1.15).toLocaleString()}₫</span>
+                  </div>
+                  <p className="installment-info">Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6...</p>
+                  <div className="rating-section">
+                    <span className="rating">4.9</span>
+                    <span className="star">⭐</span>
+                    <span className="heart">💙</span>
+                    <span className="like-text">Yêu thích</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button 
+            className="carousel-arrow next" 
+            onClick={nextProducts}
+            disabled={currentProductIndex + 4 >= allCategoryProducts.length}
+          >
+            ›
+          </button>
         </div>
       </section>
 
