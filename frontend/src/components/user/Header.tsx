@@ -34,7 +34,7 @@ const Header: React.FC = () => {
       if (value.trim()) {
         searchProductsAPI(value.trim())
           .then((res) => {
-            setSearchResults(res.slice(0, 5));
+            setSearchResults(res.slice(0, 4));
             setShowSearchDropdown(true);
           })
           .catch(() => {
@@ -74,6 +74,30 @@ const Header: React.FC = () => {
 
   return (
     <>
+      {/* Thanh thông báo chạy */}
+      <div className="announcement-bar">
+        <div className="marquee-container">
+          <div className="marquee-content">
+            <span>🔌 Linh kiện xịn - Giá tốt - Bảo hành dài</span>
+            <span className="separator">•</span>
+            <span>🚛 Giao nhanh 2h - Free ship 500K</span>
+            <span className="separator">•</span>
+            <span>🔄 Thu cũ - Đổi mới - Giá cao</span>
+            <span className="separator">•</span>
+            <span>📞 Tư vấn kỹ thuật: 1900.6868</span>
+            {/* Nhân đôi nội dung để lặp mượt */}
+            <span className="separator">•</span>
+            <span>🔌 Linh kiện xịn - Giá tốt - Bảo hành dài</span>
+            <span className="separator">•</span>
+            <span>🚛 Giao nhanh 2h - Free ship 500K</span>
+            <span className="separator">•</span>
+            <span>🔄 Thu cũ - Đổi mới - Giá cao</span>
+            <span className="separator">•</span>
+            <span>📞 Tư vấn kỹ thuật: 1900.6868</span>
+          </div>
+        </div>
+      </div>
+
       <header className="header">
         <div className="container">
           {/* Logo */}
@@ -83,19 +107,23 @@ const Header: React.FC = () => {
 
           {/* Search */}
           <div className="header__search">
-            <input
-              type="text"
-              placeholder="Tìm kiếm linh kiện..."
-              value={searchKeyword}
-              onChange={handleSearchChange}
-              onFocus={() => {
-                if (searchResults.length > 0) setShowSearchDropdown(true);
-              }}
-              onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-            />
-            <button onClick={handleGoToList}>
-              <FaSearch />
-            </button>
+            <div className="search-input-wrapper">
+              <input
+                type="text"
+                placeholder="Tìm kiếm linh kiện..."
+                value={searchKeyword}
+                onChange={handleSearchChange}
+                onFocus={() => {
+                  if (searchResults.length > 0) setShowSearchDropdown(true);
+                }}
+                onBlur={() =>
+                  setTimeout(() => setShowSearchDropdown(false), 200)
+                }
+              />
+              <button onClick={handleGoToList}>
+                <FaSearch />
+              </button>
+            </div>
 
             {showSearchDropdown && searchResults.length > 0 && (
               <div className="search-dropdown">
@@ -123,6 +151,22 @@ const Header: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Navigation */}
+          <nav className="header__nav">
+            <Link to="/" className="nav-item">
+              Trang chủ
+            </Link>
+            <Link to="/productlist" className="nav-item">
+              Sản phẩm
+            </Link>
+            <Link to="/contact" className="nav-item">
+              Liên hệ
+            </Link>
+            <Link to="/about" className="nav-item">
+              Giới thiệu
+            </Link>
+          </nav>
 
           {/* Auth */}
           <div className="header__auth" ref={userDropdownRef}>
@@ -164,7 +208,7 @@ const Header: React.FC = () => {
           </div>
 
           {/* Cart */}
-          <div className="header__actions">
+          <div className="header__cart-wrapper">
             <button className="header__cart" onClick={() => setIsOpen(true)}>
               <FaShoppingCart className="icon" />
               {totalQuantity > 0 && (
@@ -173,31 +217,6 @@ const Header: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="main-nav-container">
-          <div className="main-nav-wrapper">
-            <div className="nav-menu">
-              <Link to="/" className="nav-item">
-                Trang chủ
-              </Link>
-              <Link to="/productlist" className="nav-item">
-                Sản phẩm
-              </Link>
-              <Link to="/contact" className="nav-item">
-                Liên hệ
-              </Link>
-              <Link to="/about" className="nav-item">
-                Giới thiệu
-              </Link>
-            </div>
-            <div className="nav-right-info">
-              <span className="info-item">Chất lượng đảm bảo</span>
-              <span className="info-item">Vận chuyển siêu tốc</span>
-              <span className="info-item">Tư vấn: 0123456789</span>
-            </div>
-          </div>
-        </nav>
       </header>
 
       {/* Sidebar giỏ hàng */}

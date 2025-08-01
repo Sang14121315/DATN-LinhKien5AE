@@ -2,12 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { FaEye, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllCategories } from '@/api/categoryAPI';
+import { fetchAllProductTypes } from '@/api/productTypeAPI';
 import { Category } from '@/types';
 import '@/styles/pages/admin/categoryTable.scss';
 
+interface ProductType {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
 const CategoryTable: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [parentCategories, setParentCategories] = useState<Category[]>([]);
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [filters, setFilters] = useState<{
     name: string;
     parent: string;
@@ -20,28 +27,24 @@ const CategoryTable: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadData = async () => {
       try {
-        // Lấy tất cả danh mục để điền vào dropdown parent
-        const allCategories = await fetchAllCategories({});
-        console.log('All Categories:', allCategories); // Debug tất cả danh mục
-
-        // Lọc danh mục cha (parent là null hoặc không tồn tại)
-        const parents = allCategories.filter(cat => !cat.parent || cat.parent === null || (typeof cat.parent === 'object' && cat.parent === null));
-        setParentCategories(parents);
-        console.log('Parent Categories:', parents); // Debug danh mục cha
+        // Lấy tất cả product types để điền vào dropdown
+        const allProductTypes = await fetchAllProductTypes();
+        setProductTypes(allProductTypes);
+        console.log('Product Types:', allProductTypes);
 
         // Lấy danh mục với bộ lọc
         const data = await fetchAllCategories(filters);
         setCategories(data);
         setError(null);
       } catch (err) {
-        console.error('Lỗi khi tải danh mục:', err);
-        setError('Không thể tải danh mục. Vui lòng thử lại.');
+        console.error('Lỗi khi tải dữ liệu:', err);
+        setError('Không thể tải dữ liệu. Vui lòng thử lại.');
       }
     };
 
-    loadCategories();
+    loadData();
   }, [filters]);
 
   const handleFilterChange = (
@@ -50,6 +53,14 @@ const CategoryTable: React.FC = () => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
     setCurrentPage(1); // Reset về trang đầu khi thay đổi bộ lọc
+  };
+
+  const getProductTypeName = (parentId: string | { _id: string; name: string } | null | undefined) => {
+    if (!parentId) return 'Không có';
+    
+    const id = typeof parentId === 'string' ? parentId : parentId._id;
+    const productType = productTypes.find(pt => pt._id === id);
+    return productType ? productType.name : 'Không xác định';
   };
 
   const paginated = categories.slice(
@@ -73,11 +84,10 @@ const CategoryTable: React.FC = () => {
             onChange={handleFilterChange}
             className="filter-button"
           >
-            <option value="">Tất cả danh mục</option>
-            <option value="null">Không có danh mục cha</option>
-            {parentCategories.map(cat => (
-              <option key={cat._id} value={cat._id}>
-                {cat.name}
+            <option value="">Tất cả loại sản phẩm</option>
+            {productTypes.map(pt => (
+              <option key={pt._id} value={pt._id}>
+                {pt.name}
               </option>
             ))}
           </select>
@@ -119,6 +129,7 @@ const CategoryTable: React.FC = () => {
           <tr>
             <th>ID</th>
             <th>Danh mục</th>
+            <th>Loại sản phẩm (Cha)</th>
             <th>Mô tả</th>
             <th>Ngày</th>
             <th>Trạng thái</th>
@@ -128,7 +139,7 @@ const CategoryTable: React.FC = () => {
         <tbody>
           {paginated.length === 0 ? (
             <tr>
-              <td colSpan={6}>Không tìm thấy danh mục nào.</td>
+              <td colSpan={7}>Không tìm thấy danh mục nào.</td>
             </tr>
           ) : (
             paginated.map((cat, index) => (
@@ -139,6 +150,7 @@ const CategoryTable: React.FC = () => {
                   </span>
                 </td>
                 <td>{cat.name}</td>
+                <td>{getProductTypeName(cat.parent)}</td>
                 <td>{cat.description?.slice(0, 20) || '...'}...</td>
                 <td>{cat.created_at ? new Date(cat.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
                 <td><span className="status">Đã duyệt</span></td>
