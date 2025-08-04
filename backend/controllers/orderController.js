@@ -1,9 +1,10 @@
 const OrderService = require('../services/orderService');
-const OrderDetailService = require('../services/OrderDetailService');
+const OrderDetailService = require('../services/orderDetailService');
 const CartService = require('../services/CartService');
 const UserService = require('../services/userService');
 const Joi = require('joi');
 const { createMomoPayment } = require('../services/orderService');
+const { sendOrderStatusUpdateEmail } = require('../utils/emailService');
 
 const orderSchema = Joi.object({
   payment_method: Joi.string().valid('cod', 'bank').default('cod'),
@@ -31,36 +32,65 @@ const orderSchema = Joi.object({
 module.exports = {
   getOrders: async (req, res) => {
     try {
+      console.log('🔍 Backend: Getting orders...');
+      console.log('🔍 Backend: User:', req.user);
+      console.log('🔍 Backend: Query:', req.query);
+      
       const { status, minTotal, maxTotal, sort = 'created_at', order = 'desc' } = req.query;
       const filters = {};
+      
       // Nếu là user thường, chỉ trả về đơn của user đó
       if (req.user && req.user.role !== 'admin') {
         filters.user_id = req.user.id;
+        console.log('🔍 Backend: Filtering for user:', req.user.id);
       } else if (req.query.user_id) {
         filters.user_id = req.query.user_id;
+        console.log('🔍 Backend: Filtering for specific user:', req.query.user_id);
+      } else {
+        console.log('🔍 Backend: Admin access - getting all orders');
       }
+      
       if (status) filters.status = status;
       if (minTotal || maxTotal) {
         filters.total = {};
         if (minTotal) filters.total.$gte = Number(minTotal);
         if (maxTotal) filters.total.$lte = Number(maxTotal);
       }
+      
+      console.log('🔍 Backend: Filters:', filters);
+      
       // Truyền sort vào service
       const sortObj = { [sort]: order === 'asc' ? 1 : -1 };
+      console.log('🔍 Backend: Sort object:', sortObj);
+      
       const orders = await OrderService.getAll(filters, sortObj);
+      console.log('🔍 Backend: Raw orders:', orders);
+      
       const ordersWithItems = await Promise.all(
         orders.map(async (order) => {
-          const details = await OrderDetailService.getByOrderId(order._id);
-          const user = await UserService.getById(order.user_id);
-          return {
-            ...order._doc,
-            items: details,
-            user: user // rename for clarity
-          };
+          try {
+            const details = await OrderDetailService.getByOrderId(order._id);
+            const user = await UserService.getById(order.user_id);
+            return {
+              ...order._doc,
+              items: details,
+              user: user // rename for clarity
+            };
+          } catch (itemError) {
+            console.error('❌ Backend: Error getting order details for order:', order._id, itemError);
+            return {
+              ...order._doc,
+              items: [],
+              user: null
+            };
+          }
         })
       );
+      
+      console.log('🔍 Backend: Orders with items:', ordersWithItems);
       res.status(200).json(ordersWithItems);
     } catch (error) {
+      console.error('❌ Backend: Error getting orders:', error);
       res.status(500).json({ message: error.message || 'Lỗi khi lấy đơn hàng' });
     }
   },
@@ -172,8 +202,34 @@ module.exports = {
       const oldStatus = order.status;
       const updated = await OrderService.update(req.params.id, req.body);
 
-      // Email cập nhật trạng thái sẽ được gửi từ frontend (EmailJS)
-      console.log('📧 Email cập nhật trạng thái sẽ được gửi từ frontend (EmailJS)');
+      // Gửi email cập nhật trạng thái nếu trạng thái thay đổi
+      if (req.body.status && req.body.status !== oldStatus) {
+        try {
+          console.log('📧 Sending order status update email...');
+          
+          // Lấy chi tiết đơn hàng để gửi email
+          const orderDetails = await OrderDetailService.getByOrderId(order._id);
+          const orderWithItems = {
+            ...order._doc,
+            items: orderDetails
+          };
+
+          const emailResult = await sendOrderStatusUpdateEmail(
+            orderWithItems, 
+            oldStatus, 
+            req.body.status
+          );
+          
+          if (emailResult.success) {
+            console.log('✅ Order status update email sent successfully!');
+          } else {
+            console.error('❌ Failed to send order status update email:', emailResult.error);
+          }
+        } catch (emailError) {
+          console.error('❌ Error sending order status update email:', emailError);
+          // Không dừng quá trình cập nhật nếu email thất bại
+        }
+      }
 
       res.json(updated);
     } catch (error) {

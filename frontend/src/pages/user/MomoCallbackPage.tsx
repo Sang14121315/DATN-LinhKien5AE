@@ -40,7 +40,7 @@ const MomoCallbackPage: React.FC = () => {
       // Redirect sau 3 giây
       setTimeout(() => {
         console.log('🔄 MoMo callback - Redirecting to orders page...');
-        navigate('/orders');
+        navigate('/purchase');
       }, 3000);
     } else {
       // Thanh toán thất bại

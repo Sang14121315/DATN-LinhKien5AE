@@ -8,11 +8,22 @@ export const createOrder = async (orderData: any) => {
 
 // 📄 Lấy danh sách tất cả đơn hàng (cho admin)
 export const getOrders = async () => {
-  const res = await axiosInstance.get(`/orders`);
-  return res.data.map((order: any) => ({
-    ...order,
-    items: order.items || []
-  }));
+  try {
+    console.log('🔍 API: Getting orders...');
+    const res = await axiosInstance.get(`/orders`);
+    console.log('📦 API: Orders response:', res.data);
+    
+    const orders = res.data.map((order: any) => ({
+      ...order,
+      items: order.items || []
+    }));
+    
+    console.log('📦 API: Processed orders:', orders);
+    return orders;
+  } catch (error) {
+    console.error('❌ API: Error getting orders:', error);
+    throw error;
+  }
 };
 
 // 🔍 Lấy chi tiết 1 đơn hàng theo ID
@@ -47,4 +58,17 @@ export const deleteOrderAPI = async (id: string) => {
 export const updateOrderStatus = async (id: string, status: string) => {
   const res = await axiosInstance.put(`/orders/${id}`, { status });
   return res.data;
+};
+
+// Test authentication
+export const testAuth = async () => {
+  try {
+    console.log('🔍 API: Testing authentication...');
+    const res = await axiosInstance.get(`/test-auth`);
+    console.log('✅ API: Auth test successful:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ API: Auth test failed:', error);
+    throw error;
+  }
 };

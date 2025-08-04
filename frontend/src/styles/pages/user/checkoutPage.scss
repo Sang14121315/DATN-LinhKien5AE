@@ -284,3 +284,279 @@
     font-weight: 500;
   }
 }
+
+.checkout-page {
+  background: #ffffff;
+  
+  .ant-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f0f0f0;
+    
+    .ant-card-head {
+      background: #ffffff;
+      border-bottom: 1px solid #e8e8e8;
+      border-radius: 12px 12px 0 0;
+      
+      .ant-card-head-title {
+        font-weight: 600;
+        font-size: 18px;
+        color: #333;
+      }
+    }
+  }
+
+  // Product image container
+  .product-image-container {
+    width: 100%;
+    height: 120px;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+      transition: transform 0.3s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  // Discount section improvements
+  .discount-section {
+    .ant-card {
+      border: 1px solid #e8e8e8;
+      margin-bottom: 16px;
+      background: #ffffff;
+      
+      .ant-card-head-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+      }
+    }
+    
+    .ant-select {
+      .ant-select-selector {
+        border-radius: 8px;
+        border: 1px solid #d9d9d9;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          border-color: #667eea;
+        }
+        
+        &:focus {
+          border-color: #667eea;
+          box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+      }
+    }
+    
+    .ant-btn {
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      height: 40px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+      }
+    }
+    
+    .ant-alert {
+      border-radius: 8px;
+      margin-top: 16px;
+      
+      .ant-alert-message {
+        font-size: 14px;
+        line-height: 1.4;
+        
+        strong {
+          color: #333;
+        }
+        
+        .discount-amount {
+          color: #52c41a;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  // Product item improvements
+  .product-item {
+    .ant-card {
+      border: 1px solid #e8e8e8;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+      background: #ffffff;
+      
+      &:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+      }
+      
+      .ant-card-body {
+        padding: 16px;
+      }
+    }
+    
+    .product-info {
+      .product-name {
+        font-weight: bold;
+        margin-bottom: 12px;
+        font-size: 18px;
+        line-height: 1.4;
+        color: #333;
+      }
+      
+      .product-details {
+        color: #666;
+        font-size: 16px;
+        line-height: 1.5;
+        
+        .detail-item {
+          margin-bottom: 4px;
+          
+          strong {
+            color: #333;
+          }
+        }
+      }
+    }
+  }
+
+  // Payment methods improvements
+  .payment-methods {
+    .ant-radio-group {
+      .ant-radio-wrapper {
+        width: 100%;
+        padding: 16px;
+        border: 1px solid #d9d9d9;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          border-color: #667eea;
+          background: #f8f9fa;
+        }
+        
+        &.ant-radio-wrapper-checked {
+          border-color: #667eea;
+          background: #f0f4ff;
+        }
+        
+        .ant-radio {
+          margin-right: 12px;
+        }
+        
+        .payment-option-content {
+          display: flex;
+          align-items: center;
+          
+          .payment-icon {
+            font-size: 24px;
+            margin-right: 12px;
+          }
+          
+          .payment-details {
+            flex: 1;
+            
+            .payment-title {
+              font-weight: bold;
+              font-size: 16px;
+              margin-bottom: 4px;
+              color: #333;
+            }
+            
+            .payment-description {
+              font-size: 14px;
+              color: #666;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Total section improvements
+  .total-section {
+    .ant-card {
+      border: 1px solid #e8e8e8;
+      background: #ffffff;
+      
+      .ant-card-head-title {
+        color: #333;
+      }
+    }
+    
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 16px;
+      
+      &.total-final {
+        font-weight: bold;
+        font-size: 20px;
+        color: #667eea;
+        border-top: 1px solid #e8e8e8;
+        padding-top: 12px;
+        margin-top: 12px;
+      }
+      
+      .discount-amount {
+        color: #ff4d4f;
+      }
+    }
+  }
+
+  // Action buttons improvements
+  .action-buttons {
+    .ant-btn {
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      
+      &.continue-btn {
+        height: 48px;
+        font-size: 16px;
+        border: 1px solid #d9d9d9;
+        
+        &:hover {
+          border-color: #667eea;
+          color: #667eea;
+        }
+      }
+      
+      &.confirm-btn {
+        height: 56px;
+        font-size: 18px;
+        font-weight: bold;
+        background: #667eea;
+        border-color: #667eea;
+        
+        &:hover {
+          background: #5a6fd8;
+          border-color: #5a6fd8;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+      }
+    }
+  }
+}

@@ -101,6 +101,15 @@ router.post('/orders', auth, orderController.createOrder);
 router.put('/orders/:id', auth, orderController.updateOrder);
 router.delete('/orders/:id', auth, orderController.deleteOrder);
 
+// Test route để kiểm tra authentication
+router.get('/test-auth', auth, (req, res) => {
+  res.json({ 
+    message: 'Authentication successful', 
+    user: req.user,
+    isAdmin: req.user.role === 'admin'
+  });
+});
+
 // Notifications
 router.get('/notifications', auth, notificationController.getNotifications);
 router.get('/notifications/:id', auth, notificationController.getNotificationById);
