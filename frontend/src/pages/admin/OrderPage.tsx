@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOrders, updateOrderStatus } from '@/api/orderAPI';
+import { sendOrderStatusUpdateEmail } from '@/services/emailService';
 import '@/styles/pages/admin/orderList.scss';
 import { FaEye } from "react-icons/fa";
 
@@ -63,10 +64,47 @@ const AdminOrderPage: React.FC = () => {
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
+      // Tìm đơn hàng hiện tại để lấy thông tin
+      const currentOrder = orders.find(o => o._id === orderId);
+      if (!currentOrder) {
+        alert('❌ Không tìm thấy đơn hàng!');
+        return;
+      }
+
+      const oldStatus = currentOrder.status;
+      
+      // Cập nhật trạng thái trong database
       await updateOrderStatus(orderId, newStatus);
+      
+      // Cập nhật state
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+      
+      // Gửi email thông báo từ frontend
+      try {
+        console.log('📧 Sending status update email from frontend...');
+        const emailResult = await sendOrderStatusUpdateEmail(currentOrder, oldStatus, newStatus);
+        
+        if (emailResult.success) {
+          console.log('✅ Status update email sent successfully from frontend!');
+        } else {
+          console.error('❌ Failed to send status update email from frontend:', emailResult.error);
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending status update email from frontend:', emailError);
+        // Không dừng quá trình cập nhật nếu email thất bại
+      }
+      
+      // Hiển thị thông báo thành công
+      const statusText = {
+        'pending': 'Chờ xử lý',
+        'shipping': 'Đang giao',
+        'completed': 'Đã giao hàng',
+        'canceled': 'Đã hủy'
+      }[newStatus] || newStatus;
+      
+      alert(`✅ Đã cập nhật trạng thái đơn hàng thành "${statusText}" và gửi email thông báo cho khách hàng!`);
     } catch (err) {
-      alert('Cập nhật trạng thái thất bại!');
+      alert('❌ Cập nhật trạng thái thất bại!');
     }
   };
 

@@ -1,10 +1,10 @@
-const emailjs = require('@emailjs/browser');
+const axios = require('axios');
 
-// Cấu hình EmailJS
+// Cấu hình EmailJS REST API
 const EMAILJS_CONFIG = {
-  SERVICE_ID: 'service_qi4c4fw', // Service ID của bạn
-  TEMPLATE_ID: 'template_mk5ebrk', // Template ID của bạn
-  PUBLIC_KEY: 'Swpu9Iyd6YA9wadVX' // ⚠️ THAY BẰNG PUBLIC KEY THẬT
+  SERVICE_ID: 'service_qi4c4fw',
+  TEMPLATE_ID: 'template_mk5ebrk',
+  PUBLIC_KEY: 'Swpu9Iyd6YA9wadVX'
 };
 
 // Debug: Log cấu hình
@@ -19,17 +19,40 @@ const sendOrderConfirmationEmail = async (orderData) => {
     
     // Tạo HTML cho danh sách sản phẩm
     const productsHtml = orderData.items?.map((item) => `
-      <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 10px; text-align: center;">
-          <img src="${item.img_url || ''}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+      <tr>
+        <td class="image-cell">
+          <img src="${item.img_url || 'https://via.placeholder.com/80x80?text=No+Image'}" alt="${item.name}" class="product-img">
         </td>
-        <td style="padding: 10px;">${item.name}</td>
-        <td style="padding: 10px; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px; text-align: right;">${item.price?.toLocaleString('vi-VN')} VNĐ</td>
-        <td style="padding: 10px; text-align: right;">${(item.price * item.quantity)?.toLocaleString('vi-VN')} VNĐ</td>
+        <td class="name-cell">
+          <div class="product-name">${item.name}</div>
+        </td>
+        <td class="quantity-cell">
+          <span class="quantity">${item.quantity}</span>
+        </td>
+        <td class="price-cell">
+          <div class="product-price">${item.price?.toLocaleString('vi-VN')} VNĐ</div>
+        </td>
+        <td class="price-cell">
+          <div class="product-total">${(item.price * item.quantity)?.toLocaleString('vi-VN')} VNĐ</div>
+        </td>
       </tr>
     `).join('') || '';
     
+    const getStatusText = (status) => {
+      const statusMap = {
+        'pending': 'Chờ xử lý',
+        'shipping': 'Đang giao hàng',
+        'completed': 'Đã giao hàng',
+        'canceled': 'Đã hủy',
+        'confirmed': 'Đã xác nhận',
+        'delivered': 'Đã giao hàng',
+        'cancelled': 'Đã hủy',
+        'paid': 'Đã thanh toán',
+        'processing': 'Đang xử lý'
+      };
+      return statusMap[status] || status;
+    };
+
     const templateParams = {
       to_email: orderData.customer.email,
       to_name: orderData.customer.name,
@@ -39,7 +62,7 @@ const sendOrderConfirmationEmail = async (orderData) => {
       customer_address: orderData.customer.address,
       customer_phone: orderData.customer.phone,
       payment_method: orderData.payment_method === 'cod' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản ngân hàng',
-      status: orderData.status === 'pending' ? 'Đang xử lý' : orderData.status === 'paid' ? 'Đã thanh toán' : orderData.status,
+      status: getStatusText(orderData.status || 'pending'),
       // Thêm các biến phụ để đảm bảo
       email: orderData.customer.email,
       name: orderData.customer.name,
@@ -52,48 +75,27 @@ const sendOrderConfirmationEmail = async (orderData) => {
 
     console.log('📧 Template params:', templateParams);
 
-    const response = await emailjs.send(
-      EMAILJS_CONFIG.SERVICE_ID,
-      EMAILJS_CONFIG.TEMPLATE_ID,
-      templateParams,
-      EMAILJS_CONFIG.PUBLIC_KEY
+    // Sử dụng EmailJS REST API
+    const response = await axios.post(
+      `https://api.emailjs.com/api/v1.0/email/send`,
+      {
+        service_id: EMAILJS_CONFIG.SERVICE_ID,
+        template_id: EMAILJS_CONFIG.TEMPLATE_ID,
+        user_id: EMAILJS_CONFIG.PUBLIC_KEY,
+        template_params: templateParams
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
 
-    console.log('✅ Email sent successfully:', response);
-    return { success: true, data: response };
+    console.log('✅ Email sent successfully:', response.data);
+    return { success: true, data: response.data };
   } catch (error) {
-    console.error('❌ Email error:', error);
-    return { success: false, error };
-  }
-};
-
-// Test gửi email đơn giản
-const testSimpleEmail = async (email) => {
-  try {
-    console.log('🧪 Testing simple email to:', email);
-    
-    const testData = {
-      to_email: email,
-      to_name: 'Test User',
-      message: 'This is a test email from 5AnhEmPC',
-      email: email,
-      name: 'Test User'
-    };
-
-    console.log('📧 Test data:', testData);
-
-    const response = await emailjs.send(
-      EMAILJS_CONFIG.SERVICE_ID,
-      EMAILJS_CONFIG.TEMPLATE_ID,
-      testData,
-      EMAILJS_CONFIG.PUBLIC_KEY
-    );
-
-    console.log('✅ Simple test email sent:', response);
-    return { success: true, data: response };
-  } catch (error) {
-    console.error('❌ Simple test email error:', error);
-    return { success: false, error };
+    console.error('❌ Email error:', error.response?.data || error.message);
+    return { success: false, error: error.response?.data || error.message };
   }
 };
 
@@ -106,22 +108,32 @@ const sendOrderStatusUpdateEmail = async (orderData, oldStatus, newStatus) => {
     
     // Tạo HTML cho danh sách sản phẩm
     const productsHtml = orderData.items?.map((item) => `
-      <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 10px; text-align: center;">
-          <img src="${item.img_url || ''}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+      <tr>
+        <td class="image-cell">
+          <img src="${item.img_url || 'https://via.placeholder.com/80x80?text=No+Image'}" alt="${item.name}" class="product-img">
         </td>
-        <td style="padding: 10px;">${item.name}</td>
-        <td style="padding: 10px; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px; text-align: right;">${item.price?.toLocaleString('vi-VN')} VNĐ</td>
-        <td style="padding: 10px; text-align: right;">${(item.price * item.quantity)?.toLocaleString('vi-VN')} VNĐ</td>
+        <td class="name-cell">
+          <div class="product-name">${item.name}</div>
+        </td>
+        <td class="quantity-cell">
+          <span class="quantity">${item.quantity}</span>
+        </td>
+        <td class="price-cell">
+          <div class="product-price">${item.price?.toLocaleString('vi-VN')} VNĐ</div>
+        </td>
+        <td class="price-cell">
+          <div class="product-total">${(item.price * item.quantity)?.toLocaleString('vi-VN')} VNĐ</div>
+        </td>
       </tr>
     `).join('') || '';
 
     const getStatusText = (status) => {
       const statusMap = {
-        'pending': 'Đang xử lý',
-        'confirmed': 'Đã xác nhận',
+        'pending': 'Chờ xử lý',
         'shipping': 'Đang giao hàng',
+        'completed': 'Đã giao hàng',
+        'canceled': 'Đã hủy',
+        'confirmed': 'Đã xác nhận',
         'delivered': 'Đã giao hàng',
         'cancelled': 'Đã hủy',
         'paid': 'Đã thanh toán',
@@ -154,26 +166,36 @@ const sendOrderStatusUpdateEmail = async (orderData, oldStatus, newStatus) => {
 
     console.log('📧 Template params:', templateParams);
 
-    const response = await emailjs.send(
-      EMAILJS_CONFIG.SERVICE_ID,
-      EMAILJS_CONFIG.TEMPLATE_ID,
-      templateParams,
-      EMAILJS_CONFIG.PUBLIC_KEY
+    const response = await axios.post(
+      `https://api.emailjs.com/api/v1.0/email/send`,
+      {
+        service_id: EMAILJS_CONFIG.SERVICE_ID,
+        template_id: EMAILJS_CONFIG.TEMPLATE_ID,
+        user_id: EMAILJS_CONFIG.PUBLIC_KEY,
+        template_params: templateParams
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
 
-    console.log('✅ Status update email sent successfully:', response);
-    return { success: true, data: response };
+    console.log('✅ Status update email sent successfully:', response.data);
+    return { success: true, data: response.data };
   } catch (error) {
-    console.error('❌ Status update email error:', error);
-    return { success: false, error };
+    console.error('❌ Status update email error:', error.response?.data || error.message);
+    return { success: false, error: error.response?.data || error.message };
   }
 };
 
 const getStatusMessage = (status) => {
   const messageMap = {
-    'pending': 'Đơn hàng của bạn đang được xử lý. Chúng tôi sẽ thông báo khi có cập nhật.',
-    'confirmed': 'Đơn hàng của bạn đã được xác nhận và đang được chuẩn bị để giao hàng.',
+    'pending': 'Đơn hàng của bạn đang chờ xử lý. Chúng tôi sẽ thông báo khi có cập nhật.',
     'shipping': 'Đơn hàng của bạn đang được giao. Vui lòng chuẩn bị nhận hàng.',
+    'completed': 'Đơn hàng của bạn đã được giao thành công. Cảm ơn bạn đã mua hàng!',
+    'canceled': 'Đơn hàng của bạn đã được hủy. Nếu có thắc mắc, vui lòng liên hệ chúng tôi.',
+    'confirmed': 'Đơn hàng của bạn đã được xác nhận và đang được chuẩn bị để giao hàng.',
     'delivered': 'Đơn hàng của bạn đã được giao thành công. Cảm ơn bạn đã mua hàng!',
     'cancelled': 'Đơn hàng của bạn đã được hủy. Nếu có thắc mắc, vui lòng liên hệ chúng tôi.',
     'paid': 'Đơn hàng của bạn đã được thanh toán thành công.',
@@ -184,6 +206,5 @@ const getStatusMessage = (status) => {
 
 module.exports = {
   sendOrderConfirmationEmail,
-  testSimpleEmail,
   sendOrderStatusUpdateEmail
 }; 

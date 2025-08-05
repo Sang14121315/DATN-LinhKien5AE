@@ -120,6 +120,38 @@
       }
     }
     
+    .clear-filter-btn {
+      height: 40px !important;
+      padding: 0 16px !important;
+      background: #f8f9fa !important;
+      color: #6c757d !important;
+      border: 1px solid #ddd !important;
+      border-radius: 8px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      transition: all 0.2s !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+      line-height: 40px !important;
+      margin: 0 !important;
+      outline: none !important;
+      text-decoration: none !important;
+      
+      &:hover {
+        background: #e9ecef !important;
+        border-color: #adb5bd !important;
+      }
+      
+      &:focus {
+        outline: none !important;
+      }
+    }
+    
     .add-coupon-btn {
       height: 40px !important;
       padding: 0 20px !important;
@@ -271,54 +303,76 @@
   }
 }
 
-// Pagination Section
-.pagination-section {
+// Order Table Summary (Pagination Info)
+.order-table-summary {
+  margin: 10px 0 0 0;
+  text-align: left;
+  color: #888;
+  font-size: 1rem;
+  width: 100%;
+  padding-left: 2px;
+}
+
+// Pagination Controls
+.pagination-controls {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 8px 0 12px 0;
+  padding-top: 8px;
+  width: 100%;
   
-  .pagination-info {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .pagination-controls {
+  button {
+    background: #e6f7f1;
+    border: none;
+    color: #00b96b;
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    outline: none;
+    box-shadow: none;
     display: flex;
-    gap: 8px;
     align-items: center;
+    justify-content: center;
+    margin: 0 2px;
     
-    .pagination-btn {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      background: white;
-      color: #333;
-      cursor: pointer;
-      border-radius: 6px;
-      font-size: 14px;
-      min-width: 40px;
-      transition: all 0.2s;
-      
-      &:hover:not(:disabled) {
-        background: #f8f9fa;
-        border-color: #007bff;
-      }
-      
-      &.active {
-        background: #28a745;
-        color: white;
-        border-color: #28a745;
-      }
-      
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+    &:first-child,
+    &:last-child {
+      background: #fff !important;
+      color: #00b96b;
+    }
+    
+    &:first-child:hover:not(:disabled),
+    &:last-child:hover:not(:disabled) {
+      background: #e6f7f1 !important;
+      color: #00b96b;
+    }
+    
+    &.page-number.active {
+      background: #00b96b !important;
+      color: #fff !important;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
+  
+  span {
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+.pagination-right {
+  justify-content: flex-end;
+  width: 100%;
 }
 
 // Responsive
@@ -359,7 +413,7 @@
     }
   }
   
-  .pagination-section {
+  .pagination-controls {
     flex-direction: column;
     gap: 16px;
     text-align: center;

@@ -36,14 +36,16 @@ const AdminCouponPage: React.FC = () => {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const couponsPerPage = 5;
+  const [couponsPerPage, setCouponsPerPage] = useState(5);
 
   const navigate = useNavigate();
 
   const loadCoupons = async () => {
     const data = await fetchCoupons();
+    console.log('Loaded coupons:', data);
     setCoupons(data);
     setFilteredCoupons(data);
+    setCurrentPage(1); // Reset về trang đầu tiên khi load lại dữ liệu
   };
 
   useEffect(() => {
@@ -88,6 +90,12 @@ const AdminCouponPage: React.FC = () => {
     }
 
     setFilteredCoupons(filtered);
+    // Reset về trang đầu tiên khi filter thay đổi
+    setCurrentPage(1);
+    
+    // Debug log
+    console.log('Filters:', filters);
+    console.log('Filtered coupons:', filtered.length);
   }, [coupons, filters]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -131,14 +139,18 @@ const AdminCouponPage: React.FC = () => {
 
     if (editingId) {
       await updateCouponAPI(editingId, payload);
+      // Sau khi cập nhật, reload danh sách và reset về trang đầu
+      await loadCoupons();
+      setCurrentPage(1);
     } else {
       const newCoupon = await createCouponAPI(payload);
+      // Thêm coupon mới vào đầu danh sách và reset về trang đầu
       setCoupons((prev: any[]) => [newCoupon, ...prev]);
+      setCurrentPage(1);
     }
 
     setFormData(defaultForm);
     setEditingId(null);
-    await loadCoupons();
   } catch (err: any) {
     console.error("❌ Lỗi khi lưu mã giảm giá:", err);
     alert(err?.response?.data?.message || "Lỗi khi lưu mã giảm giá");
@@ -153,7 +165,13 @@ const AdminCouponPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm("Bạn có chắc muốn xoá mã này không?")) {
       await deleteCouponAPI(id);
-      loadCoupons();
+      await loadCoupons();
+      // Nếu trang hiện tại trống sau khi xóa, reset về trang đầu
+      const remainingCoupons = coupons.filter(coupon => coupon._id !== id);
+      const totalPagesAfterDelete = Math.ceil(remainingCoupons.length / couponsPerPage);
+      if (currentPage > totalPagesAfterDelete && totalPagesAfterDelete > 0) {
+        setCurrentPage(totalPagesAfterDelete);
+      }
     }
   };
 
@@ -164,6 +182,8 @@ const AdminCouponPage: React.FC = () => {
     return dateB.getTime() - dateA.getTime();
   });
 
+  const totalCoupons = sortedCoupons.length;
+  const totalPages = Math.ceil(totalCoupons / couponsPerPage);
   const paginatedCoupons = sortedCoupons.slice((currentPage - 1) * couponsPerPage, currentPage * couponsPerPage);
 
   return (
@@ -284,35 +304,34 @@ const AdminCouponPage: React.FC = () => {
       </div>
 
       {/* Pagination */}
-      <div className="pagination-section">
-        <div className="pagination-info">
-          Showing {(currentPage - 1) * couponsPerPage + 1}-{Math.min(currentPage * couponsPerPage, sortedCoupons.length)} from {sortedCoupons.length}
-        </div>
-        <div className="pagination-controls">
-          <button 
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-            disabled={currentPage === 1}
-            className="pagination-btn"
+      <div className="order-table-summary">
+        Showing {(currentPage - 1) * couponsPerPage + 1}
+        -{Math.min(currentPage * couponsPerPage, totalCoupons)} from {totalCoupons}
+      </div>
+      <div className="pagination-controls pagination-right">
+        <button 
+          onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+          disabled={currentPage === 1}
+        >
+          ‹
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, currentPage - 3), currentPage + 2).map(page => (
+          <button
+            key={page}
+            className={`page-number${page === currentPage ? ' active' : ''}`}
+            onClick={() => setCurrentPage(page)}
+            disabled={page === currentPage}
           >
-            ‹
+            {page}
           </button>
-          {Array.from({ length: Math.ceil(sortedCoupons.length / couponsPerPage) }, (_, i) => i + 1).map(page => (
-            <button
-              key={page}
-              className={`pagination-btn ${page === currentPage ? 'active' : ''}`}
-              onClick={() => setCurrentPage(page)}
-            >
-              {page}
-            </button>
-          ))}
-          <button 
-            onClick={() => setCurrentPage(p => Math.min(Math.ceil(sortedCoupons.length / couponsPerPage), p + 1))} 
-            disabled={currentPage === Math.ceil(sortedCoupons.length / couponsPerPage)}
-            className="pagination-btn"
-          >
-            ›
-          </button>
-        </div>
+        ))}
+        {currentPage < totalPages - 2 && <span>...</span>}
+        <button 
+          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+          disabled={currentPage === totalPages}
+        >
+          ›
+        </button>
       </div>
     </div>
   );

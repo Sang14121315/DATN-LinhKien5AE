@@ -19,6 +19,7 @@
     th, td {
       padding: 16px;
       text-align: left;
+      vertical-align: middle;
     }
 
     th {
@@ -138,7 +139,7 @@
 
 .order-table select.status-label {
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: 6px 12px;
   font-size: 14px;
   font-weight: 500;
   border: none;
@@ -148,6 +149,9 @@
   transition: box-shadow 0.2s;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   cursor: pointer;
+  vertical-align: middle;
+  display: inline-block;
+  line-height: 1.2;
 }
 .order-table select.status-label.pending {
   background: #fffbe6;
@@ -184,6 +188,7 @@
   padding: 14px 12px;
   text-align: center;
   font-size: 1rem;
+  vertical-align: middle;
 }
 .order-table th {
   background: #f7f7fa;
@@ -210,6 +215,9 @@
   background: #e6f7f1;
   color: #1a7f5a;
   border: none;
+  vertical-align: middle;
+  display: inline-block;
+  line-height: 1.2;
 }
 .order-table .status-label.pending {
   background: #fffbe6;
@@ -242,6 +250,7 @@
   cursor: pointer;
   transition: none;
   box-shadow: none;
+  vertical-align: middle;
 }
 .order-table .view-btn svg {
   width: 16px;
