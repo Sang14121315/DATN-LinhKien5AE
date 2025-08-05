@@ -72,7 +72,7 @@ const MomoCallbackPage: React.FC = () => {
             <h2>Thanh toán thành công!</h2>
             <p>{message}</p>
             <p>Bạn sẽ được chuyển đến trang đơn hàng trong vài giây...</p>
-            <button onClick={() => navigate('/orders')}>Xem đơn hàng</button>
+            <button onClick={() => navigate('/purchase')}>Xem đơn hàng</button>
             <button onClick={() => navigate('/')}>Về trang chủ</button>
           </div>
         )}

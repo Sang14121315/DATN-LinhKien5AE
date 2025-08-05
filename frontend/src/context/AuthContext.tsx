@@ -119,8 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Dispatch custom event để clear cart
     window.dispatchEvent(new CustomEvent('logout', { detail: { clearCart: true } }));
     
-    // Reload trang để reset hoàn toàn
-    window.location.reload();
+    // Không reload trang nữa, để component tự handle navigation
+    console.log('🔐 AuthContext - Logout completed');
   };
 
   const checkAuth = () => {

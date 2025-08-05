@@ -9,6 +9,7 @@ import {
 } from '@/api/user/cartAPI';
 import { fetchProductById } from '@/api/user/productAPI';
 import { useAuth } from './AuthContext';
+import LoginNotification from '@/components/LoginNotification';
 
 interface CartItem {
   
@@ -41,6 +42,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showLoginNotification, setShowLoginNotification] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
@@ -92,7 +94,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Lắng nghe event logout để clear cart
   useEffect(() => {
-    const handleLogout = () => {
+    const handleLogout = (event: Event) => {
       console.log('🛒 Clearing cart due to logout...');
       setCartItems([]);
     };
@@ -112,8 +114,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addToCart = async (item: CartItem) => {
     // Kiểm tra đăng nhập trước khi thêm vào giỏ hàng
     if (!isAuthenticated) {
-      alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
-      navigate('/login');
+      setShowLoginNotification(true);
       return;
     }
 
@@ -232,6 +233,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
       {children}
+      <LoginNotification 
+        isOpen={showLoginNotification} 
+        onClose={() => setShowLoginNotification(false)} 
+      />
     </CartContext.Provider>
   );
 };

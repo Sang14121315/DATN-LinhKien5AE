@@ -55,7 +55,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       console.log('❌ ProtectedRoute - State isAdmin:', stateIsAdmin);
       console.log('❌ ProtectedRoute - localStorage hasValidAuth:', hasValidAuth);
       console.log('❌ ProtectedRoute - localStorage isAdmin:', isAdmin);
-      return <Navigate to="/" replace />;
+      return <Navigate to="/login" replace />;
     }
     
     console.log('✅ ProtectedRoute - Admin access granted');

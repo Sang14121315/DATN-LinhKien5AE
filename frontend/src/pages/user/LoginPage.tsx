@@ -51,7 +51,7 @@ const LoginPage: React.FC = () => {
         navigate(from, { replace: true });
       }
     }
-  }, []); // Chỉ chạy một lần khi mount
+  }, [isAuthenticated, user, navigate, location]); // Thêm dependencies để đảm bảo effect chạy khi auth state thay đổi
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
