@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaSearch, FaShoppingCart, FaUserCircle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
+import { MenuOutlined } from "@ant-design/icons";
+import { Row, Col } from "antd";
 import "@/styles/components/user/header.scss";
 import { useCart } from "@/context/CartContext";
 import CartSidebar from "@/components/user/CartSidebar";
@@ -14,8 +16,9 @@ const Header: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  const timeoutRef = useRef<any>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -74,7 +77,6 @@ const Header: React.FC = () => {
 
   return (
     <>
-      {/* Thanh thông báo chạy */}
       <div className="announcement-bar">
         <div className="marquee-container">
           <div className="marquee-content">
@@ -100,126 +102,206 @@ const Header: React.FC = () => {
 
       <header className="header">
         <div className="container">
-          {/* Logo */}
-          <div className="header__logo">
-            <Link to="/">🖥 5AE</Link>
-          </div>
+          <div className="header-main">
+            <Row align="middle" justify="space-between" className="header-row">
+              {/* Logo */}
+              <Col xs={4} sm={4} md={3} className="header__logo">
+                <Link to="/">
+                  <span className="logo-desktop">🖥 5AE</span>
+                  <span className="logo-mobile">5AE</span>
+                </Link>
+              </Col>
 
-          {/* Search */}
-          <div className="header__search">
-            <div className="search-input-wrapper">
-              <input
-                type="text"
-                placeholder="Tìm kiếm linh kiện..."
-                value={searchKeyword}
-                onChange={handleSearchChange}
-                onFocus={() => {
-                  if (searchResults.length > 0) setShowSearchDropdown(true);
-                }}
-                onBlur={() =>
-                  setTimeout(() => setShowSearchDropdown(false), 200)
-                }
-              />
-              <button onClick={handleGoToList}>
-                <FaSearch />
-              </button>
-            </div>
-
-            {showSearchDropdown && searchResults.length > 0 && (
-              <div className="search-dropdown">
-                {searchResults.map((item) => (
-                  <div
-                    key={item._id}
-                    className="dropdown-item"
-                    onMouseDown={() => {
-                      navigate(`/product/${item._id}`);
-                      setShowSearchDropdown(false);
+              {/* Search */}
+              <Col xs={12} sm={12} md={10} className="header__search">
+                <div className="search-input-wrapper">
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm linh kiện..."
+                    value={searchKeyword}
+                    onChange={handleSearchChange}
+                    onFocus={() => {
+                      if (searchResults.length > 0) setShowSearchDropdown(true);
                     }}
-                  >
-                    <div>
-                      <div className="item-name">{item.name}</div>
-                      <div className="item-price">
-                        {formatCurrency(item.price)}
+                    onBlur={() =>
+                      setTimeout(() => setShowSearchDropdown(false), 200)
+                    }
+                  />
+                  <button onClick={handleGoToList}>
+                    <FaSearch />
+                  </button>
+                </div>
+                {showSearchDropdown && searchResults.length > 0 && (
+                  <div className="search-dropdown">
+                    {searchResults.map((item) => (
+                      <div
+                        key={item._id}
+                        className="dropdown-item"
+                        onMouseDown={() => {
+                          navigate(`/product/${item._id}`);
+                          setShowSearchDropdown(false);
+                        }}
+                      >
+                        <div>
+                          <div className="item-name">{item.name}</div>
+                          <div className="item-price">
+                            {formatCurrency(item.price)}
+                          </div>
+                        </div>
+                        <img src={item.img_url} alt={item.name} />
                       </div>
-                    </div>
-                    <img src={item.img_url} alt={item.name} />
-                  </div>
-                ))}
-                <div className="see-more" onMouseDown={handleGoToList}>
-                  Xem thêm sản phẩm
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation */}
-          <nav className="header__nav">
-            <Link to="/" className="nav-item">
-              Trang chủ
-            </Link>
-            <Link to="/productlist" className="nav-item">
-              Sản phẩm
-            </Link>
-            <Link to="/contact" className="nav-item">
-              Liên hệ
-            </Link>
-            <Link to="/about" className="nav-item">
-              Giới thiệu
-            </Link>
-          </nav>
-
-          {/* Auth */}
-          <div className="header__auth" ref={userDropdownRef}>
-            {user ? (
-              <div className="header__user-dropdown">
-                <div
-                  className="auth-user"
-                  onClick={() => setShowUserDropdown((prev) => !prev)}
-                >
-                  <FaUserCircle className="user-icon" />
-                  <span className="user-name">{user.name} ▼</span>
-                </div>
-
-                {showUserDropdown && (
-                  <div className="dropdown-menu">
-                    <div
-                      className="dropdown-item"
-                      onClick={() => navigate("/profile")}
-                    >
-                      Hồ sơ
-                    </div>
-                    <div
-                      className="dropdown-item"
-                      onClick={() => navigate("/forgot-password")}
-                    >
-                      Quên mật khẩu
-                    </div>
-                    <div className="dropdown-item" onClick={handleLogout}>
-                      Đăng xuất
+                    ))}
+                    <div className="see-more" onMouseDown={handleGoToList}>
+                      Xem thêm sản phẩm
                     </div>
                   </div>
                 )}
-              </div>
-            ) : (
-              <Link to="/login" className="auth-link">
-                <FaUserCircle />
-              </Link>
-            )}
-          </div>
+              </Col>
 
-          {/* Cart */}
-          <div className="header__cart-wrapper">
-            <button className="header__cart" onClick={() => setIsOpen(true)}>
-              <FaShoppingCart className="icon" />
-              {totalQuantity > 0 && (
-                <span className="cart-count">{totalQuantity}</span>
-              )}
-            </button>
+              {/* Nav menu */}
+              <Col xs={0} sm={6} md={7} className="header__nav">
+                <nav>
+                  <Link to="/" className="nav-item">Trang chủ</Link>
+                  <Link to="/productlist" className="nav-item">Sản phẩm</Link>
+                  <Link to="/contact" className="nav-item">Liên hệ</Link>
+                  <Link to="/about" className="nav-item">Giới thiệu</Link>
+                </nav>
+              </Col>
+
+              {/* User + Cart */}
+              <Col xs={4} sm={2} md={4} className="header__actions">
+                <div className="header__auth-cart-group hide-on-mobile">
+                  <div className="header__auth" ref={userDropdownRef}>
+                    {user ? (
+                      <div className="header__user-dropdown">
+                        <div
+                          className="auth-user"
+                          onClick={() => setShowUserDropdown((prev) => !prev)}
+                        >
+                          <FaUserCircle className="user-icon" />
+                          <span className="user-name">{user.name} ▼</span>
+                        </div>
+                        {showUserDropdown && (
+                          <div className="dropdown-menu">
+                            <div
+                              className="dropdown-item"
+                              onClick={() => navigate("/profile")}
+                            >
+                              Hồ sơ
+                            </div>
+                            <div
+                              className="dropdown-item"
+                              onClick={() => navigate("/forgot-password")}
+                            >
+                              Quên mật khẩu
+                            </div>
+                            <div className="dropdown-item" onClick={handleLogout}>
+                              Đăng xuất
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <Link to="/login" className="auth-link">
+                        <FaUserCircle />
+                      </Link>
+                    )}
+                  </div>
+                  <div className="header__cart-wrapper">
+                    <button
+                      className="header__cart"
+                      onClick={() => setIsOpen(true)}
+                    >
+                      <FaShoppingCart className="icon" />
+                      {totalQuantity > 0 && (
+                        <span className="cart-count">{totalQuantity}</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </Col>
+
+              {/* Hamburger menu (mobile only) */}
+              <Col xs={4} sm={0} md={0} className="header__mobile-menu-btn">
+                <button
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className="mobile-menu-button"
+                >
+                  <MenuOutlined />
+                </button>
+              </Col>
+            </Row>
+            {/* Dropdown menu for mobile */}
+            {showMobileMenu && (
+              <>
+                <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)} />
+                <div className="mobile-menu-drawer">
+                  <div className="mobile-menu-content">
+                    <button className="mobile-menu-close" onClick={() => setShowMobileMenu(false)}>
+                      ×
+                    </button>
+                    <nav className="mobile-nav">
+                      <Link to="/" className="nav-item" onClick={() => setShowMobileMenu(false)}>Trang chủ</Link>
+                      <Link to="/productlist" className="nav-item" onClick={() => setShowMobileMenu(false)}>Sản phẩm</Link>
+                      <Link to="/contact" className="nav-item" onClick={() => setShowMobileMenu(false)}>Liên hệ</Link>
+                      <Link to="/about" className="nav-item" onClick={() => setShowMobileMenu(false)}>Giới thiệu</Link>
+                    </nav>
+                    <div className="mobile-user-cart">
+                      <div className="header__auth">
+                        {user ? (
+                          <div className="header__user-dropdown">
+                            <div
+                              className="auth-user"
+                              onClick={() => setShowUserDropdown((prev) => !prev)}
+                            >
+                              <FaUserCircle className="user-icon" />
+                              <span className="user-name">{user.name} ▼</span>
+                            </div>
+                            {showUserDropdown && (
+                              <div className="dropdown-menu">
+                                <div
+                                  className="dropdown-item"
+                                  onClick={() => navigate("/profile")}
+                                >
+                                  Hồ sơ
+                                </div>
+                                <div
+                                  className="dropdown-item"
+                                  onClick={() => navigate("/forgot-password")}
+                                >
+                                  Quên mật khẩu
+                                </div>
+                                <div className="dropdown-item" onClick={handleLogout}>
+                                  Đăng xuất
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Link to="/login" className="auth-link">
+                            <FaUserCircle />
+                          </Link>
+                        )}
+                      </div>
+                      <div className="header__cart-wrapper">
+                        <button
+                          className="header__cart"
+                          onClick={() => setIsOpen(true)}
+                        >
+                          <FaShoppingCart className="icon" />
+                          {totalQuantity > 0 && (
+                            <span className="cart-count">{totalQuantity}</span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>
-
-      {/* Sidebar giỏ hàng */}
       <CartSidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );
