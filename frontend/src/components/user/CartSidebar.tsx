@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaTimes, FaPlus, FaMinus, FaTrash, FaShoppingCart } from 'react-icons/fa';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import '@/styles/components/user/cartSidebar.scss';
 import { useNavigate } from "react-router-dom";
 
@@ -17,10 +18,18 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     decreaseQuantity,
     removeFromCart,
   } = useCart();
-
+  
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleCheckout = () => {
+    if (!isAuthenticated) {
+      alert("❗Vui lòng đăng nhập để đặt hàng!");
+      onClose();
+      navigate("/login");
+      return;
+    }
+
     if (cartItems.length === 0) {
       alert("❗Bạn chưa có sản phẩm nào trong giỏ hàng!");
       return;
@@ -30,6 +39,11 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     setTimeout(() => {
       navigate("/checkout");
     }, 200);
+  };
+
+  const handleLogin = () => {
+    onClose();
+    navigate("/login");
   };
 
   return (
@@ -50,7 +64,15 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Content */}
       <div className="cart-content">
-        {cartItems.length === 0 ? (
+        {!isAuthenticated ? (
+          <div className="empty-cart">
+            <div className="empty-icon">🔐</div>
+            <p>Vui lòng đăng nhập để xem giỏ hàng</p>
+            <button className="continue-shopping" onClick={handleLogin}>
+              Đăng nhập ngay
+            </button>
+          </div>
+        ) : cartItems.length === 0 ? (
           <div className="empty-cart">
             <div className="empty-icon">🛒</div>
             <p>Chưa có sản phẩm nào trong giỏ hàng</p>
@@ -63,18 +85,29 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             {cartItems.map(item => (
               <div className="cart-item" key={item._id}>
                 <div className="item-image">
-                  <img src={item.img_url} alt={item.name} />
+                  <img 
+                    src={item.img_url || 'https://via.placeholder.com/60x60/f0f0f0/999999?text=SP'} 
+                    alt={item.name}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://via.placeholder.com/60x60/f0f0f0/999999?text=SP';
+                    }}
+                  />
                 </div>
                 <div className="item-details">
                   <div className="item-info">
-                    <h4 className="item-name">{item.name}</h4>
+                    <h4 className="item-name" title={item.name}>
+                      {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
+                    </h4>
                     <p className="item-price">{item.price.toLocaleString()} đ</p>
+                    <p className="item-total">Tổng: {(item.price * item.quantity).toLocaleString()} đ</p>
                   </div>
                   <div className="item-actions">
                     <div className="quantity-controls">
                       <button 
                         className="quantity-btn minus"
                         onClick={() => decreaseQuantity(item._id)}
+                        disabled={item.quantity <= 1}
                       >
                         <FaMinus />
                       </button>
@@ -89,6 +122,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                     <button 
                       className="remove-btn"
                       onClick={() => removeFromCart(item._id)}
+                      title="Xóa sản phẩm"
                     >
                       <FaTrash />
                     </button>
@@ -101,7 +135,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Footer */}
-      {cartItems.length > 0 && (
+      {isAuthenticated && cartItems.length > 0 && (
         <div className="cart-footer">
           <div className="total-section">
             <span className="total-label">Tổng tiền:</span>

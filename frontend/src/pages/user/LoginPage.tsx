@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '@/styles/pages/user/register.scss';
 import { loginUser } from '@/api/user/userAPI';
+import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
@@ -9,11 +10,54 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, isAuthenticated, user } = useAuth();
+
+  // Theo dõi thay đổi authentication để redirect
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('🔍 Login - Authentication changed, user:', user);
+      const isAdmin = user.role?.toLowerCase()?.trim() === 'admin';
+      const from = location.state?.from?.pathname || '/';
+      
+      console.log('🔍 Login - isAdmin check:', isAdmin);
+      console.log('🔍 Login - user.role:', user.role);
+      console.log('🔍 Login - from path:', from);
+      
+      if (isAdmin) {
+        console.log('🔍 Login - Auto redirecting admin to dashboard');
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        console.log('🔍 Login - Auto redirecting user to:', from);
+        navigate(from, { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate, location]);
+
+  // Kiểm tra ngay khi component mount
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('🔍 Login - Component mount check, user already authenticated:', user);
+      const isAdmin = user.role?.toLowerCase()?.trim() === 'admin';
+      const from = location.state?.from?.pathname || '/';
+      
+      if (isAdmin) {
+        console.log('🔍 Login - Redirecting admin to dashboard on mount');
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        console.log('🔍 Login - Redirecting user to:', from, 'on mount');
+        navigate(from, { replace: true });
+      }
+    }
+  }, []); // Chỉ chạy một lần khi mount
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoggingIn) return;
+    
+    setIsLoggingIn(true);
     try {
       console.log('🔍 Login - Starting login process...');
       const res = await loginUser({ email, password });
@@ -21,23 +65,31 @@ const LoginPage: React.FC = () => {
       console.log('🔍 Login - Response received:', res);
       console.log('🔍 Login - Token:', res.token);
       console.log('🔍 Login - User:', res.user);
+      console.log('🔍 Login - User role:', res.user?.role);
 
-      // ✅ Không cần lưu token nếu backend đã set cookie
-      localStorage.setItem('token', res.token);
-      localStorage.setItem('user', JSON.stringify(res.user));
+      // Đảm bảo user data có đúng format
+      const userData = {
+        _id: res.user.id || res.user._id, // Backend trả về 'id', frontend cần '_id'
+        name: res.user.name,
+        email: res.user.email,
+        role: res.user.role
+      };
+
+      console.log('🔍 Login - Processed user data:', userData);
+
+      // Sử dụng login từ AuthContext
+      login(res.token, userData);
 
       console.log('🔍 Login - Token saved to localStorage:', localStorage.getItem('token'));
       console.log('🔍 Login - User saved to localStorage:', localStorage.getItem('user'));
 
-      if (res.user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/');
-      }
+      // Redirect sẽ được xử lý bởi useEffect
     } catch (error: unknown) {
       console.error('❌ Login - Error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Đăng nhập thất bại!';
       setErrorMsg(errorMessage);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 

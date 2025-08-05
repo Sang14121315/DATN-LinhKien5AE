@@ -5,12 +5,14 @@ import { MenuOutlined } from "@ant-design/icons";
 import { Row, Col } from "antd";
 import "@/styles/components/user/header.scss";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import CartSidebar from "@/components/user/CartSidebar";
 import { searchProductsAPI } from "@/api/user/searchAPI";
 import { Product } from "@/api/user/productAPI";
 
 const Header: React.FC = () => {
   const { totalQuantity } = useCart();
+  const { user, logout, isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -21,11 +23,9 @@ const Header: React.FC = () => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/login");
+    logout(); // Sử dụng logout từ AuthContext
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,7 +213,7 @@ const Header: React.FC = () => {
                       onClick={() => setIsOpen(true)}
                     >
                       <FaShoppingCart className="icon" />
-                      {totalQuantity > 0 && (
+                      {isAuthenticated && totalQuantity > 0 && (
                         <span className="cart-count">{totalQuantity}</span>
                       )}
                     </button>
@@ -289,7 +289,7 @@ const Header: React.FC = () => {
                           onClick={() => setIsOpen(true)}
                         >
                           <FaShoppingCart className="icon" />
-                          {totalQuantity > 0 && (
+                          {isAuthenticated && totalQuantity > 0 && (
                             <span className="cart-count">{totalQuantity}</span>
                           )}
                         </button>
