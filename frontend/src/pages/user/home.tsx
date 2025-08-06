@@ -4,6 +4,7 @@ import { useCart } from "@/context/CartContext";
 import { Product, fetchAllProducts } from "@/api/user/productAPI";
 import { fetchHomeData, HomeDataResponse } from '../../api/user/homeAPI';
 import { Category } from '../../api/user/categoryAPI';
+import { fetchFilteredProducts } from "@/api/user/productAPI";
 import "@/styles/pages/user/home.scss";
 
 const HomePage: React.FC = () => {
@@ -17,65 +18,72 @@ const HomePage: React.FC = () => {
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
   const [allCategoryProducts, setAllCategoryProducts] = useState<Product[]>([]);
   const [currentSaleIndex, setCurrentSaleIndex] = useState(0);
+  const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
+  
 
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
   // Banner images array
   const bannerImages = [
-    "/img/banner 1.webp",
-    "/img/anh2.jpg", 
-    "/img/slide_1_img.webp",
-    "/img/slide_3_img.jpg"
+    "/img/bn1.png",
+    "/img/bn2.png", 
+    "/img/bn3.png",
+    "/img/bn4.jpeg"
   ];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data: HomeDataResponse = await fetchHomeData();
-        setCategories(data.categories);
-        setHotProducts(data.hotProducts);
-        setSaleProducts(data.saleProducts);
-        setBestSellerProducts(data.bestSellerProducts);
-      } catch (error) {
-        console.error('Lỗi khi tải dữ liệu trang chủ:', error);
-      }
-    };
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const data: HomeDataResponse = await fetchHomeData();
+      setCategories(data.categories);
+      setHotProducts(data.hotProducts);
+      setSaleProducts(data.saleProducts);
+      setBestSellerProducts(data.bestSellerProducts);
 
-    fetchData();
-  }, []);
+      // Fetch all products grouped by category
+      const allCategoryProducts: Record<string, Product[]> = {};
+
+      for (const category of data.categories) {
+        const res = await fetchFilteredProducts({ category_id: category._id });
+        allCategoryProducts[category._id] = res; // assuming `res.products` is the array
+      }
+
+      setProductsByCategory(allCategoryProducts);
+
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu trang chủ:', error);
+    }
+  };
+
+  fetchData();
+}, []);
 
   // Fetch products by category
-  useEffect(() => {
-    const fetchProductsByCategory = async () => {
+useEffect(() => {
+  const fetchProductsByCategory = async () => {
+    try {
+      let filteredProducts: Product[];
+
       if (selectedCategory === 'all') {
-        setAllCategoryProducts(hotProducts);
-        setCategoryProducts(hotProducts.slice(0, 4));
-        setCurrentProductIndex(0);
-        return;
+        filteredProducts = hotProducts;
+      } else {
+        filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
       }
 
-      try {
-        const allProducts = await fetchAllProducts();
-        const filteredProducts = allProducts.filter(product => {
-          if (typeof product.category_id === 'object' && product.category_id) {
-            return (product.category_id as { _id: string })._id === selectedCategory;
-          }
-          return product.category_id === selectedCategory;
-        });
-        setAllCategoryProducts(filteredProducts);
-        setCategoryProducts(filteredProducts.slice(0, 4));
-        setCurrentProductIndex(0);
-      } catch (error) {
-        console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
-        setAllCategoryProducts(hotProducts);
-        setCategoryProducts(hotProducts.slice(0, 4));
-        setCurrentProductIndex(0);
-      }
-    };
+      setAllCategoryProducts(filteredProducts);
+      setCategoryProducts(filteredProducts.slice(0, 4));
+      setCurrentProductIndex(0);
+    } catch (error) {
+      console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
+      setAllCategoryProducts(hotProducts);
+      setCategoryProducts(hotProducts.slice(0, 4));
+      setCurrentProductIndex(0);
+    }
+  };
 
-    fetchProductsByCategory();
-  }, [selectedCategory, hotProducts]);
+  fetchProductsByCategory();
+}, [selectedCategory, hotProducts]);
 
   // Auto slide effect
   useEffect(() => {
@@ -85,6 +93,8 @@ const HomePage: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [bannerImages.length]);
+
+  
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
@@ -211,22 +221,20 @@ const HomePage: React.FC = () => {
               
               <div className="promo-banners">
                 <div className="promo-banner">
-                  <img src="/img/p2.webp" alt="Banner khuyến mãi 1" />
+                  <img src="/img/sl4.png" alt="Banner khuyến mãi 1" />
                 </div>
                 <div className="promo-banner">
-                  <img src="/img/p3.webp" alt="Banner khuyến mãi 2" />
+                  <img src="/img/sl2.png" alt="Banner khuyến mãi 2" />
                 </div>
-                <div className="promo-banner">
-                  <img src="/img/p4.jpg" alt="Banner khuyến mãi 3" />
+                 <div className="promo-banner">
+                  <img src="/img/sl3.png" alt="Banner khuyến mãi 2" />
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        <div className="bottom-long-banner">
-          <img src="/img/bannerphu.jpg" alt="Banner dài" />
-        </div>
+        
       </section>
 
       <section className="hot-products">
@@ -285,12 +293,6 @@ const HomePage: React.FC = () => {
                     <span className="original-price">{(product.price * 1.15).toLocaleString()}₫</span>
                   </div>
                   <p className="installment-info">Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6...</p>
-                  <div className="rating-section">
-                    <span className="rating">4.9</span>
-                    <span className="star">⭐</span>
-                    <span className="heart">💙</span>
-                    <span className="like-text">Yêu thích</span>
-                  </div>
                 </div>
               </div>
             ))}
@@ -322,11 +324,6 @@ const HomePage: React.FC = () => {
               </div>
               <div className="product-details">
                 <div className="rating-section">
-                  <div className="stars">
-                    <span>★★★★★</span>
-                    <span className="rating-count">(0)</span>
-                  </div>
-                  <div className="product-code">MÃ: {product._id.slice(-8).toUpperCase()}</div>
                 </div>
                 <h4 className="product-name">{product.name}</h4>
                 <div className="price-section">
@@ -350,71 +347,60 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {categories.map((category) => (
-        <section key={category._id} id="qc-gh">
-          <div className="wrapper">
-            <h2>{category.name}</h2>
-            <div className="workstation-section">
-              <div className="left-banner">
-                <img src="/img/p2.webp" alt={category.name} />
-              </div>
-              <div className="right-products">
-                <div className="filter-buttons">
-                  <button>Từ 10 đến 20 Triệu</button>
-                  <button>Trên 20 Triệu</button>
+{categories.map((category) => (
+  <section key={category._id} id="qc-gh">
+    <div className="wrapper">
+      <h2>{category.name}</h2>
+      <div className="workstation-section">
+        {/* XÓA BANNER BÊN TRÁI Ở ĐÂY */}
+        <div className="right-products">
+          
+          <div className="product-grid">
+            {(productsByCategory[category._id] || []).map((p) => (
+              <div key={p._id} className="product-card">
+                <div className="product-image">
+                  <img
+                    src={p.img_url || '/images/no-image.png'}
+                    alt={p.name}
+                    onClick={() => navigate(`/product/${p._id}`)}
+                  />
                 </div>
-                <div className="product-grid">
-                  {bestSellerProducts
-                    .filter(
-                      (p) =>
-                        typeof p.category_id === 'object' &&
-                        (p.category_id as any)._id === category._id
-                    )
-                    .map((p) => (
-                      <div key={p._id} className="product-card">
-                        <div className="product-image">
-                          <img
-                            src={p.img_url || '/images/no-image.png'}
-                            alt={p.name}
-                            onClick={() => navigate(`/product/${p._id}`)}
-                          />
-                        </div>
-                        <div className="product-details">
-                          <div className="rating-section">
-                            <div className="stars">
-                              <span>★★★★★</span>
-                              <span className="rating-count">(0)</span>
-                            </div>
-                            <div className="product-code">MÃ: {p._id.slice(-8).toUpperCase()}</div>
-                          </div>
-                          <h4 className="product-name">{p.name}</h4>
-                          <div className="price-section">
-                            <div className="original-price">{(p.price * 1.3).toLocaleString()}₫</div>
-                            <div className="savings">(Tiết kiệm: 30%)</div>
-                            <div className="current-price">{p.price.toLocaleString()}₫</div>
-                          </div>
-                          <div className="availability">
-                            <span className="check-icon">✓</span>
-                            <span>Sẵn hàng</span>
-                          </div>
-                          <button 
-                            className="add-to-cart-btn"
-                            onClick={() => addToCart({ ...p, quantity: 1 })}
-                          >
-                            🛒
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-                <div className="load-more">
-                  <button onClick={() => navigate(`/product-list?category=${category._id}`)}>Xem thêm</button>
+                <div className="product-details">
+                  <div className="rating-section">
+                  </div>
+                  <h4 className="product-name">{p.name}</h4>
+                  <div className="price-section">
+                    <div className="original-price">
+                      {(p.price * 1.3).toLocaleString()}₫
+                    </div>
+                  
+                    <div className="current-price">{p.price.toLocaleString()}₫</div>
+                  </div>
+                  <div className="availability">
+                    <span className="check-icon">✓</span>
+                    <span>Sẵn hàng</span>
+                  </div>
+                  <button
+                    className="add-to-cart-btn"
+                    onClick={() => addToCart({ ...p, quantity: 1 })}
+                  >
+                    🛒
+                  </button>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        </section>
-      ))}
+          <div className="load-more">
+            <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
+              Xem thêm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+))}
+
 
     </div>
   );

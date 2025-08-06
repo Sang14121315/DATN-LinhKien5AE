@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { fetchConversation, sendMessage, Message } from "../../api/user/messageAPI";
+import "@/styles/components/user/ChatbotWidget.scss";
 import { User } from "../../api/user/userAPI";
+
 
 // Lấy người dùng hiện tại từ localStorage
 const getCurrentUser = (): User | null => {
@@ -126,139 +128,50 @@ const ChatbotWidget: React.FC = () => {
   };
 
   return (
-    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999 }}>
-      {/* Nút mở chat */}
+    <div className="chatbot-widget">
       {!open && (
-        <div
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: "50%",
-            background: "#fff",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-          }}
-          onClick={() => setOpen(true)}
-        >
-          <span style={{ fontSize: 24 }}>🤖</span>
+        <div className="chat-button" onClick={() => setOpen(true)}>
+          <span>🤖</span>
         </div>
       )}
-
-      {/* Khung chat */}
       {open && (
-        <div
-          style={{
-            width: 350,
-            height: 450,
-            background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              background: "#f5ba09",
-              color: "#fff",
-              padding: "12px 16px",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
+        <div className="chat-container">
+          <div className="chat-header">
             <span>5AE</span>
-            <button
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#fff",
-                fontSize: 20,
-                cursor: "pointer",
-              }}
-              onClick={() => setOpen(false)}
-            >
+            <button className="close-button" onClick={() => setOpen(false)}>
               ×
             </button>
           </div>
-
-          {/* Tin nhắn */}
-          <div style={{ flex: 1, padding: 16, overflowY: "auto" }}>
-            <div style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
-              <span style={{ fontSize: 24, marginRight: 8 }}>🤖</span>
-              <div
-                style={{
-                  background: "#f1f1f1",
-                  borderRadius: 8,
-                  padding: "8px 12px",
-                  maxWidth: "80%",
-                }}
-              >
+          <div className="chat-messages">
+            <div className="welcome-message">
+              <span className="bot-icon">🤖</span>
+              <div className="message-bubble">
                 Xin chào! Bạn cần tìm hiểu về sản phẩm, giá cả hay cần tư vấn chọn máy? Hãy nhắn cho tôi nhé!
               </div>
             </div>
-            <div style={{ maxHeight: 280, overflowY: "auto" }}>
+            <div className="messages-container">
               {loading && <div>Đang tải...</div>}
               {messages.map((m, i) => (
                 <div
                   key={i}
-                  style={{
-                    textAlign: m.sender_id === "user" ? "right" : "left",
-                    margin: "8px 0",
-                  }}
+                  className={`message ${m.sender_id === "user" ? "user" : "bot"}`}
                 >
-                  <span
-                    style={{
-                      display: "inline-block",
-                      background: m.sender_id === "user" ? "#f5ba09" : "#f1f1f1",
-                      color: m.sender_id === "user" ? "#fff" : "#333",
-                      borderRadius: 8,
-                      padding: "8px 12px",
-                      maxWidth: "70%",
-                    }}
-                  >
-                    {m.content}
-                  </span>
+                  <span className="message-bubble">{m.content}</span>
                 </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
           </div>
-
-          {/* Nhập tin nhắn */}
-          <div style={{ padding: 12, borderTop: "1px solid #eee" }}>
+          <div className="chat-input">
             <input
               type="text"
               placeholder="Nhập tin nhắn..."
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSend()}
-              style={{
-                width: "80%",
-                padding: 8,
-                borderRadius: 6,
-                border: "1px solid #ccc",
-                marginRight: 8,
-              }}
               disabled={loading}
             />
-            <button
-              style={{
-                padding: "8px 16px",
-                borderRadius: 6,
-                background: "#f5ba09",
-                color: "#fff",
-                border: "none",
-                cursor: "pointer",
-              }}
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-            >
+            <button onClick={handleSend} disabled={loading || !input.trim()}>
               Gửi
             </button>
           </div>
@@ -268,4 +181,4 @@ const ChatbotWidget: React.FC = () => {
   );
 };
 
-export default ChatbotWidget; 
+export default ChatbotWidget;
