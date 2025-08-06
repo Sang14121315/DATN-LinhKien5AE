@@ -1,35 +1,250 @@
-@import './register.scss';
+// =============================================================================
+// LOGIN PAGE STYLES - OPTIMIZED
+// =============================================================================
+
+// Color System - Simplified
+$primary: #ff9f0d;
+$primary-hover: #e48a00;
+$active: #ff7a00;
+$error: #d93025;
+$success: #0f9d58;
+$text-dark: #333;
+$text-light: #555;
+$text-muted: #666;
+$border: #ccc;
+$bg-light: #fdfdfd;
+$bg-form: rgba(0, 0, 0, 0.05);
+$bg-error: #fff3f3;
+$bg-success: #e6f7e6;
+
+// Spacing System - Simplified
+$space-xs: 6px;
+$space-sm: 10px;
+$space-md: 12px;
+$space-lg: 15px;
+$space-xl: 20px;
+$space-xxl: 25px;
+$space-xxxl: 30px;
+$space-xxxxl: 40px;
+
+// Typography - Simplified
+$font-xs: 12px;
+$font-sm: 13px;
+$font-base: 14px;
+$font-lg: 16px;
+$font-xl: 18px;
+
+// =============================================================================
+// MIXINS - OPTIMIZED
+// =============================================================================
+
+// Flexbox utilities
+@mixin flex($justify: center, $align: center, $direction: row) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+}
+
+// Interactive elements
+@mixin interactive($color: $primary) {
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    color: $color;
+  }
+}
+
+// Form elements
+@mixin form-element {
+  padding: $space-sm $space-md;
+  font-size: $font-base;
+  border: 1px solid $border;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+// Buttons
+@mixin button($bg: $primary, $hover: $primary-hover) {
+  background-color: $bg;
+  color: white;
+  border: none;
+  padding: $space-md;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: $hover;
+  }
+}
+
+// Messages
+@mixin message($bg, $color) {
+  padding: $space-sm $space-md;
+  border-radius: 6px;
+  font-size: $font-base;
+  margin-bottom: $space-lg;
+  border-left: 4px solid $color;
+  background-color: $bg;
+  color: $color;
+}
+
+// =============================================================================
+// LAYOUT COMPONENTS
+// =============================================================================
 
 .login-layout {
-  @extend .register-layout;
+  @include flex(center, center);
+  gap: $space-xxxl;
+  padding: $space-xxxxl $space-xxxl;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: $bg-light;
 
-  .auth-tabs {
-    span {
-      a {
-        color: #333;
+  // Side banners
+  .login-side-banner {
+    width: 180px;
+
+    img {
+      width: 100%;
+      display: block;
+    }
+  }
+
+  // Main content
+  .login-main-content {
+    flex: 1;
+
+    // Top menu
+    .login-top-menu {
+      @include flex(space-between, center);
+      margin-bottom: $space-xl;
+      font-size: $font-base;
+      color: $text-dark;
+
+      span {
+        @include flex(center, center);
+        gap: $space-xs;
+      }
+    }
+
+    // Form container
+    .login-form-container {
+      background-color: $bg-form;
+      padding: $space-xxxxl;
+      border-radius: 8px;
+      width: 420px;
+      max-width: 90%;
+      margin: 0 auto;
+      @include flex(flex-start, stretch, column);
+      gap: $space-lg;
+
+      // Navigation tabs
+      .login-tabs {
+        @include flex(center, center);
+        gap: $space-xxxl;
+        margin-bottom: $space-xxl;
+        font-size: $font-xl;
+        font-weight: 600;
+
+        span {
+          position: relative;
+
+          a {
+            text-decoration: none;
+            color: $text-dark;
+            @include interactive($active);
+          }
+        }
       }
 
-      &.active a {
-        color: #ff7a00;
+      // Form inputs
+      input {
+        @include form-element;
       }
 
-      &:hover a {
-        color: #ff7a00;
+      // Form groups
+      .login-form-group {
+        position: relative;
+
+        &.login-email-group input {
+          width: 100%;
+        }
+
+        &.login-password-group {
+          @include flex(center, center);
+
+          input {
+            flex: 1;
+            padding-right: 40px; // Để tránh text bị che bởi nút toggle
+          }
+
+          .login-toggle-password {
+            position: absolute;
+            right: $space-sm;
+            top: 39%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: $font-lg;
+            color: $text-muted;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 24px;
+            transition: color 0.2s ease;
+            z-index: 10;
+            @include interactive;
+          }
+        }
+      }
+
+      // Recaptcha note
+      .login-recaptcha-note {
+        font-size: $font-xs;
+        color: $text-muted;
+        line-height: 1.5;
+      }
+
+      // Submit button
+      button[type="submit"] {
+        @include button;
+      }
+
+      // Form footer
+      .login-form-footer {
+        font-size: $font-sm;
+        color: $text-light;
+        text-align: center;
+
+        a {
+          color: $primary;
+          text-decoration: none;
+          @include interactive;
+        }
       }
     }
   }
 }
-.error-message {
-  background-color: #fff3f3;
-  color: #d93025;
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-bottom: 15px;
-  border-left: 4px solid #d93025;
+
+// =============================================================================
+// MESSAGE COMPONENTS
+// =============================================================================
+
+.login-error-message {
+  @include message($bg-error, $error);
 }
-.success-message {
-  background-color: #e6f7e6;
-  color: #0f9d58;
-  border-left: 4px solid #0f9d58;
+
+.login-success-message {
+  @include message($bg-success, $success);
 }
