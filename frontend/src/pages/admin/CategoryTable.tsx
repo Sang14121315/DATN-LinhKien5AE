@@ -55,12 +55,12 @@ const CategoryTable: React.FC = () => {
     setCurrentPage(1); // Reset về trang đầu khi thay đổi bộ lọc
   };
 
-  const getProductTypeName = (parentId: string | { _id: string; name: string } | null | undefined) => {
-    if (!parentId) return 'Không có';
-    
-    const id = typeof parentId === 'string' ? parentId : parentId._id;
-    const productType = productTypes.find(pt => pt._id === id);
-    return productType ? productType.name : 'Không xác định';
+  const getProductTypeName = (productType: string | { _id: string; name: string } | null | undefined) => {
+    if (!productType) return 'Không có';
+    if (typeof productType === 'object' && productType.name) return productType.name;
+    // Nếu là string, tìm trong danh sách productTypes (nếu có)
+    const found = productTypes.find(pt => pt._id === productType);
+    return found ? found.name : 'Không xác định';
   };
 
   const paginated = categories.slice(
@@ -119,7 +119,7 @@ const CategoryTable: React.FC = () => {
             className="add-button"
             onClick={() => navigate('/admin/category/create')}
           >
-            <FaPlus /> Thêm danh mục
+            <FaPlus /> Thêm
           </button>
         </div>
       </div>
@@ -150,7 +150,7 @@ const CategoryTable: React.FC = () => {
                   </span>
                 </td>
                 <td>{cat.name}</td>
-                <td>{getProductTypeName(cat.parent)}</td>
+                <td>{getProductTypeName(cat.productType)}</td>
                 <td>{cat.description?.slice(0, 20) || '...'}...</td>
                 <td>{cat.created_at ? new Date(cat.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
                 <td><span className="status">Đã duyệt</span></td>

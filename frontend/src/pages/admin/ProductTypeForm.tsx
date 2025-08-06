@@ -52,7 +52,10 @@ const ProductTypeForm: React.FC = () => {
         return;
       }
 
-      const payload = { name: trimmedName };
+      const payload = { 
+        name: trimmedName, 
+        slug: trimmedName.toLowerCase().replace(/\s+/g, "-")
+      };
       console.log('Sending payload:', payload);
       
       if (isEditMode) {
