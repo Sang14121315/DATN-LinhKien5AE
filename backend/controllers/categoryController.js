@@ -5,7 +5,8 @@ const categorySchema = Joi.object({
   slug: Joi.string().required(),
   name: Joi.string().required(),
   description: Joi.string().allow(''),
-  parent: Joi.string().allow(null, '')
+  parent: Joi.string().allow(null, ''),
+  productType: Joi.string().length(24).required() // validate productType là ObjectId
 });
 
 const getCategories = async (req, res) => {

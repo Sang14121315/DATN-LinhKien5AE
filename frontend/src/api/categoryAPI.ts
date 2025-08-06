@@ -6,6 +6,7 @@ export interface Category {
   name: string;
   description?: string;
   parent?: string | { _id: string; name: string } | null;
+  productType?: string | { _id: string; name: string } | null;
   created_at?: string;
   updated_at?: string;
 }

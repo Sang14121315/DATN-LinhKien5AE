@@ -27,7 +27,7 @@ const CategoryForm: React.FC = () => {
     name: "",
     slug: "",
     description: "",
-    parent: "", // ProductType ID
+    productType: "", // ProductType ID
     created_at: "",
   });
 
@@ -53,7 +53,7 @@ const CategoryForm: React.FC = () => {
           name: res.name || "",
           slug: res.slug || "",
           description: res.description || "",
-          parent: typeof res.parent === 'object' && res.parent ? res.parent._id : (res.parent || ""),
+          productType: typeof res.productType === 'object' && res.productType ? res.productType._id : (res.productType || ""),
           created_at: res.created_at || "",
         });
       });
@@ -79,7 +79,7 @@ const CategoryForm: React.FC = () => {
       name: category.name,
       slug: category.slug || category.name.toLowerCase().replace(/\s+/g, "-"),
       description: category.description || "",
-      parent: category.parent, // ProductType ID
+      productType: category.productType, // ProductType ID
     };
 
     try {
@@ -163,8 +163,8 @@ const CategoryForm: React.FC = () => {
             <label className="half-width">
               Loại sản phẩm (Danh mục cha)
               <select
-                name="parent"
-                value={category.parent}
+                name="productType"
+                value={category.productType}
                 onChange={handleInputChange}
               >
                 <option value="">-- Chọn loại sản phẩm --</option>

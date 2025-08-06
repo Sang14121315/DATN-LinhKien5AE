@@ -5,7 +5,6 @@ const productTypeService = require('../services/productTypeService');
 const productTypeSchema = Joi.object({
   slug: Joi.string().required(),
   name: Joi.string().required(),
-  category_id: Joi.string().length(24).required(),
 });
 
 exports.getProductTypes = async (req, res) => {

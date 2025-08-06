@@ -175,29 +175,20 @@ const Header: React.FC = () => {
                     {user ? (
                       <div className="header__user-dropdown">
                         <div
-                          className="auth-user"
+                          className="auth-user user-vertical"
                           onClick={() => setShowUserDropdown((prev) => !prev)}
                         >
                           <FaUserCircle className="user-icon" />
-                          <span className="user-name">{user.name} ▼</span>
+                          <div className="user-info-vertical">
+                            <span className="user-name">{user.name}</span>
+                            <span className="user-arrow">▼</span>
+                          </div>
                         </div>
                         {showUserDropdown && (
                           <div className="dropdown-menu">
-                            <div
-                              className="dropdown-item"
-                              onClick={() => navigate("/profile")}
-                            >
-                              Hồ sơ
-                            </div>
-                            <div
-                              className="dropdown-item"
-                              onClick={() => navigate("/forgot-password")}
-                            >
-                              Quên mật khẩu
-                            </div>
-                            <div className="dropdown-item" onClick={handleLogout}>
-                              Đăng xuất
-                            </div>
+                            <div className="dropdown-item" onClick={() => navigate("/profile")}>Hồ sơ</div>
+                            <div className="dropdown-item" onClick={() => navigate("/forgot-password")}>Quên mật khẩu</div>
+                            <div className="dropdown-item" onClick={handleLogout}>Đăng xuất</div>
                           </div>
                         )}
                       </div>
@@ -251,29 +242,20 @@ const Header: React.FC = () => {
                         {user ? (
                           <div className="header__user-dropdown">
                             <div
-                              className="auth-user"
+                              className="auth-user user-vertical"
                               onClick={() => setShowUserDropdown((prev) => !prev)}
                             >
                               <FaUserCircle className="user-icon" />
-                              <span className="user-name">{user.name} ▼</span>
+                              <div className="user-info-vertical">
+                                <span className="user-name">{user.name}</span>
+                                <span className="user-arrow">▼</span>
+                              </div>
                             </div>
                             {showUserDropdown && (
                               <div className="dropdown-menu">
-                                <div
-                                  className="dropdown-item"
-                                  onClick={() => navigate("/profile")}
-                                >
-                                  Hồ sơ
-                                </div>
-                                <div
-                                  className="dropdown-item"
-                                  onClick={() => navigate("/forgot-password")}
-                                >
-                                  Quên mật khẩu
-                                </div>
-                                <div className="dropdown-item" onClick={handleLogout}>
-                                  Đăng xuất
-                                </div>
+                                <div className="dropdown-item" onClick={() => navigate("/profile")}>Hồ sơ</div>
+                                <div className="dropdown-item" onClick={() => navigate("/forgot-password")}>Quên mật khẩu</div>
+                                <div className="dropdown-item" onClick={handleLogout}>Đăng xuất</div>
                               </div>
                             )}
                           </div>

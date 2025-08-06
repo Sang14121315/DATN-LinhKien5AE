@@ -163,7 +163,7 @@ const BrandTable: React.FC = () => {
             className="add-button"
             onClick={() => navigate('/admin/brand/create')}
           >
-            <FaPlus /> Thêm thương hiệu
+            <FaPlus /> Thêm
           </button>
         </div>
       </div>
