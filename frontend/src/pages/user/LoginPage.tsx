@@ -1,28 +1,17 @@
-<<<<<<< HEAD
-import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import "@/styles/pages/user/login.scss";
-import { loginUser } from "@/api/user/userAPI";
-import { Eye, EyeOff } from "lucide-react";
-=======
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import '@/styles/pages/user/register.scss';
+import '@/styles/pages/user/login.scss';
 import { loginUser } from '@/api/user/userAPI';
 import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
->>>>>>> main
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-<<<<<<< HEAD
-  const [errorMsg, setErrorMsg] = useState("");
-=======
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
->>>>>>> main
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, user } = useAuth();
@@ -63,7 +52,7 @@ const LoginPage: React.FC = () => {
         navigate(from, { replace: true });
       }
     }
-  }, [isAuthenticated, user, navigate, location]); // Thêm dependencies để đảm bảo effect chạy khi auth state thay đổi
+  }, [isAuthenticated, user, navigate, location]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,15 +63,6 @@ const LoginPage: React.FC = () => {
       console.log("🔍 Login - Starting login process...");
       const res = await loginUser({ email, password });
 
-<<<<<<< HEAD
-      console.log("🔍 Login - Response received:", res);
-      console.log("🔍 Login - Token:", res.token);
-      console.log("🔍 Login - User:", res.user);
-
-      // ✅ Không cần lưu token nếu backend đã set cookie
-      localStorage.setItem("token", res.token);
-      localStorage.setItem("user", JSON.stringify(res.user));
-=======
       console.log('🔍 Login - Response received:', res);
       console.log('🔍 Login - Token:', res.token);
       console.log('🔍 Login - User:', res.user);
@@ -100,7 +80,6 @@ const LoginPage: React.FC = () => {
 
       // Sử dụng login từ AuthContext
       login(res.token, userData);
->>>>>>> main
 
       console.log(
         "🔍 Login - Token saved to localStorage:",
@@ -111,15 +90,7 @@ const LoginPage: React.FC = () => {
         localStorage.getItem("user")
       );
 
-<<<<<<< HEAD
-      if (res.user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/");
-      }
-=======
       // Redirect sẽ được xử lý bởi useEffect
->>>>>>> main
     } catch (error: unknown) {
       console.error("❌ Login - Error:", error);
       const errorMessage =
@@ -196,7 +167,9 @@ const LoginPage: React.FC = () => {
             riêng tư cùng Điều khoản dịch vụ của Google.
           </div>
 
-          <button type="submit">ĐĂNG NHẬP</button>
+          <button type="submit" disabled={isLoggingIn}>
+            {isLoggingIn ? 'ĐANG ĐĂNG NHẬP...' : 'ĐĂNG NHẬP'}
+          </button>
 
           <div className="login-form-footer">
             <p>
