@@ -331,24 +331,26 @@ const CheckoutPage: React.FC = () => {
         boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
         overflow: 'hidden'
       }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          padding: '32px',
-          textAlign: 'center'
-        }}>
-          <Typography.Title level={1} style={{ 
-            color: 'white', 
-            margin: 0,
-            fontSize: '32px',
-            fontWeight: 'bold'
-          }}>
-            🧾 Thanh toán
-          </Typography.Title>
-          <Typography.Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px' }}>
-            Hoàn tất đơn hàng của bạn
-          </Typography.Text>
-        </div>
+                 <div style={{
+           background: 'white',
+           color: 'black',
+           padding: '32px',
+           textAlign: 'center',
+           border: '2px solid black',
+           borderRadius: '16px 16px 0 0'
+         }}>
+           <Typography.Title level={1} style={{ 
+             color: 'black', 
+             margin: 0,
+             fontSize: '32px',
+             fontWeight: 'bold'
+           }}>
+             🧾 Thanh toán
+           </Typography.Title>
+           <Typography.Text style={{ color: 'black', fontSize: '16px' }}>
+             Hoàn tất đơn hàng của bạn
+           </Typography.Text>
+         </div>
         
         <div style={{ padding: '32px' }}>
           <Row gutter={[32, 32]}>
@@ -638,15 +640,7 @@ const CheckoutPage: React.FC = () => {
                             .filter(c => !c.min_order_value || subtotal >= c.min_order_value)
                             .map(c => (
                               <Select.Option key={c.code} value={c.code}>
-                                {c.code} - Giảm {c.discount_value}{c.discount_type === 'percentage' ? '%' : '₫'}
-                                {c.min_order_value && (
-                                  <span style={{ color: '#52c41a' }}>
-                                    ✓ Đủ điều kiện (Tối thiểu {c.min_order_value.toLocaleString()} ₫)
-                                  </span>
-                                )}
-                                <span style={{ color: '#1890ff', fontSize: '12px' }}>
-                                  {c.discount_type === 'percentage' ? 'Giảm theo %' : 'Giảm theo tiền'}
-                                </span>
+                                {c.code}
                               </Select.Option>
                             ))}
                         </Select>
