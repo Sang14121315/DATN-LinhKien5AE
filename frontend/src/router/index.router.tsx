@@ -36,12 +36,17 @@ import PurchasePage from "@/pages/user/PurchasePage";
 import UserProfileLayout from "@/layouts/userProfile.layout";
 import ProductTablePage from "@/pages/admin/ProductTable";
 import ProductFormPage from "@/pages/admin/ProductForm";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const MainRouter = () => {
   return (
     <Routes>
       {/* Admin layout */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin" element={
+        <ProtectedRoute requireAdmin={true}>
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="category" element={<CategoryTablePage />} />
         <Route path="category/create" element={<CategoryFormPage />} />
@@ -76,18 +81,42 @@ const MainRouter = () => {
         <Route path="about" element={<AboutPage />} />
         <Route path="productlist" element={<ProductlistPage />} />
         <Route path="productdetail" element={<ProductdetailPage />} />
-        <Route path="login" element={<LoginPage />} />
+        <Route path="login" element={
+          <ProtectedRoute requireAuth={false}>
+            <LoginPage />
+          </ProtectedRoute>
+        } />
         <Route path="product/:id" element={<ProductdetailPage />} />
-        <Route path="register" element={<RegisterPage />} />
+        <Route path="register" element={
+          <ProtectedRoute requireAuth={false}>
+            <RegisterPage />
+          </ProtectedRoute>
+        } />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="cart" element={<CartPage />} />
-        <Route path="checkout" element={<CheckoutPage />} />
-        <Route path="orders" element={<OrderTrackingPage />} />
+        <Route path="cart" element={
+          <ProtectedRoute>
+            <CartPage />
+          </ProtectedRoute>
+        } />
+        <Route path="checkout" element={
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        } />
+        <Route path="orders" element={
+          <ProtectedRoute>
+            <OrderTrackingPage />
+          </ProtectedRoute>
+        } />
         <Route path="contact" element={<ContactPage />} />
         <Route path="momo-callback" element={<MomoCallbackPage />} />
 
         {/* User Profile Layout */}
-        <Route element={<UserProfileLayout />}>
+        <Route element={
+          <ProtectedRoute>
+            <UserProfileLayout />
+          </ProtectedRoute>
+        }>
           <Route path="profile" element={<ProfilePage />} />
           <Route path="purchase" element={<PurchasePage />} />
         </Route>

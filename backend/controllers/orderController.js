@@ -202,34 +202,8 @@ module.exports = {
       const oldStatus = order.status;
       const updated = await OrderService.update(req.params.id, req.body);
 
-      // Gửi email cập nhật trạng thái nếu trạng thái thay đổi
-      if (req.body.status && req.body.status !== oldStatus) {
-        try {
-          console.log('📧 Sending order status update email...');
-          
-          // Lấy chi tiết đơn hàng để gửi email
-          const orderDetails = await OrderDetailService.getByOrderId(order._id);
-          const orderWithItems = {
-            ...order._doc,
-            items: orderDetails
-          };
-
-          const emailResult = await sendOrderStatusUpdateEmail(
-            orderWithItems, 
-            oldStatus, 
-            req.body.status
-          );
-          
-          if (emailResult.success) {
-            console.log('✅ Order status update email sent successfully!');
-          } else {
-            console.error('❌ Failed to send order status update email:', emailResult.error);
-          }
-        } catch (emailError) {
-          console.error('❌ Error sending order status update email:', emailError);
-          // Không dừng quá trình cập nhật nếu email thất bại
-        }
-      }
+      // Email sẽ được gửi từ frontend thay vì backend
+      console.log('📧 Order status updated. Email will be sent from frontend.');
 
       res.json(updated);
     } catch (error) {

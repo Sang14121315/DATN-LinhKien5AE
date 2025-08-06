@@ -64,45 +64,166 @@ const CouponForm: React.FC = () => {
 
   return (
     <div className="coupon-form-wrapper">
-      <h2>Thêm sản phẩm</h2>
+      <h2>Thêm mã giảm giá</h2>
       <form className="coupon-form" onSubmit={handleSubmit} autoComplete="off">
         <div className="row">
           <div style={{width: '100%'}}>
             <label>Mã code</label>
-            <input name="code" value={formData.code} onChange={handleChange} required />
+            <input 
+              name="code" 
+              value={formData.code} 
+              onChange={handleChange} 
+              required 
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
           </div>
         </div>
         <div className="row">
           <div>
             <label>Kiểu giảm</label>
-            <select name="discount_type" value={formData.discount_type} onChange={handleChange}>
+            <select 
+              name="discount_type" 
+              value={formData.discount_type} 
+              onChange={handleChange}
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%',
+                background: '#f9f9fb'
+              }}
+            >
               <option value="fixed">Số tiền</option>
               <option value="percentage">Phần trăm</option>
             </select>
           </div>
           <div>
             <label>Giá trị</label>
-            <input name="discount_value" value={formData.discount_value} onChange={handleChange} required />
+            <input 
+              name="discount_value" 
+              value={formData.discount_value} 
+              onChange={handleChange} 
+              required 
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
           </div>
         </div>
         <div className="row">
           <div>
             <label>Ngày bắt đầu</label>
-            <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} required />
+            <input 
+              type="date" 
+              name="start_date" 
+              value={formData.start_date} 
+              onChange={handleChange} 
+              required 
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
           </div>
           <div>
             <label>Ngày kết thúc</label>
-            <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} required />
+            <input 
+              type="date" 
+              name="end_date" 
+              value={formData.end_date} 
+              onChange={handleChange} 
+              required 
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
           </div>
         </div>
         <div className="row">
           <div>
             <label>Lượt dùng</label>
-            <input name="max_uses" value={formData.max_uses} onChange={handleChange} required />
+            <input 
+              name="max_uses" 
+              value={formData.max_uses} 
+              onChange={handleChange} 
+              required 
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
           </div>
           <div>
             <label>Tình trạng</label>
-            <select name="is_active" value={formData.is_active ? "active" : "inactive"} onChange={e => setFormData((prev: any) => ({ ...prev, is_active: e.target.value === "active" }))}>
+            <select 
+              name="is_active" 
+              value={formData.is_active ? "active" : "inactive"} 
+              onChange={e => setFormData((prev: any) => ({ ...prev, is_active: e.target.value === "active" }))}
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%',
+                background: '#f9f9fb'
+              }}
+            >
               <option value="active">Đã duyệt</option>
               <option value="inactive">Chưa duyệt</option>
             </select>
@@ -110,10 +231,87 @@ const CouponForm: React.FC = () => {
         </div>
         <div className="row btn-row">
           {id && (
-            <button type="button" className="delete-btn" onClick={handleDelete}>DELETE</button>
+            <button 
+              type="button" 
+              className="delete-btn" 
+              onClick={handleDelete}
+              style={{
+                height: '40px',
+                padding: '0 20px',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                background: '#e53935',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                margin: 0,
+                minWidth: '120px',
+                maxWidth: '160px',
+                flex: 1
+              }}
+            >
+              DELETE
+            </button>
           )}
-          <button type="submit">{id ? "Cập nhật" : "Thêm"}</button>
-          <button type="button" className="cancel-btn" onClick={() => navigate("/admin/coupons")}>CANCEL</button>
+          <button 
+            type="submit"
+            className="submit-btn"
+            style={{
+              height: '40px',
+              padding: '0 20px',
+              border: '2px solid #2EC4B6',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              background: '#FFFFFF',
+              color: '#2EC4B6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box',
+              lineHeight: '40px',
+              margin: 0,
+              minWidth: '120px',
+              maxWidth: '160px',
+              flex: 1
+            }}
+          >
+            {id ? "Cập nhật" : "Thêm"}
+          </button>
+          <button 
+            type="button" 
+            className="cancel-btn" 
+            onClick={() => navigate("/admin/coupons")}
+            style={{
+              height: '40px',
+              padding: '0 20px',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              background: '#e53935',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box',
+              lineHeight: '40px',
+              margin: 0,
+              minWidth: '120px',
+              maxWidth: '160px',
+              flex: 1
+            }}
+          >
+            CANCEL
+          </button>
         </div>
       </form>
     </div>

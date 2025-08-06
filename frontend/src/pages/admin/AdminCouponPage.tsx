@@ -36,14 +36,16 @@ const AdminCouponPage: React.FC = () => {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const couponsPerPage = 5;
+  const [couponsPerPage, setCouponsPerPage] = useState(5);
 
   const navigate = useNavigate();
 
   const loadCoupons = async () => {
     const data = await fetchCoupons();
+    console.log('Loaded coupons:', data);
     setCoupons(data);
     setFilteredCoupons(data);
+    setCurrentPage(1); // Reset về trang đầu tiên khi load lại dữ liệu
   };
 
   useEffect(() => {
@@ -88,6 +90,12 @@ const AdminCouponPage: React.FC = () => {
     }
 
     setFilteredCoupons(filtered);
+    // Reset về trang đầu tiên khi filter thay đổi
+    setCurrentPage(1);
+    
+    // Debug log
+    console.log('Filters:', filters);
+    console.log('Filtered coupons:', filtered.length);
   }, [coupons, filters]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -131,14 +139,18 @@ const AdminCouponPage: React.FC = () => {
 
     if (editingId) {
       await updateCouponAPI(editingId, payload);
+      // Sau khi cập nhật, reload danh sách và reset về trang đầu
+      await loadCoupons();
+      setCurrentPage(1);
     } else {
       const newCoupon = await createCouponAPI(payload);
+      // Thêm coupon mới vào đầu danh sách và reset về trang đầu
       setCoupons((prev: any[]) => [newCoupon, ...prev]);
+      setCurrentPage(1);
     }
 
     setFormData(defaultForm);
     setEditingId(null);
-    await loadCoupons();
   } catch (err: any) {
     console.error("❌ Lỗi khi lưu mã giảm giá:", err);
     alert(err?.response?.data?.message || "Lỗi khi lưu mã giảm giá");
@@ -153,7 +165,13 @@ const AdminCouponPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm("Bạn có chắc muốn xoá mã này không?")) {
       await deleteCouponAPI(id);
-      loadCoupons();
+      await loadCoupons();
+      // Nếu trang hiện tại trống sau khi xóa, reset về trang đầu
+      const remainingCoupons = coupons.filter(coupon => coupon._id !== id);
+      const totalPagesAfterDelete = Math.ceil(remainingCoupons.length / couponsPerPage);
+      if (currentPage > totalPagesAfterDelete && totalPagesAfterDelete > 0) {
+        setCurrentPage(totalPagesAfterDelete);
+      }
     }
   };
 
@@ -164,97 +182,156 @@ const AdminCouponPage: React.FC = () => {
     return dateB.getTime() - dateA.getTime();
   });
 
+  const totalCoupons = sortedCoupons.length;
+  const totalPages = Math.ceil(totalCoupons / couponsPerPage);
   const paginatedCoupons = sortedCoupons.slice((currentPage - 1) * couponsPerPage, currentPage * couponsPerPage);
 
   return (
     <div className="admin-coupon-wrapper">
-      <div className="coupon-header-bar" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24, marginBottom: 24 }}>
-        <form className="filter-controls-horizontal" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'nowrap', justifyContent: 'center' }}>
+      {/* Header */}
+      <div className="page-header">
+        <div className="header-content">
+          <h1 className="page-title">Quản lý mã giảm giá</h1>
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="filter-section">
+        <div className="filter-controls">
           <input
             type="text"
             name="code"
             value={filters.code}
             onChange={handleFilterChange}
-            placeholder="Nhập mã để tìm kiếm..."
-            style={{ minWidth: 160 }}
+            placeholder="Tìm mã giảm giá..."
+            className="search-input"
           />
-          <select name="discount_type" value={filters.discount_type} onChange={handleFilterChange}>
+          <select name="discount_type" value={filters.discount_type} onChange={handleFilterChange} className="status-select">
             <option value="">Tất cả loại</option>
             <option value="percentage">Phần trăm</option>
             <option value="fixed">Cố định</option>
           </select>
-          <select name="status" value={filters.status} onChange={handleFilterChange}>
+          <select name="status" value={filters.status} onChange={handleFilterChange} className="status-select">
             <option value="">Tất cả trạng thái</option>
             <option value="active">Đang hoạt động</option>
             <option value="inactive">Không hoạt động</option>
           </select>
-          <input type="date" name="date_from" value={filters.date_from} onChange={handleFilterChange} />
-          <input type="date" name="date_to" value={filters.date_to} onChange={handleFilterChange} />
-        </form>
-        <button className="add-coupon-btn" onClick={() => navigate('/admin/coupons/create')} style={{ height: 40, padding: '0 24px', fontWeight: 600, background: '#0056b3', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Thêm mã giảm giá</button>
+          <input type="date" name="date_from" value={filters.date_from} onChange={handleFilterChange} className="date-input" />
+          <input type="date" name="date_to" value={filters.date_to} onChange={handleFilterChange} className="date-input" />
+          <button 
+            className="add-coupon-btn" 
+            onClick={() => navigate('/admin/coupons/create')}
+            style={{
+              height: '40px',
+              padding: '0 20px',
+              border: '2px solid #2EC4B6',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              background: '#FFFFFF',
+              color: '#2EC4B6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box',
+              lineHeight: '40px',
+              margin: 0,
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+          >
+            Thêm mã giảm giá
+          </button>
+        </div>
       </div>
-      <div className="admin-coupon-inner">
-        <div className="admin-coupon-page">
-          <h2 style={{ textAlign: 'center', marginBottom: 24 }}>🎟️ Quản lý mã giảm giá</h2>
 
-          {/* Header cho danh sách card */}
-          <div className="coupon-card-list-header">
-            <span className="col-id">#</span>
-            <span className="col-code">Mã</span>
-            <span className="col-type">Loại</span>
-            <span className="col-value">Giá trị</span>
-            <span className="col-min">Đơn tối thiểu</span>
-            <span className="col-start">Ngày bắt đầu</span>
-            <span className="col-end">Ngày kết thúc</span>
-            <span className="col-status">Trạng thái</span>
-            <span className="col-actions">Hành động</span>
-          </div>
-
-          {/* Danh sách mã giảm giá dạng card hàng dọc */}
-          <div className="coupon-card-list vertical-list">
+      {/* Coupon Table */}
+      <div className="table-container">
+        <table className="order-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Mã giảm giá</th>
+              <th>Loại</th>
+              <th>Giá trị</th>
+              <th>Đơn tối thiểu</th>
+              <th>Ngày bắt đầu</th>
+              <th>Ngày kết thúc</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
             {paginatedCoupons.map((coupon, idx) => (
-              <div className="coupon-card row-card" key={coupon._id}>
-                <span className="col-id" style={{ color: '#00b96b', fontWeight: 700 }}>{(currentPage - 1) * couponsPerPage + idx + 1}</span>
-                <span className="col-code">{coupon.code}</span>
-                <span className="col-type">{coupon.discount_type}</span>
-                <span className="col-value">{coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `${coupon.discount_value.toLocaleString()}₫`}</span>
-                <span className="col-min">{coupon.min_order_value?.toLocaleString()}₫</span>
-                <span className="col-start">{new Date(coupon.start_date).toLocaleDateString()}</span>
-                <span className="col-end">{new Date(coupon.end_date).toLocaleDateString()}</span>
-                <span className="col-status">
-                  <span className={coupon.is_active ? "status" : "status inactive"}>
-                    {coupon.is_active ? "Đã duyệt" : "Ẩn"}
+              <tr key={coupon._id}>
+                <td>{(currentPage - 1) * couponsPerPage + idx + 1}</td>
+                <td className="product-cell">{coupon.code}</td>
+                <td>
+                  <span className={`discount-type ${coupon.discount_type}`}>
+                    {coupon.discount_type === "percentage" ? "Phần trăm" : "Cố định"}
                   </span>
-                </span>
-                <span className="col-actions">
-                  <button className="view-button" onClick={() => handleEdit(coupon)}>
+                </td>
+                <td className="total-cell">
+                  {coupon.discount_type === "percentage" 
+                    ? `${coupon.discount_value}%` 
+                    : `${coupon.discount_value.toLocaleString()}₫`
+                  }
+                </td>
+                <td>{coupon.min_order_value?.toLocaleString()}₫</td>
+                <td>{new Date(coupon.start_date).toLocaleDateString('vi-VN')}</td>
+                <td>{new Date(coupon.end_date).toLocaleDateString('vi-VN')}</td>
+                <td>
+                  <div className="status-dropdown">
+                    <span className={`status-badge ${coupon.is_active ? 'pending' : 'delivered'}`}>
+                      {coupon.is_active ? "Đang hoạt động" : "Không hoạt động"}
+                    </span>
+                    <span className="dropdown-arrow"></span>
+                  </div>
+                </td>
+                <td>
+                  <button 
+                    className="view-btn"
+                    onClick={() => handleEdit(coupon)}
+                  >
                     <FaEye /> Xem
                   </button>
-                </span>
-              </div>
+                </td>
+              </tr>
             ))}
-          </div>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8}}>
-            <div className="coupon-table-summary" style={{fontSize: 14, color: '#888', paddingLeft: 2}}>
-              Showing {(currentPage - 1) * couponsPerPage + 1}-{Math.min(currentPage * couponsPerPage, sortedCoupons.length)} from {sortedCoupons.length}
-            </div>
-            <div className="pagination-controls pagination-right">
-              <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>{'<'}</button>
-              {Array.from({ length: Math.ceil(sortedCoupons.length / couponsPerPage) }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  className={`page-number${page === currentPage ? ' active' : ''}`}
-                  onClick={() => setCurrentPage(page)}
-                  disabled={page === currentPage}
-                  style={{fontSize: 14}}
-                >
-                  {page}
-                </button>
-              ))}
-              <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(sortedCoupons.length / couponsPerPage), p + 1))} disabled={currentPage === Math.ceil(sortedCoupons.length / couponsPerPage)}>{'>'}</button>
-            </div>
-          </div>
-        </div>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="order-table-summary">
+        Showing {(currentPage - 1) * couponsPerPage + 1}
+        -{Math.min(currentPage * couponsPerPage, totalCoupons)} from {totalCoupons}
+      </div>
+      <div className="pagination-controls pagination-right">
+        <button 
+          onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+          disabled={currentPage === 1}
+        >
+          ‹
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, currentPage - 3), currentPage + 2).map(page => (
+          <button
+            key={page}
+            className={`page-number${page === currentPage ? ' active' : ''}`}
+            onClick={() => setCurrentPage(page)}
+            disabled={page === currentPage}
+          >
+            {page}
+          </button>
+        ))}
+        {currentPage < totalPages - 2 && <span>...</span>}
+        <button 
+          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+          disabled={currentPage === totalPages}
+        >
+          ›
+        </button>
       </div>
     </div>
   );

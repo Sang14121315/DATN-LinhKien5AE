@@ -50,6 +50,20 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchOrders();
   }, []);
 
+  // Lắng nghe event logout để clear orders
+  useEffect(() => {
+    const handleLogout = (event: Event) => {
+      console.log('📦 Clearing orders due to logout...');
+      setOrders([]);
+    };
+
+    window.addEventListener('logout', handleLogout);
+    
+    return () => {
+      window.removeEventListener('logout', handleLogout);
+    };
+  }, []);
+
   const fetchOrders = async () => {
     try {
       const data = await getOrders();

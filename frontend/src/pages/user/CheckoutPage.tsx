@@ -319,8 +319,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   return (
-    <div className="checkout-page" style={{ 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    <div className="checkout-page" style={{       
       minHeight: '100vh',
       padding: '20px'
     }}>
@@ -797,9 +796,9 @@ const CheckoutPage: React.FC = () => {
                         <Radio value="bank" style={{ 
                           width: '100%', 
                           padding: '16px', 
-                          border: paymentMethod === 'bank' ? '2px solid #667eea' : '1px solid #d9d9d9', 
+                          border: paymentMethod === 'bank' ? '2px solid #007BFF' : '1px solid #F5F5F5', 
                           borderRadius: '12px',
-                          background: paymentMethod === 'bank' ? '#f0f4ff' : '#fff',
+                          background: paymentMethod === 'bank' ? '#F0F4FF' : '#FFFFFF',
                           transition: 'all 0.3s ease'
                         }}>
                           <Space>
@@ -820,8 +819,8 @@ const CheckoutPage: React.FC = () => {
                       size="small" 
                       style={{ 
                         borderRadius: '12px',
-                        border: '2px solid #667eea',
-                        background: '#f8f9fa'
+                        border: '2px solid #007BFF',
+                        background: 'transparent'
                       }}
                     >
                       <Space direction="vertical" style={{ width: '100%' }}>
@@ -849,8 +848,8 @@ const CheckoutPage: React.FC = () => {
                             fontSize: '18px',
                             fontWeight: 'bold',
                             borderRadius: '8px',
-                            background: '#667eea',
-                            borderColor: '#667eea'
+                            background: '#007BFF',
+                            borderColor: '#007BFF'
                           }}
                         >
                           Xác nhận & Đặt hàng

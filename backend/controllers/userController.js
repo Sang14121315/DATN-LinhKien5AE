@@ -117,6 +117,36 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+exports.validateToken = async (req, res) => {
+  try {
+    // Middleware auth đã validate token và set req.user
+    const user = await UserService.getById(req.user.id);
+    
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    };
+
+    res.json({ 
+      valid: true, 
+      user: userData,
+      message: 'Token is valid' 
+    });
+  } catch (error) {
+    console.error('Token validation error:', error);
+    res.status(401).json({ 
+      valid: false, 
+      message: 'Token is invalid or expired' 
+    });
+  }
+};
+
 exports.getUsers = async (req, res) => {
   try {
     const { name, email, role } = req.query;

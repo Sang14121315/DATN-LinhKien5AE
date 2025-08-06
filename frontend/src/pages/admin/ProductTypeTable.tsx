@@ -109,7 +109,7 @@ const ProductTypeTable: React.FC = () => {
             className="add-button"
             onClick={() => navigate('/admin/product-types/create')}
           >
-            <FaPlus /> Thêm loại sản phẩm
+            <FaPlus /> Thêm
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@ const categorySchema = new mongoose.Schema({
   description: { type: String }, // ✅ Phải có dòng này
   img_url: String,
   parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' }, // Thêm trường parent
+  productType: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductType' },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
 });
