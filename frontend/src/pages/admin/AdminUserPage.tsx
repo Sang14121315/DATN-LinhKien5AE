@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   fetchAllUsers,
   fetchUserById,
   User,
   blockUser,
-} from '../../api/user/userAPI';
-import '../../styles/pages/admin/userTable.scss';
+} from "../../api/user/userAPI";
+import "../../styles/pages/admin/userTable.scss";
 
 const PAGE_SIZE = 10;
 
 const AdminUserPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,7 +32,7 @@ const AdminUserPage: React.FC = () => {
 
   useEffect(() => {
     let filtered = users;
-    if (roleFilter !== 'all') {
+    if (roleFilter !== "all") {
       filtered = filtered.filter((u) => u.role === roleFilter);
     }
     if (search.trim()) {
@@ -62,7 +62,7 @@ const AdminUserPage: React.FC = () => {
   const handleBlock = async (id: string, isBlocked: boolean) => {
     await blockUser(id, !isBlocked);
     setModalOpen(false);
-    setToast(!isBlocked ? 'Đã khóa tài khoản!' : 'Đã mở khóa tài khoản!');
+    setToast(!isBlocked ? "Đã khóa tài khoản!" : "Đã mở khóa tài khoản!");
     // Cập nhật lại danh sách user
     setLoading(true);
     const data = await fetchAllUsers();
@@ -77,20 +77,20 @@ const AdminUserPage: React.FC = () => {
       <div className="user-controls">
         <div className="filter-group">
           <button
-            className={roleFilter === 'all' ? 'active' : ''}
-            onClick={() => setRoleFilter('all')}
+            className={roleFilter === "all" ? "active" : ""}
+            onClick={() => setRoleFilter("all")}
           >
             All
           </button>
           <button
-            className={roleFilter === 'admin' ? 'active' : ''}
-            onClick={() => setRoleFilter('admin')}
+            className={roleFilter === "admin" ? "active" : ""}
+            onClick={() => setRoleFilter("admin")}
           >
             Admin
           </button>
           <button
-            className={roleFilter === 'user' ? 'active' : ''}
-            onClick={() => setRoleFilter('user')}
+            className={roleFilter === "user" ? "active" : ""}
+            onClick={() => setRoleFilter("user")}
           >
             Người dùng
           </button>
@@ -130,14 +130,21 @@ const AdminUserPage: React.FC = () => {
                   <td>#{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
-                  <td>{user.address || '-'}</td>
+                  <td>{user.address || "-"}</td>
                   <td>
-                    <span className={user.role === 'admin' ? 'role-admin' : 'role-user'}>
-                      {user.role === 'admin' ? 'Admin' : 'Người dùng'}
+                    <span
+                      className={
+                        user.role === "admin" ? "role-admin" : "role-user"
+                      }
+                    >
+                      {user.role === "admin" ? "Admin" : "Người dùng"}
                     </span>
                   </td>
                   <td>
-                    <button className="btn-view" onClick={() => handleView(user._id)}>
+                    <button
+                      className="btn-view"
+                      onClick={() => handleView(user._id)}
+                    >
                       👁 Xem
                     </button>
                   </td>
@@ -147,7 +154,9 @@ const AdminUserPage: React.FC = () => {
           </tbody>
         </table>
       </div>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
+      <div
+        style={{ width: "100%", display: "flex", justifyContent: "flex-end" }}
+      >
         <div className="pagination">
           <button
             disabled={currentPage === 1}
@@ -158,7 +167,7 @@ const AdminUserPage: React.FC = () => {
           {Array.from({ length: totalPages }, (_, i) => (
             <button
               key={i}
-              className={currentPage === i + 1 ? 'active' : ''}
+              className={currentPage === i + 1 ? "active" : ""}
               onClick={() => setCurrentPage(i + 1)}
             >
               {i + 1}
@@ -177,8 +186,12 @@ const AdminUserPage: React.FC = () => {
           <div className="user-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <span>THÔNG TIN TÀI KHOẢN</span>
-              <span className={selectedUser.role === 'admin' ? 'role-admin' : 'role-user'}>
-                {selectedUser.role === 'admin' ? 'Admin' : 'Người dùng'}
+              <span
+                className={
+                  selectedUser.role === "admin" ? "role-admin" : "role-user"
+                }
+              >
+                {selectedUser.role === "admin" ? "Admin" : "Người dùng"}
               </span>
             </div>
             <div className="modal-body">
@@ -192,31 +205,40 @@ const AdminUserPage: React.FC = () => {
               </div>
               <div className="modal-row">
                 <b>Địa chỉ:</b>
-                <span>{selectedUser.address || '-'}</span>
+                <span>{selectedUser.address || "-"}</span>
               </div>
               <div className="modal-row">
                 <b>Ngày tạo:</b>
-                <span>{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString() : '-'}</span>
+                <span>
+                  {selectedUser.created_at
+                    ? new Date(selectedUser.created_at).toLocaleDateString()
+                    : "-"}
+                </span>
               </div>
               <div className="modal-row">
                 <b>Trạng thái:</b>
-                <span>{selectedUser.isBlocked ? 'Đã bị khóa' : 'Hoạt động'}</span>
+                <span>
+                  {selectedUser.isBlocked ? "Đã bị khóa" : "Hoạt động"}
+                </span>
               </div>
             </div>
             <div className="modal-footer">
               <button onClick={() => setModalOpen(false)}>Quay lại</button>
-              <button className="btn-block" onClick={() => handleBlock(selectedUser._id, !!selectedUser.isBlocked)}>
-                {selectedUser.isBlocked ? 'Mở khóa' : 'Khóa'}
+              <button
+                className="btn-block"
+                onClick={() =>
+                  handleBlock(selectedUser._id, !!selectedUser.isBlocked)
+                }
+              >
+                {selectedUser.isBlocked ? "Mở khóa" : "Khóa"}
               </button>
             </div>
           </div>
         </div>
       )}
-      {toast && (
-        <div className="user-toast-popup">{toast}</div>
-      )}
+      {toast && <div className="user-toast-popup">{toast}</div>}
     </div>
   );
 };
 
-export default AdminUserPage; 
+export default AdminUserPage;
