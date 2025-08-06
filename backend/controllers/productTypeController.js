@@ -1,5 +1,7 @@
 const Joi = require('joi');
 const productTypeService = require('../services/productTypeService');
+const ProductType = require('../models/ProductType');
+const Category = require('../models/Category');
 
 // Joi Schema
 const productTypeSchema = Joi.object({
@@ -13,6 +15,34 @@ exports.getProductTypes = async (req, res) => {
     res.json(types);
   } catch (error) {
     res.status(500).json({ error: 'Lỗi khi lấy danh sách loại sản phẩm' });
+  }
+};
+
+// Thêm hàm mới để lấy ProductTypes kèm Categories
+exports.getProductTypesWithCategories = async (req, res) => {
+  try {
+    const productTypes = await ProductType.find().lean();
+    
+    const result = await Promise.all(
+      productTypes.map(async (type) => {
+        const categories = await Category.find({ 
+          productType: type._id 
+        }).select('_id name slug');
+        
+        return {
+          ...type,
+          categories
+        };
+      })
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
   }
 };
 
