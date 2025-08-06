@@ -45,3 +45,33 @@ export const fetchRecentOrders = async (): Promise<DashboardOrder[]> => {
 export const formatCurrency = (value: number): string => {
   return `${value.toLocaleString()} VNĐ`;
 };
+
+export interface RevenueOrderByDate {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+export const fetchRevenueOrdersByDate = async (from?: string, to?: string): Promise<RevenueOrderByDate[]> => {
+  const params: any = {};
+  if (from) params.from = from;
+  if (to) params.to = to;
+  const response = await axios.get('http://localhost:5000/api/admin/dashboard/revenue-orders-by-date', {
+    params,
+    withCredentials: true,
+  });
+  return response.data;
+};
+
+export interface TopProduct {
+  product_id: string;
+  name: string;
+  sold: number;
+}
+
+export const fetchTop5BestSellerProducts = async (): Promise<TopProduct[]> => {
+  const response = await axios.get('http://localhost:5000/api/admin/dashboard/top5-bestseller-products', {
+    withCredentials: true,
+  });
+  return response.data;
+};
