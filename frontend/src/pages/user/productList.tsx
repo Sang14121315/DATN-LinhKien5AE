@@ -6,11 +6,10 @@ import "@/styles/pages/user/productList.scss";
 import { useCart } from "@/context/CartContext";
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
-import { Category, fetchAllCategories } from "@/api/user/categoryAPI";
+import { Category, fetchAllCategories, fetchCategoriesByProductType } from "@/api/user/categoryAPI";
 import {
   ProductType,
   fetchAllProductTypes,
-  fetchProductTypesByCategory,
 } from "@/api/user/productTypeAPI";
 
 const ProductListPage: React.FC = () => {
@@ -29,8 +28,8 @@ const ProductListPage: React.FC = () => {
   const [expandedProductType, setExpandedProductType] = useState<string | null>(
     null
   );
-  const [categoryProductTypes, setCategoryProductTypes] = useState<
-    Record<string, ProductType[]>
+  const [productTypeCategories, setProductTypeCategories] = useState<
+    Record<string, Category[]>
   >({});
 
   const navigate = useNavigate();
@@ -61,13 +60,13 @@ const ProductListPage: React.FC = () => {
         setCategories(categoryData);
         setProductTypes(productTypeData);
 
-        // Load product types for each category
-        const typesByCategory: Record<string, ProductType[]> = {};
-        for (const category of categoryData) {
-          const types = await fetchProductTypesByCategory(category._id);
-          typesByCategory[category._id] = types;
+        // Load categories for each product type
+        const categoriesByProductType: Record<string, Category[]> = {};
+        for (const productType of productTypeData) {
+          const categories = await fetchCategoriesByProductType(productType._id);
+          categoriesByProductType[productType._id] = categories;
         }
-        setCategoryProductTypes(typesByCategory);
+        setProductTypeCategories(categoriesByProductType);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -125,9 +124,9 @@ const ProductListPage: React.FC = () => {
     fetchProducts();
   }, [selectedCategory, selectedBrand, selectedPrice, filtersInitialized]);
 
-  const toggleProductType = (categoryId: string) => {
+  const toggleProductType = (productTypeId: string) => {
     setExpandedProductType(
-      expandedProductType === categoryId ? null : categoryId
+      expandedProductType === productTypeId ? null : productTypeId
     );
   };
 
@@ -148,32 +147,32 @@ const ProductListPage: React.FC = () => {
                 TẤT CẢ SẢN PHẨM
               </li>
 
-              {categories.map((category) => (
-                <React.Fragment key={category._id}>
+              {productTypes.map((productType) => (
+                <React.Fragment key={productType._id}>
                   <li
                     className={`product-type-item ${
-                      expandedProductType === category._id ? "expanded" : ""
+                      expandedProductType === productType._id ? "expanded" : ""
                     }`}
-                    onClick={() => toggleProductType(category._id)}
+                    onClick={() => toggleProductType(productType._id)}
                   >
-                    {category.name.toUpperCase()}
+                    {productType.name.toUpperCase()}
                     <span className="dropdown-icon">
-                      {expandedProductType === category._id ? "▼" : "▶"}
+                      {expandedProductType === productType._id ? "▼" : "▶"}
                     </span>
                   </li>
 
-                  {expandedProductType === category._id && (
+                  {expandedProductType === productType._id && (
                     <div className="sub-categories">
-                      {categoryProductTypes[category._id]?.map(
-                        (productType) => (
+                      {productTypeCategories[productType._id]?.map(
+                        (category) => (
                           <li
-                            key={productType._id}
+                            key={category._id}
                             onClick={() => setSelectedCategory(category._id)}
                             className={
                               selectedCategory === category._id ? "active" : ""
                             }
                           >
-                            {productType.name}
+                            {category.name}
                           </li>
                         )
                       )}
@@ -182,34 +181,6 @@ const ProductListPage: React.FC = () => {
                 </React.Fragment>
               ))}
             </ul>
-          </div>
-
-          <div className="sidebar-section">
-            <h3>THƯƠNG HIỆU</h3>
-            <div className="brand-radio-group">
-              <label className="brand-radio">
-                <input
-                  type="radio"
-                  name="brand"
-                  value="all"
-                  checked={selectedBrand === "all"}
-                  onChange={() => setSelectedBrand("all")}
-                />
-                Tất cả
-              </label>
-              {brands.map((b) => (
-                <label className="brand-radio" key={b._id}>
-                  <input
-                    type="radio"
-                    name="brand"
-                    value={b._id}
-                    checked={selectedBrand === b._id}
-                    onChange={() => setSelectedBrand(b._id)}
-                  />
-                  {b.name}
-                </label>
-              ))}
-            </div>
           </div>
 
           <div className="sidebar-section">
@@ -251,8 +222,30 @@ const ProductListPage: React.FC = () => {
         </aside>
 
         <main className="product-content">
-          <div className="product-banner">
-            <img src="/assets/banner_productList.png" alt="Banner" />
+          <div className="brand-bar">
+            <h3>THƯƠNG HIỆU</h3>
+            <div className="brand-radio-group">
+              <div
+                className={`brand-item ${selectedBrand === "all" ? "selected" : ""}`}
+                onClick={() => setSelectedBrand("all")}
+              >
+                <span>Tất cả</span>
+              </div>
+              {brands.map((b) => (
+                <div
+                  className={`brand-item ${selectedBrand === b._id ? "selected" : ""}`}
+                  key={b._id}
+                  onClick={() => setSelectedBrand(b._id)}
+                >
+                  <img
+                    src={b.logo_url || b.logo_data || '/public/assets/default_brand_logo.png'}
+                    alt={b.name}
+                    className="brand-logo"
+                    title={b.name}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="product-header">

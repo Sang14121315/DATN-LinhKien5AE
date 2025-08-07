@@ -77,11 +77,13 @@ router.delete(
 );
 
 // Categories
-router.get("/categories", categoryController.getCategories);
-router.get("/categories/:id", categoryController.getCategoryById);
-router.post("/categories", categoryController.createCategory);
-router.put("/categories/:id", categoryController.updateCategory);
-router.delete("/categories/:id", categoryController.deleteCategory);
+router.get('/categories', categoryController.getCategories);
+router.get('/categories/by-product-type/:productTypeId', categoryController.getCategoriesByProductType);
+router.get('/categories/:id', categoryController.getCategoryById);
+router.post('/categories', categoryController.createCategory);
+router.put('/categories/:id', categoryController.updateCategory);
+router.delete('/categories/:id', categoryController.deleteCategory);
+
 
 // Brands
 router.get("/brands", brandController.getBrands);
