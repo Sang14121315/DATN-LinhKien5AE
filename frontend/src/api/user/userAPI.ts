@@ -44,7 +44,7 @@ export const registerUser = async (data: {
 
 // Đăng nhập
 export const loginUser = async (data: { email: string; password: string }) => {
-  const response = await axios.post('/login', data);
+  const response = await axios.post('/api/login', data);
   return response.data;
 };
 

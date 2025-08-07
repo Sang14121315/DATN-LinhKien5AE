@@ -13,6 +13,7 @@ import ProductTypeFormPage from "@/pages/admin/ProductTypeForm";
 
 import AdminUserPage from "@/pages/admin/AdminUserPage";
 import AdminContactPage from "@/pages/admin/AdminContactPage";
+import MessageManagement from "@/pages/admin/MessageManagement";
 
 import CouponForm from "@/pages/admin/CouponForm";
 
@@ -69,6 +70,7 @@ const MainRouter = () => {
 
         <Route path="users" element={<AdminUserPage />} />
         <Route path="feedback" element={<AdminContactPage />} />
+        <Route path="messages" element={<MessageManagement />} />
 
         <Route path="coupons/create" element={<CouponForm />} />
         <Route path="coupons/:id/edit" element={<CouponForm />} />
@@ -80,6 +82,7 @@ const MainRouter = () => {
         <Route path="search" element={<SearchResultPage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="productlist" element={<ProductlistPage />} />
+        <Route path="product-list" element={<ProductlistPage />} />
         <Route path="productdetail" element={<ProductdetailPage />} />
         <Route path="login" element={
           <ProtectedRoute requireAuth={false}>
