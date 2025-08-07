@@ -22,7 +22,11 @@ class UserService {
 
   static async create({ name, email, password, phone, address, role }) {
     const existingUser = await User.findOne({ email });
-    if (existingUser) throw new Error('User already exists');
+    if (existingUser) {
+      const err = new Error('User already exists');
+      err.status = 409;
+      throw err;
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);

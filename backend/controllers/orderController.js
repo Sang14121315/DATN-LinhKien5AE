@@ -272,7 +272,7 @@ module.exports = {
 
       // Tạo link thanh toán Momo với orderId thực
       const orderId = order._id.toString();
-      const redirectUrl = process.env.MOMO_REDIRECT_URL || 'http://localhost:5173/momo-callback';
+      const redirectUrl = 'http://localhost:5173/momo-callback';
       const ipnUrl = process.env.MOMO_IPN_URL || 'http://localhost:5000/api/momo/webhook';
       
       console.log('🔗 MoMo - Redirect URL:', redirectUrl);

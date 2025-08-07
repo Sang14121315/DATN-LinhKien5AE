@@ -49,6 +49,9 @@ exports.register = async (req, res) => {
       .status(201)
       .json({ user, token });
   } catch (error) {
+    if (error.status === 409) {
+      return res.status(409).json({ message: error.message });
+    }
     res
       .status(500)
       .json({ message: error.message || "Error registering user" });
