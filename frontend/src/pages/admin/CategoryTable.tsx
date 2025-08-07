@@ -32,31 +32,18 @@ const CategoryTable: React.FC = () => {
         // Lấy tất cả product types để điền vào dropdown
         const allProductTypes = await fetchAllProductTypes();
         setProductTypes(allProductTypes);
-        // Lấy tất cả danh mục, filter phía client
-        const allCategories = await fetchAllCategories({});
-        let filtered = allCategories;
-        // Lọc theo loại sản phẩm (parent là _id của loại)
-        if (filters.parent) {
-          filtered = filtered.filter((item: any) => item.productType === filters.parent || (item.productType?._id === filters.parent));
-        }
-        // Lọc theo tên
-        if (filters.name) {
-          filtered = filtered.filter((item: any) => item.name.toLowerCase().includes(filters.name.toLowerCase()));
-        }
-        // Lọc theo ngày
-        if (filters.startDate) {
-          filtered = filtered.filter((item: any) => item.created_at && item.created_at >= filters.startDate);
-        }
-        if (filters.endDate) {
-          filtered = filtered.filter((item: any) => item.created_at && item.created_at <= filters.endDate);
-        }
-        setCategories(filtered);
+        console.log('Product Types:', allProductTypes);
+
+        // Lấy danh mục với bộ lọc
+        const data = await fetchAllCategories(filters);
+        setCategories(data);
         setError(null);
       } catch (err) {
         console.error('Lỗi khi tải dữ liệu:', err);
         setError('Không thể tải dữ liệu. Vui lòng thử lại.');
       }
     };
+
     loadData();
   }, [filters]);
 
@@ -90,7 +77,7 @@ const CategoryTable: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
 
       <div className="top-controls">
-        <div className="left-filters" style={{ flex: 1, minWidth: 0 }}>
+        <div className="left-filters">
           <select
             name="parent"
             value={filters.parent}
@@ -118,16 +105,16 @@ const CategoryTable: React.FC = () => {
             onChange={handleFilterChange}
             className="filter-button"
           />
+        </div>
+
+        <div className="right-controls">
           <input
             type="text"
             name="name"
             value={filters.name}
             onChange={handleFilterChange}
             placeholder="Tìm kiếm danh mục..."
-            style={{ width: 220, marginLeft: 8 }}
           />
-        </div>
-        <div className="right-controls" style={{ flexShrink: 0 }}>
           <button
             className="add-button"
             onClick={() => navigate('/admin/category/create')}

@@ -17,13 +17,11 @@ const ProductTypeTable: React.FC = () => {
     category_id: string;
     startDate: string;
     endDate: string;
-    status: string; // Thêm trạng thái
   }>({
     name: '',
     category_id: '',
     startDate: '',
-    endDate: '',
-    status: '', // Thêm trạng thái
+    endDate: ''
   });
 
   useEffect(() => {
@@ -34,25 +32,8 @@ const ProductTypeTable: React.FC = () => {
         setAllProductTypes(allData);
 
         // Lấy loại sản phẩm theo bộ lọc
-        const data = await fetchAllProductTypes({}); // luôn lấy tất cả, filter phía client
-        let filtered = data;
-        // Lọc theo loại sản phẩm (category_id là _id của loại)
-        if (filters.category_id) {
-          filtered = filtered.filter((item: any) => item._id === filters.category_id);
-        }
-        // Lọc theo trạng thái
-        if (filters.status) {
-          filtered = filtered.filter((item: any) => {
-            if (filters.status === 'active') return item.is_active !== false;
-            if (filters.status === 'inactive') return item.is_active === false;
-            return true;
-          });
-        }
-        // Lọc theo tên
-        if (filters.name) {
-          filtered = filtered.filter((item: any) => item.name.toLowerCase().includes(filters.name.toLowerCase()));
-        }
-        setProductTypes(filtered);
+        const data = await fetchAllProductTypes(filters);
+        setProductTypes(data);
         setError(null);
       } catch (err) {
         console.error('Lỗi khi tải loại sản phẩm:', err);
@@ -86,16 +67,16 @@ const ProductTypeTable: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
 
       <div className="top-controls">
-        <div className="left-filters" style={{ flex: 1, minWidth: 0 }}>
+        <div className="left-filters">
           <select
-            name="category_id"
-            value={filters.category_id}
+            name="name"
+            value={filters.name}
             onChange={handleFilterChange}
             className="filter-button"
           >
             <option value="">Tất cả loại sản phẩm</option>
             {allProductTypes.map(productType => (
-              <option key={productType._id} value={productType._id}>
+              <option key={productType._id} value={productType.name}>
                 {productType.name}
               </option>
             ))}
@@ -114,26 +95,16 @@ const ProductTypeTable: React.FC = () => {
             onChange={handleFilterChange}
             className="filter-button"
           />
-          <select
-            name="status"
-            value={filters.status}
-            onChange={handleFilterChange}
-            className="filter-button"
-          >
-            <option value="">Tất cả trạng thái</option>
-            <option value="active">Đã duyệt</option>
-            <option value="inactive">Chưa duyệt</option>
-          </select>
+        </div>
+
+        <div className="right-controls">
           <input
             type="text"
             name="name"
             value={filters.name}
             onChange={handleFilterChange}
             placeholder="Tìm kiếm loại sản phẩm..."
-            style={{ width: 220, marginLeft: 8 }}
           />
-        </div>
-        <div className="right-controls" style={{ flexShrink: 0 }}>
           <button
             className="add-button"
             onClick={() => navigate('/admin/product-types/create')}

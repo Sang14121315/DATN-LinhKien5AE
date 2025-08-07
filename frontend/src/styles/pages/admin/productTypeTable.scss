@@ -13,58 +13,75 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 16px;
 
     .left-filters {
       display: flex;
-      align-items: center;
       gap: 10px;
-      flex: 1 1 0%;
-      min-width: 0;
 
-      .filter-button,
-      input[type="text"] {
+      .filter-button {
         background: #fff;
         border: 1px solid #ccc;
         border-radius: 8px;
         padding: 8px 16px;
         font-weight: 500;
-        font-size: 16px;
-        height: 40px;
-        box-sizing: border-box;
+        cursor: pointer;
         display: flex;
         align-items: center;
         gap: 6px;
-        margin: 0;
-      }
-      input[type="text"] {
-        width: 220px;
-        margin-left: 8px;
+
+        &:hover {
+          background: #f0f0f0;
+        }
+
+        &.active {
+          border-color: #1f9c66;
+          color: #1f9c66;
+        }
       }
     }
 
     .right-controls {
       display: flex;
       align-items: center;
-      flex-shrink: 0;
+      gap: 10px;
+
+      input[type="text"], .add-button {
+        height: 40px;
+        font-size: 16px;
+        line-height: 1.5;
+        box-sizing: border-box;
+        padding: 0 16px;
+        border-radius: 8px;
+        vertical-align: middle;
+        display: flex;
+        align-items: center;
+      }
       .add-button {
         height: 40px;
-        padding: 0 20px;
-        font-size: 16px;
+        padding-top: 0;
+        padding-bottom: 0;
+        display: flex;
+        align-items: center;
+        vertical-align: middle;
+        margin-left: 8px;
         font-weight: 600;
         border: none;
         background-color: #1f9c66;
         color: #fff;
         border-radius: 8px;
+        padding: 6px 12px;
+        font-weight: 500;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 6px;
-        transition: background 0.2s;
+        font-size: 14px;
+
         &:hover {
-          background-color: #178a57;
+          background-color: #fceeee;
         }
       }
     }

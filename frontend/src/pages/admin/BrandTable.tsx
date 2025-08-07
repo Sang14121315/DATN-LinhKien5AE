@@ -27,12 +27,31 @@ const BrandTable: React.FC = () => {
   useEffect(() => {
     const loadBrands = async () => {
       try {
+        // Debug: Kiểm tra token
         const token = localStorage.getItem('token');
+        console.log('Token:', token);
+        
+        // Debug: Kiểm tra user info
+        const userInfo = localStorage.getItem('user');
+        console.log('User Info:', userInfo);
+        
+        // Debug: Parse user info để xem role
+        if (userInfo) {
+          try {
+            const user = JSON.parse(userInfo);
+            console.log('User Role:', user.role);
+            console.log('User Email:', user.email);
+          } catch (e) {
+            console.log('User info không phải JSON format');
+          }
+        }
+        
         if (!token) {
           setError('Bạn chưa đăng nhập. Vui lòng đăng nhập trước.');
           return;
         }
-        // Lấy toàn bộ danh sách để lọc thương hiệu cha và filter phía client
+        
+        // Lấy toàn bộ danh sách để lọc thương hiệu cha
         const allBrands = await fetchAllBrands({});
         const parents = allBrands.filter(
           brand =>
@@ -41,30 +60,20 @@ const BrandTable: React.FC = () => {
             (typeof brand.parent === 'object' && brand.parent === null)
         );
         setParentBrands(parents);
-        // Lọc phía client
-        let filtered = allBrands;
-        if (filters.parent) {
-          filtered = filtered.filter((item: any) => {
-            if (!item.parent) return false;
-            if (typeof item.parent === 'string') return item.parent === filters.parent;
-            if (typeof item.parent === 'object' && item.parent._id) return item.parent._id === filters.parent;
-            return false;
-          });
-        }
-        if (filters.name) {
-          filtered = filtered.filter((item: any) => item.name.toLowerCase().includes(filters.name.toLowerCase()));
-        }
-        if (filters.startDate) {
-          filtered = filtered.filter((item: any) => item.created_at && item.created_at >= filters.startDate);
-        }
-        if (filters.endDate) {
-          filtered = filtered.filter((item: any) => item.created_at && item.created_at <= filters.endDate);
-        }
-        setBrands(filtered);
+
+        // Lấy thương hiệu theo bộ lọc
+        const data = await fetchAllBrands(filters);
+        setBrands(data);
         setError(null);
       } catch (err: any) {
+        console.error('Lỗi chi tiết:', err);
+        console.error('Response data:', err.response?.data);
+        console.error('Status:', err.response?.status);
+        
         if (err.response?.status === 401) {
           setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          // Có thể redirect về trang login
+          // navigate('/login');
         } else if (err.response?.status === 403) {
           setError('Bạn không có quyền truy cập admin. Vui lòng đăng nhập với tài khoản admin.');
         } else {
@@ -72,6 +81,7 @@ const BrandTable: React.FC = () => {
         }
       }
     };
+
     loadBrands();
   }, [filters]);
 
@@ -111,7 +121,7 @@ const BrandTable: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
 
       <div className="top-controls">
-        <div className="left-filters" style={{ flex: 1, minWidth: 0 }}>
+        <div className="left-filters">
           <select
             name="parent"
             value={filters.parent}
@@ -139,16 +149,16 @@ const BrandTable: React.FC = () => {
             onChange={handleFilterChange}
             className="filter-button"
           />
+        </div>
+
+        <div className="right-controls">
           <input
             type="text"
             name="name"
             value={filters.name}
             onChange={handleFilterChange}
             placeholder="Tìm kiếm thương hiệu..."
-            style={{ width: 220, marginLeft: 8 }}
           />
-        </div>
-        <div className="right-controls" style={{ flexShrink: 0 }}>
           <button
             className="add-button"
             onClick={() => navigate('/admin/brand/create')}
