@@ -26,6 +26,7 @@ import HomePage from "@/pages/user/home";
 import LoginPage from "@/pages/user/LoginPage";
 import RegisterPage from "@/pages/user/RegisterPage";
 import ForgotPasswordPage from "@/pages/user/ForgotPasswordPage";
+
 import CartPage from "@/pages/user/CartPage";
 import CheckoutPage from "@/pages/user/CheckoutPage";
 import SearchResultPage from "@/pages/user/searchResult";
@@ -43,11 +44,14 @@ const MainRouter = () => {
   return (
     <Routes>
       {/* Admin layout */}
-      <Route path="/admin" element={
-        <ProtectedRoute requireAdmin={true}>
-          <AdminLayout />
-        </ProtectedRoute>
-      }>
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="category" element={<CategoryTablePage />} />
         <Route path="category/create" element={<CategoryFormPage />} />
@@ -84,42 +88,60 @@ const MainRouter = () => {
         <Route path="productlist" element={<ProductlistPage />} />
         <Route path="product-list" element={<ProductlistPage />} />
         <Route path="productdetail" element={<ProductdetailPage />} />
-        <Route path="login" element={
-          <ProtectedRoute requireAuth={false}>
-            <LoginPage />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="login"
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <LoginPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="product/:id" element={<ProductdetailPage />} />
-        <Route path="register" element={
-          <ProtectedRoute requireAuth={false}>
-            <RegisterPage />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="register"
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <RegisterPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="cart" element={
-          <ProtectedRoute>
-            <CartPage />
-          </ProtectedRoute>
-        } />
-        <Route path="checkout" element={
-          <ProtectedRoute>
-            <CheckoutPage />
-          </ProtectedRoute>
-        } />
-        <Route path="orders" element={
-          <ProtectedRoute>
-            <OrderTrackingPage />
-          </ProtectedRoute>
-        } />
+
+        <Route
+          path="cart"
+          element={
+            <ProtectedRoute>
+              <CartPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="checkout"
+          element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="orders"
+          element={
+            <ProtectedRoute>
+              <OrderTrackingPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="contact" element={<ContactPage />} />
         <Route path="momo-callback" element={<MomoCallbackPage />} />
 
         {/* User Profile Layout */}
-        <Route element={
-          <ProtectedRoute>
-            <UserProfileLayout />
-          </ProtectedRoute>
-        }>
+        <Route
+          element={
+            <ProtectedRoute>
+              <UserProfileLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="profile" element={<ProfilePage />} />
           <Route path="purchase" element={<PurchasePage />} />
         </Route>
