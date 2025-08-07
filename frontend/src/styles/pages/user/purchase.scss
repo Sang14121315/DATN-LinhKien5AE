@@ -40,11 +40,11 @@
     transition: all 0.2s ease;
 
     &:hover {
-      color: #ff6b35;
+      color: #007BFF;
     }
 
     &.active {
-      color: #ff6b35;
+      color: #007BFF;
       font-weight: 600;
 
       &::after {
@@ -54,7 +54,7 @@
         left: 0;
         right: 0;
         height: 2px;
-        background: #ff6b35;
+        background: #007BFF;
       }
     }
   }
@@ -78,7 +78,7 @@
       transition: border-color 0.2s ease;
 
       &:focus-within {
-        border-color: #ff6b35;
+        border-color: #007BFF;
         background: white;
       }
 
@@ -184,12 +184,12 @@
   border-radius: 6px; // reduced radius
   padding: 12px 100px; // reduced padding
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  border-left: 4px solid #ff6b35;
+  border-left: 4px solid #007BFF;
   font-size: 13px; // smaller font
 
   h4 {
     margin-bottom: 8px;
-    color: #ff6b35;
+    color: #007BFF;
     font-size: 15px; // smaller
   }
 
