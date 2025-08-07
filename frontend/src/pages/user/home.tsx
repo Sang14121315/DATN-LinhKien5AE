@@ -156,7 +156,7 @@ useEffect(() => {
         <span className="discount">-20%</span>
       </div>
       <div className="old-price">{(product.price * 1.2).toLocaleString()}đ</div>
-      <button className="add-to-cart" onClick={() => addToCart({ ...product, quantity: 1 })}>
+      <button className="add-to-cart" onClick={() => addToCart({ _id: product._id, name: product.name, price: product.price, img_url: product.img_url, quantity: 1 })}>
         Thêm vào giỏ
       </button>
     </div>
@@ -337,7 +337,7 @@ useEffect(() => {
                 </div>
                 <button 
                   className="add-to-cart-btn"
-                  onClick={() => addToCart({ ...product, quantity: 1 })}
+                  onClick={() => addToCart({ _id: product._id, name: product.name, price: product.price, img_url: product.img_url, quantity: 1 })}
                 >
                   🛒
                 </button>
@@ -382,7 +382,7 @@ useEffect(() => {
                   </div>
                   <button
                     className="add-to-cart-btn"
-                    onClick={() => addToCart({ ...p, quantity: 1 })}
+                    onClick={() => addToCart({ _id: p._id, name: p.name, price: p.price, img_url: p.img_url, quantity: 1 })}
                   >
                     🛒
                   </button>
