@@ -7,7 +7,11 @@ import { useCart } from "@/context/CartContext";
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
 import { Category, fetchAllCategories } from "@/api/user/categoryAPI";
-import { ProductType, fetchAllProductTypes, fetchProductTypesByCategory } from "@/api/user/productTypeAPI";
+import {
+  ProductType,
+  fetchAllProductTypes,
+  fetchProductTypesByCategory,
+} from "@/api/user/productTypeAPI";
 
 const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -22,9 +26,12 @@ const ProductListPage: React.FC = () => {
 
   const [searchParams] = useSearchParams();
 
-  const [expandedProductType, setExpandedProductType] = useState<string | null>(null);
-  const [categoryProductTypes, setCategoryProductTypes] = useState<Record<string, ProductType[]>>({});
-
+  const [expandedProductType, setExpandedProductType] = useState<string | null>(
+    null
+  );
+  const [categoryProductTypes, setCategoryProductTypes] = useState<
+    Record<string, ProductType[]>
+  >({});
 
   const navigate = useNavigate();
   const itemsPerPage = 16;
@@ -71,7 +78,7 @@ const ProductListPage: React.FC = () => {
 
   useEffect(() => {
     // Handle category from URL query parameter
-    const categoryFromUrl = searchParams.get('category');
+    const categoryFromUrl = searchParams.get("category");
     if (categoryFromUrl) {
       setSelectedCategory(categoryFromUrl);
     } else {
@@ -119,7 +126,9 @@ const ProductListPage: React.FC = () => {
   }, [selectedCategory, selectedBrand, selectedPrice, filtersInitialized]);
 
   const toggleProductType = (categoryId: string) => {
-    setExpandedProductType(expandedProductType === categoryId ? null : categoryId);
+    setExpandedProductType(
+      expandedProductType === categoryId ? null : categoryId
+    );
   };
 
   return (
@@ -130,15 +139,15 @@ const ProductListPage: React.FC = () => {
             <div className="dropdown-header">
               <span>DANH MỤC SẢN PHẨM</span>
             </div>
-            
+
             <ul className="dropdown-content">
-              <li 
+              <li
                 onClick={() => setSelectedCategory("all")}
                 className={selectedCategory === "all" ? "active" : ""}
               >
                 TẤT CẢ SẢN PHẨM
               </li>
-              
+
               {categories.map((category) => (
                 <React.Fragment key={category._id}>
                   <li
@@ -152,18 +161,22 @@ const ProductListPage: React.FC = () => {
                       {expandedProductType === category._id ? "▼" : "▶"}
                     </span>
                   </li>
-                  
+
                   {expandedProductType === category._id && (
                     <div className="sub-categories">
-                      {categoryProductTypes[category._id]?.map((productType) => (
-                        <li
-                          key={productType._id}
-                          onClick={() => setSelectedCategory(category._id)}
-                          className={selectedCategory === category._id ? "active" : ""}
-                        >
-                          {productType.name}
-                        </li>
-                      ))}
+                      {categoryProductTypes[category._id]?.map(
+                        (productType) => (
+                          <li
+                            key={productType._id}
+                            onClick={() => setSelectedCategory(category._id)}
+                            className={
+                              selectedCategory === category._id ? "active" : ""
+                            }
+                          >
+                            {productType.name}
+                          </li>
+                        )
+                      )}
                     </div>
                   )}
                 </React.Fragment>

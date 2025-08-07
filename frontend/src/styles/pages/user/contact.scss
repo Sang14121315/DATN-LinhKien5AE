@@ -1,8 +1,8 @@
-.beautiful-bg {
+.contact__bg {
   background: linear-gradient(135deg, #e6fff7 0%, #f7f7fa 100%);
   min-height: 100vh;
 }
-.contact-page {
+.contact {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,19 +10,22 @@
   min-height: 100vh;
   box-sizing: border-box;
 }
-.contact-hero, .contact-intro, .contact-form-wrapper, .faq-section {
+.contact__hero,
+.contact__intro,
+.contact__form-wrapper,
+.contact__faq {
   width: 100%;
   max-width: 700px;
   margin: 0 auto 32px auto;
   box-sizing: border-box;
 }
-.contact-hero {
+.contact__hero {
   margin-top: 32px;
   margin-bottom: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  .hero-icon {
+  .contact__hero-icon {
     font-size: 4.5rem;
     margin-bottom: 8px;
     filter: drop-shadow(0 2px 8px #00c6a733);
@@ -31,28 +34,28 @@
     font-size: 2.2rem;
     font-weight: 800;
     margin-bottom: 6px;
-    .brand-gradient {
+    .contact__brand-gradient {
       background: linear-gradient(90deg, #00c6a7 30%, #1890ff 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
   }
-  .hero-desc {
+  .contact__hero-desc {
     color: #555;
     font-size: 1.08em;
     text-align: center;
     margin-bottom: 0;
   }
 }
-.contact-intro {
-  background: rgba(255,255,255,0.85);
+.contact__intro {
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 16px;
   box-shadow: 0 2px 12px #00c6a71a;
   padding: 22px 28px 18px 28px;
   margin-bottom: 32px;
   font-size: 1.08em;
-  .contact-info > div {
+  .contact__info > div {
     margin-bottom: 6px;
     display: flex;
     align-items: center;
@@ -66,14 +69,72 @@
     }
   }
 }
-.glass-form {
-  background: rgba(255,255,255,0.85);
+.contact__form-wrapper {
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 18px;
   box-shadow: 0 4px 32px #00c6a71a;
   padding: 36px 28px 28px 28px;
   margin-bottom: 36px;
   backdrop-filter: blur(2px);
   border: 1.5px solid #e6fff7;
+}
+.contact__form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  .contact__form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    label {
+      font-weight: 800;
+      color: #00c6a7;
+      margin-bottom: 2px;
+      font-size: 1.08em;
+      letter-spacing: 0.2px;
+    }
+    input,
+    textarea {
+      border-radius: 12px;
+      border: 1.5px solid #e0e0e0;
+      padding: 15px 18px;
+      font-size: 1.12em;
+      background: #fafdff;
+      color: #222;
+      font-family: inherit;
+      box-shadow: none;
+      transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+      width: auto;
+      min-width: 0;
+      max-width: 100%;
+      &::placeholder {
+        color: #bdbdbd;
+        opacity: 1;
+        font-size: 0.98em;
+      }
+      &:focus {
+        border: 1.5px solid #00c6a7;
+        outline: none;
+        box-shadow: 0 2px 12px #00c6a733;
+        background: #fff;
+      }
+    }
+  }
+  .contact__submit-btn.gradient-btn {
+    margin-top: 10px;
+    font-size: 1.13em;
+    font-weight: 800;
+    border-radius: 12px;
+    padding: 14px 0;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 16px #00c6a733;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    &:hover {
+      background: linear-gradient(90deg, #1890ff 0%, #00c6a7 100%);
+      box-shadow: 0 6px 24px #1890ff33;
+      transform: translateY(-2px) scale(1.03);
+    }
+  }
 }
 .gradient-btn {
   background: linear-gradient(90deg, #00c6a7 0%, #1890ff 100%);
@@ -92,7 +153,7 @@
     box-shadow: 0 4px 24px #1890ff33;
   }
 }
-.user-toast {
+.contact__toast {
   position: fixed;
   right: 32px;
   bottom: 32px;
@@ -108,30 +169,35 @@
   animation: fadeInOut 2s;
 }
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(30px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(30px); }
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
 }
-.beautiful-faq {
-  background: rgba(255,255,255,0.92);
+.contact__faq {
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 16px;
   box-shadow: 0 2px 16px #00c6a71a;
   padding: 32px 24px 24px 24px;
   margin-bottom: 24px;
-}
-.faq-section.beautiful-faq {
   max-width: 700px;
-  margin: 0 auto 24px auto;
-  background: rgba(255,255,255,0.92);
-  border-radius: 16px;
-  box-shadow: 0 2px 16px #00c6a71a;
-  padding: 32px 24px 24px 24px;
 }
-.faq-accordion {
+.contact__faq-accordion {
   max-width: 600px;
   margin: 0 auto;
-  .faq-item {
+  .contact__faq-item {
     margin-bottom: 14px;
     border-radius: 14px;
     background: #f7f7fa;
@@ -145,7 +211,7 @@
       background: linear-gradient(90deg, #e6fff7 0%, #f7f7fa 100%);
     }
   }
-  .faq-question {
+  .contact__faq-question {
     width: 100%;
     background: none;
     border: none;
@@ -160,27 +226,28 @@
     justify-content: space-between;
     color: #00c6a7;
     transition: background 0.2s, color 0.2s;
-    .toggle-icon {
+    .contact__toggle-icon {
       font-size: 1.6em;
       margin-left: 12px;
       color: #00c6a7;
       font-weight: bold;
       transition: color 0.2s;
     }
-    &:hover, &.active {
+    &:hover,
+    &.active {
       background: #e6fff7;
       color: #009e86;
-      .toggle-icon {
+      .contact__toggle-icon {
         color: #009e86;
       }
     }
   }
-  .faq-answer-wrapper {
+  .contact__faq-answer-wrapper {
     overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1);
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: #fff;
   }
-  .faq-answer {
+  .contact__faq-answer {
     padding: 16px 22px 18px 22px;
     color: #333;
     font-size: 1.04em;
@@ -189,88 +256,39 @@
     background: #fafdff;
   }
 }
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    label {
-      font-weight: 800;
-      color: #00c6a7;
-      margin-bottom: 2px;
-      font-size: 1.08em;
-      letter-spacing: 0.2px;
-    }
-    input, textarea {
-      border-radius: 12px;
-      border: 1.5px solid #e0e0e0;
-      padding: 15px 18px;
-      font-size: 1.12em;
-      background: #fafdff;
-      color: #222;
-      font-family: inherit;
-      box-shadow: none;
-      transition: border 0.2s, box-shadow 0.2s, background 0.2s;
-      &::placeholder {
-        color: #bdbdbd;
-        opacity: 1;
-        font-size: 0.98em;
-      }
-      &:focus {
-        border: 1.5px solid #00c6a7;
-        outline: none;
-        box-shadow: 0 2px 12px #00c6a733;
-        background: #fff;
-      }
-    }
-  }
-  .submit-btn.gradient-btn {
-    margin-top: 10px;
-    font-size: 1.13em;
-    font-weight: 800;
-    border-radius: 12px;
-    padding: 14px 0;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 16px #00c6a733;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
-    &:hover {
-      background: linear-gradient(90deg, #1890ff 0%, #00c6a7 100%);
-      box-shadow: 0 6px 24px #1890ff33;
-      transform: translateY(-2px) scale(1.03);
-    }
-  }
-}
 @media (max-width: 900px) {
-  .contact-hero, .contact-intro, .contact-form-wrapper, .faq-section {
+  .contact__hero,
+  .contact__intro,
+  .contact__form-wrapper,
+  .contact__faq {
     max-width: 98vw;
     padding-left: 8px;
     padding-right: 8px;
   }
 }
 @media (max-width: 700px) {
-  .beautiful-bg {
+  .contact__bg {
     padding: 8px 2px 24px 2px;
   }
-  .glass-form, .beautiful-faq, .contact-form-wrapper {
+  .contact__form-wrapper,
+  .contact__faq {
     padding: 10px 2px 8px 2px;
     border-radius: 10px;
   }
-  .contact-hero h1 {
+  .contact__hero h1 {
     font-size: 1.3rem;
   }
-  .contact-hero .hero-icon {
+  .contact__hero .contact__hero-icon {
     font-size: 2.5rem;
   }
-  .contact-form {
+  .contact__form {
     gap: 12px;
-    .form-group input, .form-group textarea {
+    .contact__form-group input,
+    .contact__form-group textarea {
       font-size: 1em;
       padding: 10px 8px;
     }
-    .submit-btn.gradient-btn {
+    .contact__submit-btn.gradient-btn {
       font-size: 1em;
       padding: 10px 0;
     }
