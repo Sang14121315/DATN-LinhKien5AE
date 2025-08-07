@@ -11,45 +11,76 @@
 }
 .user-controls {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+
   .filter-group {
     display: flex;
-    gap: 10px;
+    gap: 0.75rem;
+
     button {
-      background: #b2dfd8;
+      padding: 0.5rem 1.5rem;
       border: none;
-      padding: 8px 22px;
-      border-radius: 18px;
-      cursor: pointer;
+      border-radius: 2rem;
+      background: #b2dfd8;
+      color: #fff;
       font-weight: 700;
       font-size: 1em;
-      color: #fff;
+      cursor: pointer;
       box-shadow: 0 2px 8px #00c6a71a;
       transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+
       &.active {
         background: #00c6a7;
         color: #fff;
         box-shadow: 0 4px 16px #00c6a733;
       }
-      &:hover {
+
+      &:hover:not(.active) {
         background: #00c6a7;
         color: #fff;
         box-shadow: 0 4px 16px #00c6a733;
       }
     }
   }
+
   .user-search {
-    padding: 6px 12px;
-    border-radius: 8px;
+    flex: 1 1 300px;
+    max-width: 500px;
+    margin-bottom: auto;
+    padding: 0.5rem 1.2rem;
     border: 1.5px solid #e0e0e0;
-    min-width: 220px;
-    font-size: 1em;
-    transition: border 0.2s;
+    border-radius: 2rem;
+    font-size: 1.05em;
+    font-weight: 500;
+    color: #222;
+    letter-spacing: 0.01em;
+    outline: none;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border 0.2s, box-shadow 0.2s;
+    &::placeholder {
+      color: #aaa;
+      opacity: 1;
+      font-weight: 400;
+      font-style: italic;
+      letter-spacing: 0.01em;
+    }
     &:focus {
       border: 1.5px solid #e74c3c;
-      outline: none;
+      box-shadow: 0 2px 8px #e74c3c22;
+    }
+  }
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+    .user-search {
+      margin-left: 0;
+      margin-top: 0.75rem;
+      width: 100%;
+      max-width: 100%;
     }
   }
 }
@@ -62,7 +93,8 @@
 .user-table {
   width: 100%;
   border-collapse: collapse;
-  th, td {
+  th,
+  td {
     padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid #f0f0f0;
@@ -153,7 +185,10 @@
 }
 .user-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: #0005;
   display: flex;
   align-items: center;
@@ -179,7 +214,8 @@
     letter-spacing: 0.5px;
     border-bottom: 1.5px solid #f7d7d7;
     padding-bottom: 10px;
-    .role-admin, .role-user {
+    .role-admin,
+    .role-user {
       margin-left: 12px;
     }
   }
@@ -243,8 +279,20 @@
   animation: fadeInOut 2s;
 }
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(30px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(30px); }
-} 
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}

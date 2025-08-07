@@ -6,7 +6,7 @@ const errorHandler = require('./middleware/errorHandler');
 const path = require('path');
 const { Server } = require('socket.io');
 const cookieParser = require('cookie-parser');
-
+require('dotenv').config();
 dotenv.config();
 connectDB();
 
