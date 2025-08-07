@@ -54,6 +54,22 @@ export const forgotPassword = async (data: { email: string }) => {
   return response.data;
 };
 
+// Gửi OTP quên mật khẩu
+export const sendForgotPasswordOTP = async (data: { email: string }) => {
+  const response = await axios.post('/forgot-password/send-otp', data);
+  return response.data;
+};
+
+// Đặt lại mật khẩu với OTP
+export const resetPasswordWithOTP = async (data: { 
+  email: string; 
+  otp: string; 
+  newPassword: string 
+}) => {
+  const response = await axios.post('/forgot-password/reset-with-otp', data);
+  return response.data;
+};
+
 // Đặt lại mật khẩu
 export const resetPassword = async (data: { token: string; newPassword: string }) => {
   const response = await axios.post('/reset-password', data);

@@ -4,6 +4,7 @@ import { getNotificationsByUser, deleteAllNotifications, Notification } from '..
 import { io } from 'socket.io-client';
 import '@/styles/components/admin/header.scss';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
@@ -16,6 +17,7 @@ const Header: React.FC = () => {
   const userId = localStorage.getItem('user_id') || '';
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState<string>('ADMIN');
+  const { logout } = useAuth();
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) return;
@@ -109,14 +111,17 @@ const Header: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('user');
+    // Sử dụng logout function từ AuthContext để đảm bảo xóa đúng tất cả dữ liệu
+    logout();
+    // Navigate đến trang đăng nhập
     navigate('/login');
   };
 
   const handleChangePassword = () => {
-    localStorage.clear();
-    navigate('/forgotPassword');
+    // Sử dụng logout function từ AuthContext để đảm bảo xóa đúng tất cả dữ liệu
+    logout();
+    // Navigate đến trang quên mật khẩu
+    navigate('/forgot-password');
   };
 
   return (

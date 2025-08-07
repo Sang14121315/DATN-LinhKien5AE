@@ -7,17 +7,24 @@ import { useCart } from "@/context/CartContext";
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
 import { Category, fetchAllCategories } from "@/api/user/categoryAPI";
+import { ProductType, fetchAllProductTypes, fetchProductTypesByCategory } from "@/api/user/productTypeAPI";
 
 const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState("all");
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
   const [searchParams] = useSearchParams();
+
+  const [expandedProductType, setExpandedProductType] = useState<string | null>(null);
+  const [categoryProductTypes, setCategoryProductTypes] = useState<Record<string, ProductType[]>>({});
+
 
   const navigate = useNavigate();
   const itemsPerPage = 16;
@@ -38,14 +45,24 @@ const ProductListPage: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [brandData, categoryData] = await Promise.all([
+        const [brandData, categoryData, productTypeData] = await Promise.all([
           fetchAllBrands(),
           fetchAllCategories(),
+          fetchAllProductTypes(),
         ]);
         setBrands(brandData);
         setCategories(categoryData);
+        setProductTypes(productTypeData);
+
+        // Load product types for each category
+        const typesByCategory: Record<string, ProductType[]> = {};
+        for (const category of categoryData) {
+          const types = await fetchProductTypesByCategory(category._id);
+          typesByCategory[category._id] = types;
+        }
+        setCategoryProductTypes(typesByCategory);
       } catch (error) {
-        console.error("Lỗi khi tải danh mục/thương hiệu:", error);
+        console.error("Lỗi khi tải dữ liệu:", error);
       }
     };
 
@@ -101,28 +118,61 @@ const ProductListPage: React.FC = () => {
     fetchProducts();
   }, [selectedCategory, selectedBrand, selectedPrice, filtersInitialized]);
 
+  const toggleProductType = (categoryId: string) => {
+    setExpandedProductType(expandedProductType === categoryId ? null : categoryId);
+  };
+
   return (
     <div className="product-page-container">
       <div className="product-layout">
         <aside className="sidebar">
           <div className="sidebar-section">
-            <h3>Danh mục sản phẩm</h3>
-            <ul>
-              <li onClick={() => setSelectedCategory("all")}>Tất cả</li>
-              {categories.map((c) => (
-                <li
-                  key={c._id}
-                  onClick={() => setSelectedCategory(c._id)}
-                  className={selectedCategory === c._id ? "active" : ""}
-                >
-                  {c.name}
-                </li>
+            <div className="dropdown-header">
+              <span>DANH MỤC SẢN PHẨM</span>
+            </div>
+            
+            <ul className="dropdown-content">
+              <li 
+                onClick={() => setSelectedCategory("all")}
+                className={selectedCategory === "all" ? "active" : ""}
+              >
+                TẤT CẢ SẢN PHẨM
+              </li>
+              
+              {categories.map((category) => (
+                <React.Fragment key={category._id}>
+                  <li
+                    className={`product-type-item ${
+                      expandedProductType === category._id ? "expanded" : ""
+                    }`}
+                    onClick={() => toggleProductType(category._id)}
+                  >
+                    {category.name.toUpperCase()}
+                    <span className="dropdown-icon">
+                      {expandedProductType === category._id ? "▼" : "▶"}
+                    </span>
+                  </li>
+                  
+                  {expandedProductType === category._id && (
+                    <div className="sub-categories">
+                      {categoryProductTypes[category._id]?.map((productType) => (
+                        <li
+                          key={productType._id}
+                          onClick={() => setSelectedCategory(category._id)}
+                          className={selectedCategory === category._id ? "active" : ""}
+                        >
+                          {productType.name}
+                        </li>
+                      ))}
+                    </div>
+                  )}
+                </React.Fragment>
               ))}
             </ul>
           </div>
 
           <div className="sidebar-section">
-            <h3>Thương hiệu</h3>
+            <h3>THƯƠNG HIỆU</h3>
             <div className="brand-radio-group">
               <label className="brand-radio">
                 <input
@@ -150,7 +200,7 @@ const ProductListPage: React.FC = () => {
           </div>
 
           <div className="sidebar-section">
-            <h3>Lọc giá</h3>
+            <h3>LỌC GIÁ</h3>
             <div className="price-radio-group">
               {[
                 ["all", "Tất cả"],

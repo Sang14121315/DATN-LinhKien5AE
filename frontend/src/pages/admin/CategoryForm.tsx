@@ -6,7 +6,14 @@ import {
   deleteCategory,
   createCategory,
 } from "@/api/categoryAPI";
+import { fetchAllProductTypes } from "@/api/productTypeAPI";
 import "@/styles/pages/admin/categoryForm.scss";
+
+interface ProductType {
+  _id: string;
+  name: string;
+  slug: string;
+}
 
 const CategoryForm: React.FC = () => {
   const { id } = useParams();
@@ -14,6 +21,44 @@ const CategoryForm: React.FC = () => {
   const isEditMode = Boolean(id);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
+
+  const [category, setCategory] = useState({
+    name: "",
+    slug: "",
+    description: "",
+    productType: "", // ProductType ID
+    created_at: "",
+  });
+
+  // Load product types for dropdown
+  useEffect(() => {
+    const loadProductTypes = async () => {
+      try {
+        const data = await fetchAllProductTypes();
+        setProductTypes(data);
+        console.log('Loaded product types:', data);
+      } catch (error) {
+        console.error('Lỗi khi tải loại sản phẩm:', error);
+      }
+    };
+
+    loadProductTypes();
+  }, []);
+
+  useEffect(() => {
+    if (isEditMode && id) {
+      getCategoryById(id).then((res) => {
+        setCategory({
+          name: res.name || "",
+          slug: res.slug || "",
+          description: res.description || "",
+          productType: typeof res.productType === 'object' && res.productType ? res.productType._id : (res.productType || ""),
+          created_at: res.created_at || "",
+        });
+      });
+    }
+  }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -23,28 +68,8 @@ const CategoryForm: React.FC = () => {
     }
   };
 
-  const [category, setCategory] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    created_at: "",
-  });
-
-  useEffect(() => {
-    if (isEditMode && id) {
-      getCategoryById(id).then((res) => {
-        setCategory({
-          name: res.name || "",
-          slug: res.slug || "",
-          description: res.description || "",
-          created_at: res.created_at || "",
-        });
-      });
-    }
-  }, [id]);
-
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setCategory({ ...category, [e.target.name]: e.target.value });
   };
@@ -54,6 +79,7 @@ const CategoryForm: React.FC = () => {
       name: category.name,
       slug: category.slug || category.name.toLowerCase().replace(/\s+/g, "-"),
       description: category.description || "",
+      productType: category.productType, // ProductType ID
     };
 
     try {
@@ -129,6 +155,35 @@ const CategoryForm: React.FC = () => {
                     : ""
                 }
                 disabled
+              />
+            </label>
+          </div>
+
+          <div className="row-flex">
+            <label className="half-width">
+              Loại sản phẩm (Danh mục cha)
+              <select
+                name="productType"
+                value={category.productType}
+                onChange={handleInputChange}
+              >
+                <option value="">-- Chọn loại sản phẩm --</option>
+                {productTypes.map(pt => (
+                  <option key={pt._id} value={pt._id}>
+                    {pt.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="half-width">
+              Slug (URL)
+              <input
+                type="text"
+                name="slug"
+                value={category.slug}
+                onChange={handleInputChange}
+                placeholder="auto-generated"
               />
             </label>
           </div>

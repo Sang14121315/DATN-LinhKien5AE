@@ -88,3 +88,46 @@ exports.getDashboardData = async (req, res) => {
     res.status(500).json({ message: error.message || 'Error fetching dashboard data' });
   }
 };
+
+// API: Doanh thu và số lượng đơn hàng theo ngày
+exports.getRevenueAndOrdersByDate = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const orders = await OrderService.getAll();
+    // Lọc theo ngày nếu có from/to
+    let filteredOrders = orders;
+    if (from) filteredOrders = filteredOrders.filter(o => new Date(o.created_at) >= new Date(from));
+    if (to) filteredOrders = filteredOrders.filter(o => new Date(o.created_at) <= new Date(to));
+    // Gom nhóm theo ngày
+    const dailyMap = {};
+    filteredOrders.forEach(order => {
+      const date = new Date(order.created_at).toISOString().slice(0, 10); // yyyy-mm-dd
+      if (!dailyMap[date]) dailyMap[date] = { date, revenue: 0, orders: 0 };
+      dailyMap[date].revenue += order.total;
+      dailyMap[date].orders += 1;
+    });
+    // Chuyển thành mảng, sắp xếp tăng dần theo ngày
+    const result = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error fetching revenue/orders by date' });
+  }
+};
+
+// API: Top 5 sản phẩm bán chạy nhất
+exports.getTop5BestSellerProducts = async (req, res) => {
+  try {
+    const orderDetails = await OrderDetailService.getAll();
+    // Gom nhóm theo product_id
+    const productMap = {};
+    orderDetails.forEach(detail => {
+      if (!productMap[detail.product_id]) productMap[detail.product_id] = { product_id: detail.product_id, name: detail.name, sold: 0 };
+      productMap[detail.product_id].sold += detail.quantity;
+    });
+    // Chuyển thành mảng, sắp xếp giảm dần theo sold
+    const result = Object.values(productMap).sort((a, b) => b.sold - a.sold).slice(0, 5);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error fetching top 5 best seller products' });
+  }
+};

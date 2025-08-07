@@ -54,6 +54,8 @@ router.put('/contacts/:id', auth, adminAuth, contactController.updateContact);
 
 // Dashboard
 router.get('/dashboard', auth, adminAuth, adminController.getDashboardData);
+router.get('/dashboard/revenue-orders-by-date', auth, adminAuth, adminController.getRevenueAndOrdersByDate);
+router.get('/dashboard/top5-bestseller-products', auth, adminAuth, adminController.getTop5BestSellerProducts);
 
 // Categories
 router.get('/categories', auth, adminAuth,  categoryController.getCategories); 

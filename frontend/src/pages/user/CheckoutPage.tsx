@@ -7,6 +7,8 @@ import "@/styles/pages/user/checkoutPage.scss";
 import { useNavigate } from "react-router-dom";
 import { createMomoOrder } from '@/api/momoAPI';
 import { sendOrderConfirmationEmail } from '@/services/emailService';
+import { Row, Col, Card, Form, Input, Select, Radio, Button, Divider, Space, Typography, Alert, Modal } from 'antd';
+import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, ShoppingCartOutlined, CreditCardOutlined, BankOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
 const CheckoutPage: React.FC = () => {
   const { cartItems, clearCart, forceClearCart, reloadCart } = useCart();
@@ -18,6 +20,7 @@ const CheckoutPage: React.FC = () => {
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -60,6 +63,43 @@ const CheckoutPage: React.FC = () => {
     setFormData(prev => ({ ...prev, ward: "" }));
   }, [formData.district]);
 
+  useEffect(() => {
+    const loadCoupons = async () => {
+      try {
+        const coupons = await fetchCoupons();
+        setAvailableCoupons(coupons);
+        console.log('📋 Available coupons:', coupons);
+        
+        // Debug: Kiểm tra từng voucher
+        const currentSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        coupons.forEach((coupon: any, index: number) => {
+          const now = new Date();
+          const startDate = new Date(coupon.start_date);
+          const endDate = new Date(coupon.end_date);
+          const isActive = coupon.is_active !== false;
+          const isValidTime = startDate <= now && endDate >= now;
+          const isValidForOrder = !coupon.min_order_value || currentSubtotal >= coupon.min_order_value;
+          
+          console.log(`🔍 Voucher ${index + 1}:`, {
+            code: coupon.code,
+            isActive,
+            isValidTime,
+            isValidForOrder,
+            startDate: startDate.toLocaleDateString(),
+            endDate: endDate.toLocaleDateString(),
+            minOrderValue: coupon.min_order_value,
+            currentSubtotal: currentSubtotal,
+            discountType: coupon.discount_type,
+            discountValue: coupon.discount_value
+          });
+        });
+      } catch (err) {
+        console.error('❌ Lỗi khi tải voucher:', err);
+      }
+    };
+    loadCoupons();
+  }, [cartItems]);
+
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const total = subtotal - discount;
 
@@ -82,31 +122,57 @@ const CheckoutPage: React.FC = () => {
     return !Object.values(errors).some(Boolean);
   };
 
-  const handleApplyCoupon = async () => {
+  const handleApplyCoupon = (selectedCoupon: any) => {
+    if (!selectedCoupon) {
+      setCoupon(null);
+      setDiscount(0);
+      setCouponCode("");
+      return;
+    }
+
     try {
-      const coupons = await fetchCoupons();
-      const found = coupons.find(c => c.code === couponCode && c.is_active);
-      if (!found) return alert('Mã giảm giá không hợp lệ hoặc đã hết hạn');
-
       const now = new Date();
-      if (new Date(found.start_date) > now || new Date(found.end_date) < now) {
-        return alert('Mã giảm giá chưa đến hạn hoặc đã hết hạn');
+      const startDate = new Date(selectedCoupon.start_date);
+      const endDate = new Date(selectedCoupon.end_date);
+      
+      // Kiểm tra thời gian hiệu lực
+      if (startDate > now || endDate < now) {
+        alert('Voucher chưa đến hạn hoặc đã hết hạn');
+        return;
       }
 
-      if (subtotal < found.min_order_value) {
-        return alert(`Đơn hàng phải tối thiểu ${found.min_order_value} để áp dụng mã`);
+      // Kiểm tra điều kiện tối thiểu
+      if (selectedCoupon.min_order_value && subtotal < selectedCoupon.min_order_value) {
+        alert(`Đơn hàng phải tối thiểu ${selectedCoupon.min_order_value.toLocaleString()} ₫ để áp dụng voucher`);
+        return;
       }
 
-      setCoupon(found);
+      // Tính toán giảm giá
+      let discountAmount = 0;
+      if (selectedCoupon.discount_type === 'percentage') {
+        // Giảm theo phần trăm
+        discountAmount = Math.round((subtotal * selectedCoupon.discount_value) / 100);
+      } else {
+        // Giảm theo số tiền cố định
+        discountAmount = selectedCoupon.discount_value || 0;
+      }
 
-      const discountAmount = found.discount_type === 'percentage'
-        ? (subtotal * found.discount_value) / 100
-        : found.discount_value;
+      // Đảm bảo giảm giá không vượt quá tổng tiền
+      discountAmount = Math.min(discountAmount, subtotal);
 
+      setCoupon(selectedCoupon);
+      setCouponCode(selectedCoupon.code);
       setDiscount(discountAmount);
-    } catch (err) {
-      console.error('❌ Lỗi khi áp mã:', err);
-      alert('Có lỗi xảy ra khi áp dụng mã');
+      
+      console.log('✅ Voucher applied:', {
+        code: selectedCoupon.code,
+        discountAmount,
+        subtotal,
+        total: subtotal - discountAmount
+      });
+    } catch (error) {
+      console.error('❌ Error applying voucher:', error);
+      alert('Có lỗi khi áp dụng voucher');
     }
   };
 
@@ -253,126 +319,585 @@ const CheckoutPage: React.FC = () => {
   };
 
   return (
-    <div className="checkout-page">
-      <h2>🧾 Thanh toán</h2>
-      <div className="checkout-grid">
-        <div className="checkout-section customer-info">
-          <h3>Thông tin khách hàng</h3>
-          <form>
-            <input name="name" placeholder="Họ và tên *" value={formData.name} onChange={handleChange} />
-            {formErrors.name && <p className="error">Phải nhập họ và tên</p>}
-
-            <input name="phone" placeholder="Điện thoại *" value={formData.phone} onChange={handleChange} />
-            {formErrors.phone && <p className="error">Phải nhập số điện thoại</p>}
-
-            <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} />
-
-            <select name="city" value={formData.city} onChange={handleChange}>
-              <option value="">Tỉnh / Thành phố *</option>
+    <div className="checkout-page" style={{       
+      minHeight: '100vh',
+      padding: '20px'
+    }}>
+      <div style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto',
+        background: '#fff',
+        borderRadius: '16px',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+        overflow: 'hidden'
+      }}>
+                 <div style={{
+           background: 'white',
+           color: 'black',
+           padding: '32px',
+           textAlign: 'center',
+           border: '2px solid black',
+           borderRadius: '16px 16px 0 0'
+         }}>
+           <Typography.Title level={1} style={{ 
+             color: 'black', 
+             margin: 0,
+             fontSize: '32px',
+             fontWeight: 'bold'
+           }}>
+             🧾 Thanh toán
+           </Typography.Title>
+           <Typography.Text style={{ color: 'black', fontSize: '16px' }}>
+             Hoàn tất đơn hàng của bạn
+           </Typography.Text>
+         </div>
+        
+        <div style={{ padding: '32px' }}>
+          <Row gutter={[32, 32]}>
+            {/* Thông tin khách hàng */}
+            <Col xs={24} lg={14}>
+              <Card 
+                title={
+                  <Space>
+                    <UserOutlined style={{ color: '#667eea', fontSize: '18px' }} />
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Thông tin khách hàng</span>
+                  </Space>
+                }
+                className="customer-info-card"
+                style={{ 
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: 'none'
+                }}
+                headStyle={{
+                  background: '#f8f9fa',
+                  borderBottom: '2px solid #667eea',
+                  borderRadius: '12px 12px 0 0'
+                }}
+              >
+                <Form layout="vertical">
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
+                      <Form.Item 
+                        label={<span style={{ fontWeight: '600' }}>Họ và tên</span>}
+                        validateStatus={formErrors.name ? 'error' : ''}
+                        help={formErrors.name ? 'Phải nhập họ và tên' : ''}
+                      >
+                        <Input
+                          prefix={<UserOutlined style={{ color: '#667eea' }} />}
+                          placeholder="Họ và tên *"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24} sm={12}>
+                      <Form.Item 
+                        label={<span style={{ fontWeight: '600' }}>Số điện thoại</span>}
+                        validateStatus={formErrors.phone ? 'error' : ''}
+                        help={formErrors.phone ? 'Phải nhập số điện thoại' : ''}
+                      >
+                        <Input
+                          prefix={<PhoneOutlined style={{ color: '#667eea' }} />}
+                          placeholder="Điện thoại *"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24}>
+                      <Form.Item label={<span style={{ fontWeight: '600' }}>Email</span>}>
+                        <Input
+                          prefix={<MailOutlined style={{ color: '#667eea' }} />}
+                          placeholder="Email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24} sm={8}>
+                      <Form.Item 
+                        label={<span style={{ fontWeight: '600' }}>Tỉnh/Thành phố</span>}
+                        validateStatus={formErrors.city ? 'error' : ''}
+                        help={formErrors.city ? 'Phải chọn tỉnh/thành phố' : ''}
+                      >
+                        <Select
+                          placeholder="Tỉnh / Thành phố *"
+                          value={formData.city || undefined}
+                          onChange={(value) => handleChange({ target: { name: 'city', value } } as any)}
+                          disabled={provinces.length === 0}
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        >
               {provinces.map((pv) => (
-                <option key={pv.code} value={pv.name}>{pv.name}</option>
-              ))}
-            </select>
-            {formErrors.city && <p className="error">Phải chọn tỉnh / thành phố</p>}
-
-            <select name="district" value={formData.district} onChange={handleChange} disabled={!formData.city}>
-              <option value="">Quận / Huyện *</option>
+                            <Select.Option key={pv.code} value={pv.name}>
+                              {pv.name}
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24} sm={8}>
+                      <Form.Item 
+                        label={<span style={{ fontWeight: '600' }}>Quận/Huyện</span>}
+                        validateStatus={formErrors.district ? 'error' : ''}
+                        help={formErrors.district ? 'Phải chọn quận/huyện' : ''}
+                      >
+                        <Select
+                          placeholder="Quận / Huyện *"
+                          value={formData.district || undefined}
+                          onChange={(value) => handleChange({ target: { name: 'district', value } } as any)}
+                          disabled={!formData.city}
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        >
               {districts.map((dt) => (
-                <option key={dt.code} value={dt.name}>{dt.name}</option>
-              ))}
-            </select>
-            {formErrors.district && <p className="error">Phải chọn quận / huyện</p>}
-
-            <select name="ward" value={formData.ward} onChange={handleChange} disabled={!formData.district}>
-              <option value="">Phường / Xã *</option>
+                            <Select.Option key={dt.code} value={dt.name}>
+                              {dt.name}
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24} sm={8}>
+                      <Form.Item 
+                        label={<span style={{ fontWeight: '600' }}>Phường/Xã</span>}
+                        validateStatus={formErrors.ward ? 'error' : ''}
+                        help={formErrors.ward ? 'Phải chọn phường/xã' : ''}
+                      >
+                        <Select
+                          placeholder="Phường / Xã *"
+                          value={formData.ward || undefined}
+                          onChange={(value) => handleChange({ target: { name: 'ward', value } } as any)}
+                          disabled={!formData.district}
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        >
               {wards.map((wd) => (
-                <option key={wd.code} value={wd.name}>{wd.name}</option>
-              ))}
-            </select>
-            {formErrors.ward && <p className="error">Phải chọn phường / xã</p>}
+                            <Select.Option key={wd.code} value={wd.name}>
+                              {wd.name}
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24}>
+                      <Form.Item 
+                        label={<span style={{ fontWeight: '600' }}>Địa chỉ</span>}
+                        validateStatus={formErrors.address ? 'error' : ''}
+                        help={formErrors.address ? 'Phải nhập địa chỉ' : ''}
+                      >
+                        <Input
+                          prefix={<EnvironmentOutlined style={{ color: '#667eea' }} />}
+                          placeholder="Địa chỉ *"
+                          name="address"
+                          value={formData.address}
+                          onChange={handleChange}
+                          size="large"
+                          style={{ borderRadius: '8px' }}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Form>
+              </Card>
+            </Col>
 
-            <input name="address" placeholder="Địa chỉ *" value={formData.address} onChange={handleChange} />
-            {formErrors.address && <p className="error">Phải nhập địa chỉ</p>}
-          </form>
-
-
-        </div>
-
-        <div className="checkout-section payment-methods">
-          <h3>Hình thức thanh toán</h3>
-          <label className={`payment-option ${paymentMethod === "cod" ? "selected" : ""}`}>
-            <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} />
-            <span>💵 Thanh toán khi nhận hàng / Chuyển phát nhanh - COD</span>
-          </label>
-
-          <label className={`payment-option ${paymentMethod === "bank" ? "selected" : ""}`}>
-            <input type="radio" name="payment" value="bank" checked={paymentMethod === "bank"} onChange={() => setPaymentMethod("bank")} />
-            <span>🏦 Chuyển khoản qua ngân hàng</span>
-          </label>
-
-        </div>
-
-        <div className="checkout-section order-summary">
-          <h3>Thông tin đơn hàng</h3>
+            {/* Thông tin đơn hàng */}
+            <Col xs={24} lg={10}>
+              <Card 
+                title={
+                  <Space>
+                    <ShoppingCartOutlined style={{ color: '#667eea', fontSize: '18px' }} />
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Thông tin đơn hàng</span>
+                  </Space>
+                }
+                className="order-summary-card"
+                style={{ 
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: 'none',
+                  marginBottom: '24px'
+                }}
+                headStyle={{
+                  background: '#f8f9fa',
+                  borderBottom: '2px solid #667eea',
+                  borderRadius: '12px 12px 0 0'
+                }}
+              >
+                {/* Danh sách sản phẩm */}
+                <div style={{ marginBottom: 24 }}>
           {cartItems.map((item) => (
-            <div key={item._id} className="order-item">
-              <img src={item.img_url} alt={item.name} />
+                    <Card 
+                      key={item._id} 
+                      size="small" 
+                      style={{ 
+                        marginBottom: 12,
+                        borderRadius: '8px',
+                        border: '1px solid #f0f0f0'
+                      }}
+                      bodyStyle={{ padding: '16px' }}
+                    >
+                      <Row align="middle" gutter={16}>
+                        <Col xs={8} sm={6} md={4}>
+                          <div style={{
+                            width: '100%',
+                            height: '80px',
+                            borderRadius: '8px',
+                            border: '2px solid #f0f0f0',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: '#f8f9fa'
+                          }}>
+                            <img 
+                              src={item.img_url || '/img/sp1.png'} 
+                              alt={item.name} 
+                              style={{ 
+                                width: '100%', 
+                                height: '100%', 
+                                objectFit: 'contain',
+                                maxWidth: '100%',
+                                maxHeight: '100%'
+                              }}
+                              onError={(e) => {
+                                e.currentTarget.src = '/img/sp1.png';
+                              }}
+                            />
+                          </div>
+                        </Col>
+                        <Col xs={16} sm={18} md={20}>
               <div>
-                <p>{item.name}</p>
-                <p>Số Lượng: {item.quantity}</p>
-                <p>Giá: {item.price.toLocaleString()} ₫</p>
+                            <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '16px' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ color: '#666', fontSize: '14px' }}>
+                              Số lượng: {item.quantity} | Giá: {item.price.toLocaleString()} ₫
               </div>
             </div>
-          ))}
-          <div className="summary-row">Tổng đơn hàng: {subtotal.toLocaleString()} ₫</div>
-          <div className="summary-row">Giảm giá: -{discount.toLocaleString()} ₫</div>
-          <div className="summary-row">Phí vận chuyển: 0</div>
-          <div className="summary-row total">Tổng tiền: {total.toLocaleString()} ₫</div>
-          
-          <div className="coupon-section">
-  <input
-    type="text"
-    value={couponCode}
-    onChange={(e) => setCouponCode(e.target.value)}
-    placeholder="Nhập mã giảm giá"
-  />
-  <button onClick={handleApplyCoupon}>Áp dụng</button>
-  {coupon && (
-    <p className="discount-info">Đã áp dụng mã: <strong>{coupon.code}</strong> (-{discount.toLocaleString()} ₫)</p>
-  )}
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Mã giảm giá */}
+                <Card 
+                  size="small" 
+                  title={
+                    <span style={{ fontWeight: '600' }}>Mã giảm giá</span>
+                  }
+                  style={{ 
+                    borderRadius: '8px',
+                    border: '1px solid #f0f0f0'
+                  }}
+                >
+                    <Row gutter={[12, 12]} align="middle">
+                      <Col xs={14} sm={16} md={18}>
+                        <Select
+                          placeholder="Chọn voucher cho đơn hàng của bạn..."
+                          value={couponCode}
+                          onChange={(value) => {
+                            setCouponCode(value);
+                            const selectedCoupon = availableCoupons.find(c => c.code === value);
+                            handleApplyCoupon(selectedCoupon);
+                          }}
+                          style={{ borderRadius: '8px', width: '100%' }}
+                          size="large"
+                          allowClear
+                          notFoundContent={
+                            <div style={{ padding: '8px', textAlign: 'center', color: '#666' }}>
+                              Không có voucher phù hợp cho đơn hàng này
+                            </div>
+                          }
+                        >
+                          {availableCoupons
+                            .filter(c => {
+                              const now = new Date();
+                              const startDate = new Date(c.start_date);
+                              const endDate = new Date(c.end_date);
+                              const isActive = c.is_active !== false; // Mặc định là true nếu không có trường này
+                              
+                              // Chỉ hiển thị mã đang kích hoạt và trong thời gian hiệu lực
+                              return isActive && startDate <= now && endDate >= now;
+                            })
+                            .filter(c => !c.min_order_value || subtotal >= c.min_order_value)
+                            .map(c => (
+                              <Select.Option key={c.code} value={c.code}>
+                                {c.code}
+                              </Select.Option>
+                            ))}
+                        </Select>
+                      </Col>
+                      <Col xs={10} sm={8} md={6}>
+                        <Button 
+                          type="primary" 
+                          onClick={() => {
+                            const selectedCoupon = availableCoupons.find(c => c.code === couponCode);
+                            handleApplyCoupon(selectedCoupon);
+                          }}
+                          size="large"
+                          style={{ 
+                            borderRadius: '8px',
+                            background: '#667eea',
+                            borderColor: '#667eea',
+                            width: '100%'
+                          }}
+                        >
+                          Áp dụng
+                        </Button>
+                      </Col>
+                    </Row>
+                    {(() => {
+                      const validCoupons = availableCoupons.filter(c => {
+                        const now = new Date();
+                        const startDate = new Date(c.start_date);
+                        const endDate = new Date(c.end_date);
+                        const isActive = c.is_active !== false;
+                        return isActive && startDate <= now && endDate >= now;
+                      }).filter(c => !c.min_order_value || subtotal >= c.min_order_value);
+                      
+                                             if (validCoupons.length === 0) {
+                         return (
+                           <Alert
+                             message="Không có voucher nào phù hợp với đơn hàng hiện tại"
+                             type="info"
+                             showIcon
+                             style={{ marginTop: 12, borderRadius: '8px' }}
+                           />
+                         );
+                       }
+                      return null;
+                    })()}
+                    {coupon && (
+                      <Alert
+                        message={`Đã áp dụng mã: ${coupon.code} (-${discount.toLocaleString()} ₫)`}
+                        type="success"
+                        showIcon
+                        style={{ marginTop: 12, borderRadius: '8px' }}
+                      />
+                    )}
+                </Card>
+              </Card>
+
+              {/* Tổng tiền */}
+              <Card 
+                title={
+                  <Space>
+                    <ShoppingCartOutlined style={{ color: '#667eea', fontSize: '18px' }} />
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng tiền</span>
+                  </Space>
+                }
+                style={{ 
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: 'none'
+                }}
+                headStyle={{
+                  background: '#f8f9fa',
+                  borderBottom: '2px solid #667eea',
+                  borderRadius: '12px 12px 0 0'
+                }}
+              >
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Row justify="space-between" style={{ fontSize: '16px' }}>
+                    <span>Tổng đơn hàng:</span>
+                    <span>{subtotal.toLocaleString()} ₫</span>
+                  </Row>
+                  <Row justify="space-between" style={{ fontSize: '16px' }}>
+                    <span>Giảm giá:</span>
+                    <span style={{ color: '#ff4d4f' }}>-{discount.toLocaleString()} ₫</span>
+                  </Row>
+                  <Row justify="space-between" style={{ fontSize: '16px' }}>
+                    <span>Phí vận chuyển:</span>
+                    <span>0 ₫</span>
+                  </Row>
+                  <Divider style={{ margin: '16px 0', borderColor: '#667eea' }} />
+                  <Row justify="space-between">
+                    <span style={{ fontWeight: 'bold', fontSize: '20px' }}>Tổng tiền:</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#667eea' }}>
+                      {total.toLocaleString()} ₫
+                    </span>
+                  </Row>
+                </Space>
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Hình thức thanh toán */}
+          <Row style={{ marginTop: 32 }}>
+            <Col xs={24}>
+              <Card 
+                title={
+                  <Space>
+                    <CreditCardOutlined style={{ color: '#667eea', fontSize: '18px' }} />
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hình thức thanh toán</span>
+                  </Space>
+                }
+                className="payment-methods-card"
+                style={{ 
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: 'none'
+                }}
+                headStyle={{
+                  background: '#f8f9fa',
+                  borderBottom: '2px solid #667eea',
+                  borderRadius: '12px 12px 0 0'
+                }}
+              >
+                <Row gutter={[32, 24]}>
+                  <Col xs={24} lg={16}>
+                    <Radio.Group 
+                      value={paymentMethod} 
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      style={{ width: '100%' }}
+                    >
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <Radio value="cod" style={{ 
+                          width: '100%', 
+                          padding: '16px', 
+                          border: paymentMethod === 'cod' ? '2px solid #667eea' : '1px solid #d9d9d9', 
+                          borderRadius: '12px',
+                          background: paymentMethod === 'cod' ? '#f0f4ff' : '#fff',
+                          transition: 'all 0.3s ease'
+                        }}>
+                          <Space>
+                            <span style={{ fontSize: '24px' }}>💵</span>
+                            <div>
+                              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Thanh toán khi nhận hàng (COD)</div>
+                              <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>Chuyển phát nhanh - Thanh toán khi nhận hàng</div>
 </div>
-
-          <textarea placeholder="Ghi chú"></textarea>
-
-          <div className="action-buttons">
-            <button className="continue-btn" onClick={() => navigate("/")}>Tiếp tục mua hàng</button>
-            <button className="confirm-btn" onClick={handleSubmit}>Xác nhận & Đặt hàng</button>
+                          </Space>
+                        </Radio>
+                        
+                        <Radio value="bank" style={{ 
+                          width: '100%', 
+                          padding: '16px', 
+                          border: paymentMethod === 'bank' ? '2px solid #007BFF' : '1px solid #F5F5F5', 
+                          borderRadius: '12px',
+                          background: paymentMethod === 'bank' ? '#F0F4FF' : '#FFFFFF',
+                          transition: 'all 0.3s ease'
+                        }}>
+                          <Space>
+                            <span style={{ fontSize: '24px' }}>🏦</span>
+                            <div>
+                              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Chuyển khoản ngân hàng</div>
+                              <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>Thanh toán qua MoMo hoặc chuyển khoản trực tiếp</div>
           </div>
+                          </Space>
+                        </Radio>
+                      </Space>
+                    </Radio.Group>
+                  </Col>
+
+                  <Col xs={24} lg={8}>
+                    {/* Nút hành động */}
+                    <Card 
+                      size="small" 
+                      style={{ 
+                        borderRadius: '12px',
+                        border: '2px solid #007BFF',
+                        background: 'transparent'
+                      }}
+                    >
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <Button 
+                          type="default" 
+                          block 
+                          onClick={() => navigate("/")}
+                          icon={<ShoppingCartOutlined />}
+                          size="large"
+                          style={{ 
+                            borderRadius: '8px',
+                            height: '48px',
+                            fontSize: '16px'
+                          }}
+                        >
+                          Tiếp tục mua hàng
+                        </Button>
+                        <Button 
+                          type="primary" 
+                          block 
+                          onClick={handleSubmit}
+                          size="large"
+                          style={{ 
+                            height: '56px',
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                            borderRadius: '8px',
+                            background: '#007BFF',
+                            borderColor: '#007BFF'
+                          }}
+                        >
+                          Xác nhận & Đặt hàng
+                        </Button>
+                      </Space>
+                    </Card>
+                  </Col>
+                </Row>
+              </Card>
+            </Col>
+          </Row>
         </div>
       </div>
 
-      {showSuccess && (
-        <div className="order-success-popup">
-          <div className="popup-content">
-            <h3>🎉 Đặt hàng thành công!</h3>
-            <p>Cảm ơn bạn đã mua hàng.</p>
-            <button onClick={() => window.location.href = "/"}>Trang chủ</button>
-            <button onClick={() => window.location.href = "/orders"}>Theo dõi đơn hàng</button>
-            <span className="close-btn" onClick={() => setShowSuccess(false)}>×</span>
-          </div>
-        </div>
-      )}
+      <Modal
+        title={
+          <Space>
+            <CheckCircleOutlined style={{ color: '#52c41a' }} />
+            Đặt hàng thành công!
+          </Space>
+        }
+        open={showSuccess}
+        onCancel={() => setShowSuccess(false)}
+        footer={[
+          <Button key="home" onClick={() => window.location.href = "/"}>
+            Trang chủ
+          </Button>,
+          <Button key="orders" type="primary" onClick={() => window.location.href = "/purchase"}>
+            Theo dõi đơn hàng
+          </Button>
+        ]}
+        centered
+      >
+        <p>Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xử lý thành công!</p>
+      </Modal>
 
-      {showError && (
-        <div className="order-success-popup">
-          <div className="popup-content">
-            <h3 style={{ color: "#dc3545" }}>❌ Đặt hàng thất bại</h3>
-            <p>Vui lòng kiểm tra lại thông tin bạn đã nhập.</p>
-            <button onClick={() => setShowError(false)}>Thử lại</button>
-            <span className="close-btn" onClick={() => setShowError(false)}>×</span>
-          </div>
-        </div>
-      )}
+      <Modal
+        title={
+          <Space>
+            <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+            Đặt hàng thất bại
+          </Space>
+        }
+        open={showError}
+        onCancel={() => setShowError(false)}
+        footer={[
+          <Button key="retry" type="primary" onClick={() => setShowError(false)}>
+            Thử lại
+          </Button>
+        ]}
+        centered
+      >
+        <p>Vui lòng kiểm tra lại thông tin bạn đã nhập và thử lại.</p>
+      </Modal>
     </div>
   );
 };

@@ -1,212 +1,258 @@
-.register-layout {
+// =============================================================================
+// REGISTER PAGE STYLES - OPTIMIZED
+// =============================================================================
+
+// Color System - Simplified
+$primary: #ff9f0d;
+$primary-hover: #e48a00;
+$active: #ff7a00;
+$error: #d93025;
+$success: #0f9d58;
+$text-dark: #333;
+$text-light: #555;
+$text-muted: #666;
+$border: #ccc;
+$bg-light: #fdfdfd;
+$bg-form: rgba(0, 0, 0, 0.05);
+$bg-error: #fff3f3;
+$bg-success: #e6f7e6;
+
+// Spacing System - Simplified
+$space-xs: 6px;
+$space-sm: 10px;
+$space-md: 12px;
+$space-lg: 15px;
+$space-xl: 20px;
+$space-xxl: 25px;
+$space-xxxl: 30px;
+$space-xxxxl: 40px;
+
+// Typography - Simplified
+$font-xs: 12px;
+$font-sm: 13px;
+$font-base: 14px;
+$font-lg: 16px;
+$font-xl: 18px;
+
+// =============================================================================
+// MIXINS - OPTIMIZED
+// =============================================================================
+
+// Flexbox utilities
+@mixin flex($justify: center, $align: center, $direction: row) {
   display: flex;
-  justify-content: center;
-  gap: 30px;
-  padding: 40px 60px;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+}
+
+// Interactive elements
+@mixin interactive($color: $primary) {
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    color: $color;
+  }
+}
+
+// Form elements
+@mixin form-element {
+  padding: $space-sm $space-md;
+  font-size: $font-base;
+  border: 1px solid $border;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+// Buttons
+@mixin button($bg: $primary, $hover: $primary-hover) {
+  background-color: $bg;
+  color: white;
+  border: none;
+  padding: $space-md;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: $hover;
+  }
+}
+
+// Messages
+@mixin message($bg, $color) {
+  padding: $space-sm $space-md;
+  border-radius: 6px;
+  font-size: $font-base;
+  margin-bottom: $space-lg;
+  border-left: 4px solid $color;
+  background-color: $bg;
+  color: $color;
+}
+
+// =============================================================================
+// LAYOUT COMPONENTS
+// =============================================================================
+
+.register-layout {
+  @include flex(center, center);
+  gap: $space-xxxl;
+  padding: $space-xxxxl $space-xxxl;
   max-width: 1400px;
   margin: 0 auto;
-  background-color: #fdfdfd;
+  background-color: $bg-light;
 
-  .side-banner {
+  // Side banners
+  .register-side-banner {
     width: 180px;
+
     img {
       width: 100%;
       display: block;
     }
   }
 
-  .sidebar {
-    width: 250px;
-    position: relative;
-
-    h4 {
-      font-weight: bold;
-      margin-bottom: 16px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .dropdown {
-      position: absolute;
-      left: 0;
-      width: 220px;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      padding: 10px;
-      display: none;
-      z-index: 10;
-
-      ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-
-        li {
-          padding: 8px;
-          font-size: 14px;
-          color: #333;
-          cursor: pointer;
-
-          &:hover {
-            color: #ff9f0d;
-          }
-        }
-      }
-    }
-
-    &:hover .dropdown {
-      display: block;
-    }
-  }
-
-  .main-auth-content {
+  // Main content
+  .register-main-content {
     flex: 1;
 
-    .top-menu {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: #333;
+    // Top menu
+    .register-top-menu {
+      @include flex(space-between, center);
+      margin-bottom: $space-xl;
+      font-size: $font-base;
+      color: $text-dark;
 
       span {
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        @include flex(center, center);
+        gap: $space-xs;
       }
     }
 
-    .auth-form-container {
-      background-color: rgba(0, 0, 0, 0.05);
-      padding: 40px;
+    // Form container
+    .register-form-container {
+      background-color: $bg-form;
+      padding: $space-xxxxl;
       border-radius: 8px;
       width: 420px;
       max-width: 90%;
       margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+      @include flex(flex-start, stretch, column);
+      gap: $space-lg;
 
-    .auth-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-bottom: 25px;
-      font-size: 18px;
-      font-weight: 600;
+      // Navigation tabs
+      .register-tabs {
+        @include flex(center, center);
+        gap: $space-xxxl;
+        margin-bottom: $space-xxl;
+        font-size: $font-xl;
+        font-weight: 600;
 
-      span {
-        position: relative;
+        span {
+          position: relative;
 
-        a {
-          text-decoration: none;
-          color: #333;
-          transition: color 0.3s ease;
-        }
+          a {
+            text-decoration: none;
+            color: $text-dark;
+            @include interactive($active);
+          }
 
-        &.active a {
-          color: #ff7a00; // Cam nổi bật
-        }
-
-        &:hover a {
-          color: #ff7a00;
+          &.active {
+            color: $active;
+          }
         }
       }
-    }
 
-
+      // Form inputs
       input {
-        padding: 10px 12px;
-        font-size: 14px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-
-        &:focus {
-          outline: none;
-          border-color: #ff9f0d;
-        }
+        @include form-element;
       }
 
-      .form-group {
+      // Form groups
+      .register-form-group {
         position: relative;
 
-        &.password-group {
-          display: flex;
-          align-items: center;
+        &.register-name-group input,
+        &.register-email-group input,
+        &.register-phone-group input,
+        &.register-address-group input {
+          width: 100%;
+        }
+
+        &.register-password-group,
+        &.register-confirm-password-group {
+          @include flex(center, center);
 
           input {
             flex: 1;
+            padding-right: 40px; // Để tránh text bị che bởi nút toggle
           }
 
-          .toggle-password {
+          .register-toggle-password {
             position: absolute;
-            right: 10px;
+            right: $space-sm;
+            top: 39%;
+            transform: translateY(-50%);
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 16px;
-            color: #666;
+            font-size: $font-lg;
+            color: $text-muted;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 24px;
+            transition: color 0.2s ease;
+            z-index: 10;
+            @include interactive;
           }
         }
       }
 
-      .recaptcha-note {
-        font-size: 12px;
-        color: #666;
+      // Recaptcha note
+      .register-recaptcha-note {
+        font-size: $font-xs;
+        color: $text-muted;
         line-height: 1.5;
       }
 
-      .error-message {
-        color: red;
-        font-size: 14px;
-        margin-bottom: 5px;
-      }
-
+      // Submit button
       button[type="submit"] {
-        background-color: #ff9f0d;
-        color: #fff;
-        border: none;
-        padding: 12px;
-        font-weight: bold;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background 0.2s;
-
-        &:hover {
-          background-color: #e48a00;
-        }
+        @include button;
       }
 
-      .form-footer {
-        font-size: 13px;
-        color: #555;
+      // Form footer
+      .register-form-footer {
+        font-size: $font-sm;
+        color: $text-light;
         text-align: center;
 
         a {
-          color: #ff9f0d;
+          color: $primary;
           text-decoration: none;
-
-          &:hover {
-            text-decoration: underline;
-          }
+          @include interactive;
         }
       }
     }
   }
 }
-.error-message {
-  background-color: #fff3f3;
-  color: #d93025;
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-bottom: 15px;
-  border-left: 4px solid #d93025;
+
+// =============================================================================
+// MESSAGE COMPONENTS
+// =============================================================================
+
+.register-error-message {
+  @include message($bg-error, $error);
 }
-.success-message {
-  background-color: #e6f7e6;
-  color: #0f9d58;
-  border-left: 4px solid #0f9d58;
+
+.register-success-message {
+  @include message($bg-success, $success);
 }

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   fetchCart,
   addToCartAPI,
@@ -7,6 +8,8 @@ import {
   clearCartAPI
 } from '@/api/user/cartAPI';
 import { fetchProductById } from '@/api/user/productAPI';
+import { useAuth } from './AuthContext';
+import LoginNotification from '@/components/LoginNotification';
 
 interface CartItem {
   
@@ -39,13 +42,23 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showLoginNotification, setShowLoginNotification] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const loadCart = async () => {
+    // Chỉ load cart khi đã đăng nhập
+    if (!isAuthenticated) {
+      setCartItems([]);
+      return;
+    }
+
     try {
       const data = await fetchCart();
+      console.log('🛒 Cart data from server:', data);
 
       // ✅ Check nếu không có items thì log ra để debug
       if (!data || !Array.isArray(data.items)) {
@@ -54,38 +67,57 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Fill missing product info if needed
-      const itemsWithInfo = await Promise.all(
-        (data.items as CartItem[]).map(async (item) => {
-          if (item.name && item.price && item.img_url) return item;
-          // Type guard for _id or product_id
-          const productId = (item as { _id?: string; product_id?: string })._id || (item as { product_id?: string }).product_id;
-          if (!productId) return item;
-          try {
-            const product = await fetchProductById(productId);
-            return {
-              ...item,
-              _id: product._id,
-              name: product.name,
-              price: product.price,
-              img_url: product.img_url || '',
-            };
-          } catch {
-            return item;
-          }
-        })
-      );
+      // Backend đã trả về đầy đủ thông tin sản phẩm
+      const itemsWithInfo = data.items.map((item: any) => {
+        // Đảm bảo có đầy đủ thông tin cần thiết
+        if (!item._id || !item.name || !item.price) {
+          console.warn('❌ Item thiếu thông tin:', item);
+          return null;
+        }
+
+        return {
+          _id: item._id,
+          name: item.name,
+          price: item.price,
+          img_url: item.img_url || '',
+          quantity: item.quantity || 1
+        };
+      }).filter(Boolean); // Loại bỏ các item null
+
+      console.log('✅ Processed cart items:', itemsWithInfo);
       setCartItems(itemsWithInfo);
     } catch (error) {
       console.error('❌ Lỗi khi load cart:', (error as Error).message);
+      setCartItems([]);
     }
   };
 
+  // Lắng nghe event logout để clear cart
   useEffect(() => {
-    loadCart();
+    const handleLogout = (event: Event) => {
+      console.log('🛒 Clearing cart due to logout...');
+      setCartItems([]);
+    };
+
+    window.addEventListener('logout', handleLogout);
+    
+    return () => {
+      window.removeEventListener('logout', handleLogout);
+    };
   }, []);
 
+  // Load cart khi authentication thay đổi
+  useEffect(() => {
+    loadCart();
+  }, [isAuthenticated]);
+
   const addToCart = async (item: CartItem) => {
+    // Kiểm tra đăng nhập trước khi thêm vào giỏ hàng
+    if (!isAuthenticated) {
+      setShowLoginNotification(true);
+      return;
+    }
+
     try {
       const existing = cartItems.find(p => p._id === item._id);
       if (existing) {
@@ -96,6 +128,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await loadCart();
     } catch (error: any) {
       console.error('❌ Lỗi khi thêm vào giỏ hàng:', error?.response?.data || error.message);
+      
+      // Nếu lỗi 401 (Unauthorized), chuyển về trang đăng nhập
+      if (error?.response?.status === 401) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+        navigate('/login');
+      }
     }
   };
 
@@ -195,6 +233,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
       {children}
+      <LoginNotification 
+        isOpen={showLoginNotification} 
+        onClose={() => setShowLoginNotification(false)} 
+      />
     </CartContext.Provider>
   );
 };

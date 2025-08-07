@@ -3,8 +3,6 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
-import { CartProvider } from "@/context/CartContext";
-import { OrderProvider } from "@/context/OrderContext"; 
 
 // Import global styles
 import "@/styles/main.scss";
@@ -17,11 +15,7 @@ import "swiper/css/pagination";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <CartProvider>
-        <OrderProvider> 
-          <App />
-        </OrderProvider>
-      </CartProvider>
+      <App />
     </BrowserRouter>
   </StrictMode>
 );
