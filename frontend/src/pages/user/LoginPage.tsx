@@ -1,16 +1,15 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import '@/styles/pages/user/login.scss';
-import { loginUser } from '@/api/user/userAPI';
-import { useAuth } from '@/context/AuthContext';
-import { Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import "@/styles/pages/user/login.scss";
+import { loginUser } from "@/api/user/userAPI";
+import { useAuth } from "@/context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,19 +18,19 @@ const LoginPage: React.FC = () => {
   // Theo dõi thay đổi authentication để redirect
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('🔍 Login - Authentication changed, user:', user);
-      const isAdmin = user.role?.toLowerCase()?.trim() === 'admin';
-      const from = location.state?.from?.pathname || '/';
-      
-      console.log('🔍 Login - isAdmin check:', isAdmin);
-      console.log('🔍 Login - user.role:', user.role);
-      console.log('🔍 Login - from path:', from);
-      
+      console.log("🔍 Login - Authentication changed, user:", user);
+      const isAdmin = user.role?.toLowerCase()?.trim() === "admin";
+      const from = location.state?.from?.pathname || "/";
+
+      console.log("🔍 Login - isAdmin check:", isAdmin);
+      console.log("🔍 Login - user.role:", user.role);
+      console.log("🔍 Login - from path:", from);
+
       if (isAdmin) {
-        console.log('🔍 Login - Auto redirecting admin to dashboard');
-        navigate('/admin/dashboard', { replace: true });
+        console.log("🔍 Login - Auto redirecting admin to dashboard");
+        navigate("/admin/dashboard", { replace: true });
       } else {
-        console.log('🔍 Login - Auto redirecting user to:', from);
+        console.log("🔍 Login - Auto redirecting user to:", from);
         navigate(from, { replace: true });
       }
     }
@@ -40,15 +39,18 @@ const LoginPage: React.FC = () => {
   // Kiểm tra ngay khi component mount
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('🔍 Login - Component mount check, user already authenticated:', user);
-      const isAdmin = user.role?.toLowerCase()?.trim() === 'admin';
-      const from = location.state?.from?.pathname || '/';
-      
+      console.log(
+        "🔍 Login - Component mount check, user already authenticated:",
+        user
+      );
+      const isAdmin = user.role?.toLowerCase()?.trim() === "admin";
+      const from = location.state?.from?.pathname || "/";
+
       if (isAdmin) {
-        console.log('🔍 Login - Redirecting admin to dashboard on mount');
-        navigate('/admin/dashboard', { replace: true });
+        console.log("🔍 Login - Redirecting admin to dashboard on mount");
+        navigate("/admin/dashboard", { replace: true });
       } else {
-        console.log('🔍 Login - Redirecting user to:', from, 'on mount');
+        console.log("🔍 Login - Redirecting user to:", from, "on mount");
         navigate(from, { replace: true });
       }
     }
@@ -57,26 +59,26 @@ const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoggingIn) return;
-    
+
     setIsLoggingIn(true);
     try {
       console.log("🔍 Login - Starting login process...");
       const res = await loginUser({ email, password });
 
-      console.log('🔍 Login - Response received:', res);
-      console.log('🔍 Login - Token:', res.token);
-      console.log('🔍 Login - User:', res.user);
-      console.log('🔍 Login - User role:', res.user?.role);
+      console.log("🔍 Login - Response received:", res);
+      console.log("🔍 Login - Token:", res.token);
+      console.log("🔍 Login - User:", res.user);
+      console.log("🔍 Login - User role:", res.user?.role);
 
       // Đảm bảo user data có đúng format
       const userData = {
         _id: res.user.id || res.user._id, // Backend trả về 'id', frontend cần '_id'
         name: res.user.name,
         email: res.user.email,
-        role: res.user.role
+        role: res.user.role,
       };
 
-      console.log('🔍 Login - Processed user data:', userData);
+      console.log("🔍 Login - Processed user data:", userData);
 
       // Sử dụng login từ AuthContext
       login(res.token, userData);
@@ -93,8 +95,20 @@ const LoginPage: React.FC = () => {
       // Redirect sẽ được xử lý bởi useEffect
     } catch (error: unknown) {
       console.error("❌ Login - Error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Đăng nhập thất bại!";
+      let errorMessage = "Đăng nhập thất bại!";
+      // Xử lý lỗi trả về từ axios
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const axiosError = error as any;
+        if (
+          axiosError.response &&
+          axiosError.response.data &&
+          axiosError.response.data.message
+        ) {
+          errorMessage = axiosError.response.data.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       setErrorMsg(errorMessage);
     } finally {
       setIsLoggingIn(false);
@@ -168,7 +182,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <button type="submit" disabled={isLoggingIn}>
-            {isLoggingIn ? 'ĐANG ĐĂNG NHẬP...' : 'ĐĂNG NHẬP'}
+            {isLoggingIn ? "ĐANG ĐĂNG NHẬP..." : "ĐĂNG NHẬP"}
           </button>
 
           <div className="login-form-footer">
