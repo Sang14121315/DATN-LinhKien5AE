@@ -65,8 +65,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
 
     const { email, password } = req.body;
-    const token = await UserService.login(email, password);
     const user = await UserService.getByEmail(email);
+    if (user.isBlocked) {
+      return res.status(403).json({ message: "Tài khoản đã bị vô hiệu hóa" });
+    }
+    const token = await UserService.login(email, password);
 
     const userData = {
       id: user._id,
@@ -124,28 +127,28 @@ exports.validateToken = async (req, res) => {
   try {
     // Middleware auth đã validate token và set req.user
     const user = await UserService.getById(req.user.id);
-    
+
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ message: "User not found" });
     }
 
     const userData = {
       id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
 
-    res.json({ 
-      valid: true, 
+    res.json({
+      valid: true,
       user: userData,
-      message: 'Token is valid' 
+      message: "Token is valid",
     });
   } catch (error) {
-    console.error('Token validation error:', error);
-    res.status(401).json({ 
-      valid: false, 
-      message: 'Token is invalid or expired' 
+    console.error("Token validation error:", error);
+    res.status(401).json({
+      valid: false,
+      message: "Token is invalid or expired",
     });
   }
 };
