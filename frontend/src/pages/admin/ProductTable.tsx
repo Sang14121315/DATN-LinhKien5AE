@@ -124,7 +124,7 @@ const ProductTable: React.FC = () => {
   </div>
 
   <button className="add-button" onClick={() => navigate('/admin/products/create')}>
-    ＋ Thêm sản phẩm
+    ＋ Thêm
   </button>
 </div>
 
