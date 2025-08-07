@@ -89,7 +89,7 @@ const ContactPage = () => {
           </span>
         </div>
         <h1>
-          Liên hệ với <span className="contact__brand-gradient">5AnhEmPC</span>
+          Liên hệ với <span className="contact__brand-gradient">5AnhEm</span>
         </h1>
         <p className="contact__hero-desc">
           Chúng tôi luôn sẵn sàng hỗ trợ mọi thắc mắc của bạn.
@@ -105,7 +105,7 @@ const ContactPage = () => {
             <span>📞</span> <strong>Hotline:</strong> 0909 123 456
           </div>
           <div>
-            <span>✉️</span> <strong>Email:</strong> hotro@5anhempc.vn
+            <span>✉️</span> <strong>Email:</strong> hotro@5anhem.vn
           </div>
           <div>
             <span>🏢</span> <strong>Địa chỉ:</strong> 123 Đường Công Nghệ, Quận
