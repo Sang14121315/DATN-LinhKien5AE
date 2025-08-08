@@ -31,7 +31,7 @@ const SidebarMenu: React.FC = () => {
 
   return (
     <nav className="sidebar-menu">
-      <div className="logo">5AE</div>
+      <div className="logo"><img src="../src/assets/Logo.png" alt="" /></div>
       {menuItems.map(({ icon, label, path }) => {
         const isActive = location.pathname === path;
         return (
