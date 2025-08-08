@@ -107,7 +107,7 @@ const Header: React.FC = () => {
               {/* Logo */}
               <Col xs={4} sm={4} md={3} className="header__logo">
                 <Link to="/">
-                  <span className="logo-desktop">🖥 5AE</span>
+                  <span className="logo-desktop"><img src="./src/assets/Logo.png" alt="" /></span>
                   <span className="logo-mobile">5AE</span>
                 </Link>
               </Col>
