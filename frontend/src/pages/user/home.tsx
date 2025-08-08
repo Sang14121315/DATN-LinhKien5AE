@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Product, fetchAllProducts } from "@/api/user/productAPI";
 import { fetchHomeData, HomeDataResponse } from '../../api/user/homeAPI';
-import { Category } from '../../api/user/categoryAPI';
+import { Category, fetchCategoriesByProductType } from '../../api/user/categoryAPI';
 import { fetchFilteredProducts } from "@/api/user/productAPI";
+import { ProductType, fetchAllProductTypes } from "@/api/user/productTypeAPI";
 import "@/styles/pages/user/home.scss";
 
 const HomePage: React.FC = () => {
@@ -19,7 +20,9 @@ const HomePage: React.FC = () => {
   const [allCategoryProducts, setAllCategoryProducts] = useState<Product[]>([]);
   const [currentSaleIndex, setCurrentSaleIndex] = useState(0);
   const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
-  
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
+  const [expandedProductType, setExpandedProductType] = useState<string | null>(null);
+  const [productTypeCategories, setProductTypeCategories] = useState<Record<string, Category[]>>({});
 
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -32,58 +35,65 @@ const HomePage: React.FC = () => {
     "/img/bn4.jpeg"
   ];
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const data: HomeDataResponse = await fetchHomeData();
-      setCategories(data.categories);
-      setHotProducts(data.hotProducts);
-      setSaleProducts(data.saleProducts);
-      setBestSellerProducts(data.bestSellerProducts);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data: HomeDataResponse = await fetchHomeData();
+        setCategories(data.categories);
+        setHotProducts(data.hotProducts);
+        setSaleProducts(data.saleProducts);
+        setBestSellerProducts(data.bestSellerProducts);
 
-      // Fetch all products grouped by category
-      const allCategoryProducts: Record<string, Product[]> = {};
+        // Fetch all products grouped by category
+        const allCategoryProducts: Record<string, Product[]> = {};
+        for (const category of data.categories) {
+          const res = await fetchFilteredProducts({ category_id: category._id });
+          allCategoryProducts[category._id] = res;
+        }
+        setProductsByCategory(allCategoryProducts);
 
-      for (const category of data.categories) {
-        const res = await fetchFilteredProducts({ category_id: category._id });
-        allCategoryProducts[category._id] = res; // assuming `res.products` is the array
+        // Fetch product types and their categories
+        const productTypeData = await fetchAllProductTypes();
+        setProductTypes(productTypeData);
+
+        // Fetch categories for each product type
+        const categoriesByProductType: Record<string, Category[]> = {};
+        for (const productType of productTypeData) {
+          const categories = await fetchCategoriesByProductType(productType._id);
+          categoriesByProductType[productType._id] = categories;
+        }
+        setProductTypeCategories(categoriesByProductType);
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu trang chủ:', error);
       }
+    };
 
-      setProductsByCategory(allCategoryProducts);
-
-    } catch (error) {
-      console.error('Lỗi khi tải dữ liệu trang chủ:', error);
-    }
-  };
-
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
 
   // Fetch products by category
-useEffect(() => {
-  const fetchProductsByCategory = async () => {
-    try {
-      let filteredProducts: Product[];
-
-      if (selectedCategory === 'all') {
-        filteredProducts = hotProducts;
-      } else {
-        filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
+  useEffect(() => {
+    const fetchProductsByCategory = async () => {
+      try {
+        let filteredProducts: Product[];
+        if (selectedCategory === 'all') {
+          filteredProducts = hotProducts;
+        } else {
+          filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
+        }
+        setAllCategoryProducts(filteredProducts);
+        setCategoryProducts(filteredProducts.slice(0, 4));
+        setCurrentProductIndex(0);
+      } catch (error) {
+        console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
+        setAllCategoryProducts(hotProducts);
+        setCategoryProducts(hotProducts.slice(0, 4));
+        setCurrentProductIndex(0);
       }
+    };
 
-      setAllCategoryProducts(filteredProducts);
-      setCategoryProducts(filteredProducts.slice(0, 4));
-      setCurrentProductIndex(0);
-    } catch (error) {
-      console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
-      setAllCategoryProducts(hotProducts);
-      setCategoryProducts(hotProducts.slice(0, 4));
-      setCurrentProductIndex(0);
-    }
-  };
-
-  fetchProductsByCategory();
-}, [selectedCategory, hotProducts]);
+    fetchProductsByCategory();
+  }, [selectedCategory, hotProducts]);
 
   // Auto slide effect
   useEffect(() => {
@@ -93,8 +103,6 @@ useEffect(() => {
 
     return () => clearInterval(interval);
   }, [bannerImages.length]);
-
-  
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
@@ -142,6 +150,10 @@ useEffect(() => {
     }
   };
 
+  const toggleProductType = (productTypeId: string) => {
+    setExpandedProductType(expandedProductType === productTypeId ? null : productTypeId);
+  };
+
   const renderProductItem = (product: Product) => (
     <div key={product._id} className="product-item">
       <img
@@ -169,19 +181,46 @@ useEffect(() => {
     <div className="home-page">
       <section id="banner">
         <div className="container">
-          <div className="menu-left">
-            <h3>DANH MỤC SẢN PHẨM</h3>
-            <ul>
-              {categories.map((cate) => (
+          <aside className="sidebar">
+            <div className="sidebar-section">
+              <div className="dropdown-header">Danh mục sản phẩm</div>
+              <ul className="dropdown-content">
                 <li
-                  key={cate._id}
-                  onClick={() => navigate(`/product-list?category=${cate._id}`)}
+                  className={selectedCategory === 'all' ? 'active' : ''}
+                  onClick={() => setSelectedCategory('all')}
                 >
-                  {cate.name}
+                  Tất cả sản phẩm
                 </li>
-              ))}
-            </ul>
-          </div>
+                {productTypes.map((productType) => (
+                  <React.Fragment key={productType._id}>
+                    <li
+                      className={`product-type-item ${expandedProductType === productType._id ? 'expanded' : ''}`}
+                      onClick={() => toggleProductType(productType._id)}
+                    >
+                      {productType.name}
+                      <span className="toggle-icon">{expandedProductType === productType._id ? '▼' : '▶'}</span>
+                    </li>
+                    {expandedProductType === productType._id && (
+                      <ul className="subcategory-list">
+                        {productTypeCategories[productType._id]?.map((category) => (
+                          <li
+                            key={category._id}
+                            className={selectedCategory === category._id ? 'active' : ''}
+                            onClick={() => {
+                              setSelectedCategory(category._id);
+                              navigate(`/product-list?category=${category._id}`);
+                            }}
+                          >
+                            {category.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </React.Fragment>
+                ))}
+              </ul>
+            </div>
+          </aside>
           
           <div className="content-right">
             <div className="hero-banner">
@@ -197,16 +236,12 @@ useEffect(() => {
                       </div>
                     ))}
                   </div>
-                  
-                  {/* Navigation arrows */}
                   <button className="slider-arrow prev" onClick={prevSlide}>
                     ‹
                   </button>
                   <button className="slider-arrow next" onClick={nextSlide}>
                     ›
                   </button>
-                  
-                  {/* Dots indicator */}
                   <div className="slider-dots">
                     {bannerImages.map((_, index) => (
                       <button
@@ -218,7 +253,6 @@ useEffect(() => {
                   </div>
                 </div>
               </div>
-              
               <div className="promo-banners">
                 <div className="promo-banner">
                   <img src="/img/sl4.png" alt="Banner khuyến mãi 1" />
@@ -226,15 +260,13 @@ useEffect(() => {
                 <div className="promo-banner">
                   <img src="/img/sl2.png" alt="Banner khuyến mãi 2" />
                 </div>
-                 <div className="promo-banner">
-                  <img src="/img/sl3.png" alt="Banner khuyến mãi 2" />
+                <div className="promo-banner">
+                  <img src="/img/sl3.png" alt="Banner khuyến mãi 3" />
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
-        
       </section>
 
       <section className="hot-products">
@@ -308,8 +340,8 @@ useEffect(() => {
       </section>
 
       <section className="km-products">
-        <div className="section-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <h2> Sản phẩm khuyến mãi</h2>
+        <div className="section-header">
+          <h2>Sản phẩm khuyến mãi</h2>
           <button className="view-all-btn" onClick={() => navigate(`/product-list?category=${selectedCategoryId}`)}>Xem tất cả</button>
         </div>
         <div className="product-list no-scroll">
@@ -323,8 +355,6 @@ useEffect(() => {
                 />
               </div>
               <div className="product-details">
-                <div className="rating-section">
-                </div>
                 <h4 className="product-name">{product.name}</h4>
                 <div className="price-section">
                   <div className="original-price">{(product.price * 1.3).toLocaleString()}₫</div>
@@ -347,61 +377,56 @@ useEffect(() => {
         </div>
       </section>
 
-{categories.map((category) => (
-  <section key={category._id} id="qc-gh">
-    <div className="wrapper">
-      <h2>{category.name}</h2>
-      <div className="workstation-section">
-        {/* XÓA BANNER BÊN TRÁI Ở ĐÂY */}
-        <div className="right-products">
-          
-          <div className="product-grid">
-            {(productsByCategory[category._id] || []).map((p) => (
-              <div key={p._id} className="product-card">
-                <div className="product-image">
-                  <img
-                    src={p.img_url || '/images/no-image.png'}
-                    alt={p.name}
-                    onClick={() => navigate(`/product/${p._id}`)}
-                  />
-                </div>
-                <div className="product-details">
-                  <div className="rating-section">
-                  </div>
-                  <h4 className="product-name">{p.name}</h4>
-                  <div className="price-section">
-                    <div className="original-price">
-                      {(p.price * 1.3).toLocaleString()}₫
+      {categories.map((category) => (
+        <section key={category._id} id="qc-gh">
+          <div className="wrapper">
+            <h2>{category.name}</h2>
+            <div className="workstation-section">
+              <div className="right-products">
+                <div className="product-grid">
+                  {(productsByCategory[category._id] || []).map((p) => (
+                    <div key={p._id} className="product-card">
+                      <div className="product-image">
+                        <img
+                          src={p.img_url || '/images/no-image.png'}
+                          alt={p.name}
+                          onClick={() => navigate(`/product/${p._id}`)}
+                        />
+                      </div>
+                      <div className="product-details">
+                        <div className="rating-section">
+                        </div>
+                        <h4 className="product-name">{p.name}</h4>
+                        <div className="price-section">
+                          <div className="original-price">
+                            {(p.price * 1.3).toLocaleString()}₫
+                          </div>
+                          <div className="current-price">{p.price.toLocaleString()}₫</div>
+                        </div>
+                        <div className="availability">
+                          <span className="check-icon">✓</span>
+                          <span>Sẵn hàng</span>
+                        </div>
+                        <button
+                          className="add-to-cart-btn"
+                          onClick={() => addToCart({ _id: p._id, name: p.name, price: p.price, img_url: p.img_url, quantity: 1 })}
+                        >
+                          🛒
+                        </button>
+                      </div>
                     </div>
-                  
-                    <div className="current-price">{p.price.toLocaleString()}₫</div>
-                  </div>
-                  <div className="availability">
-                    <span className="check-icon">✓</span>
-                    <span>Sẵn hàng</span>
-                  </div>
-                  <button
-                    className="add-to-cart-btn"
-                    onClick={() => addToCart({ _id: p._id, name: p.name, price: p.price, img_url: p.img_url, quantity: 1 })}
-                  >
-                    🛒
+                  ))}
+                </div>
+                <div className="load-more">
+                  <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
+                    Xem thêm
                   </button>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-          <div className="load-more">
-            <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
-              Xem thêm
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-))}
-
-
+        </section>
+      ))}
     </div>
   );
 };
