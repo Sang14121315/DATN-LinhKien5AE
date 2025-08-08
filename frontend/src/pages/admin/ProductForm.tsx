@@ -43,8 +43,8 @@ const ProductForm: React.FC = () => {
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
 
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -57,6 +57,7 @@ const ProductForm: React.FC = () => {
     description: '',
     price: 0,
     stock: 0,
+    img_url: '',
     category_id: '',
     brand_id: '',
     product_type_id: '',
@@ -102,6 +103,7 @@ const ProductForm: React.FC = () => {
             description: res.description || '',
             price: res.price || 0,
             stock: res.stock || 0,
+            img_url: res.img_url || '',
             category_id: res.category_id && typeof res.category_id === 'object' ? res.category_id._id : (res.category_id || ''),
             brand_id: res.brand_id && typeof res.brand_id === 'object' ? res.brand_id._id : (res.brand_id || ''),
             product_type_id: res.product_type_id && typeof res.product_type_id === 'object' ? res.product_type_id._id : (res.product_type_id || ''),
@@ -109,7 +111,15 @@ const ProductForm: React.FC = () => {
             created_at: res.created_at || '',
             status: 'Đã duyệt',
           });
-          setImagePreview(res.img_url || null);
+          
+          // ✅ Khi load sản phẩm để sửa (edit), nếu có img_url thì set preview
+          if (res.img_url) {
+            console.log('Original img_url from server:', res.img_url);
+            const isFullUrl = res.img_url.startsWith('http');
+            const previewUrl = isFullUrl ? res.img_url : `http://localhost:5000${res.img_url}`;
+            console.log('Setting preview URL:', previewUrl);
+            setImagePreview(previewUrl);
+          }
         })
         .catch((error) => {
           console.error('Lỗi khi load sản phẩm:', error);
@@ -132,8 +142,8 @@ const ProductForm: React.FC = () => {
     if (file) {
       setImageFile(file);
       const previewUrl = URL.createObjectURL(file);
-      console.log('Preview URL:', previewUrl);
       setImagePreview(previewUrl);
+      console.log('Preview URL:', previewUrl);
     } else {
       console.log('No file selected');
     }
@@ -172,8 +182,8 @@ const ProductForm: React.FC = () => {
     console.log(`Processing ${key}: ${value} (type: ${typeof value})`);
     
     // Bỏ qua các field không cần thiết cho update
-    if (key === 'created_at' || key === 'status') {
-      console.log(`Skipping ${key} (not needed for update)`);
+    if (key === 'created_at' || key === 'status' || key === 'img_url') {
+      console.log(`Skipping ${key} (will be handled separately)`);
       return;
     }
     
@@ -195,10 +205,15 @@ const ProductForm: React.FC = () => {
     }
   });
 
-  // Gửi ảnh nếu có file mới được chọn
+  // ✅ Khi submit, nếu có file mới thì gửi file, nếu không thì gửi lại img_url cũ
   if (imageFile) {
     formData.append('image', imageFile);
     console.log('Adding image file:', imageFile.name);
+  } else if (product.img_url && product.img_url.trim() !== '') {
+    formData.append('img_url', product.img_url);
+    console.log('Adding existing image URL:', product.img_url);
+  } else {
+    console.log('No image file or existing URL to send');
   }
 
   console.log('FormData entries:');
@@ -209,13 +224,28 @@ const ProductForm: React.FC = () => {
   try {
     if (isEditMode && id) {
       console.log('Sending update request for product ID:', id);
-      await updateProduct(id, formData);
+      const updatedProduct = await updateProduct(id, formData);
       alert('Cập nhật sản phẩm thành công!');
+      
+      // ✅ Quay về ProductTable với thông tin sản phẩm đã cập nhật
+      navigate('/admin/products', { 
+        state: { 
+          updatedProduct: updatedProduct,
+          message: 'Sản phẩm đã được cập nhật thành công!'
+        }
+      });
     } else {
       console.log('Sending create request');
-      await createProduct(formData);
+      const newProduct = await createProduct(formData);
       alert('Thêm sản phẩm mới thành công!');
-      navigate('/admin/products');
+      
+      // ✅ Quay về ProductTable với thông tin sản phẩm mới
+      navigate('/admin/products', { 
+        state: { 
+          newProduct: newProduct,
+          message: 'Sản phẩm mới đã được thêm thành công!'
+        }
+      });
     }
   } catch (error: unknown) {
     const err = error as { response?: { data?: { message?: string } } };
@@ -359,7 +389,20 @@ const ProductForm: React.FC = () => {
           {imagePreview && (
             <div className="upload-item" style={{ position: 'relative' }}>
               <div className="upload-thumb">
-                <img src={imagePreview} alt="preview" style={{ maxWidth: '100%', height: 'auto' }} />
+                <img 
+                  src={imagePreview} 
+                  alt="preview" 
+                  style={{ maxWidth: '100%', height: 'auto' }}
+                  onError={(e) => {
+                    console.error('Image failed to load:', imagePreview);
+                    e.currentTarget.style.display = 'none';
+                    // Hiển thị placeholder khi ảnh lỗi
+                    const placeholder = document.createElement('div');
+                    placeholder.innerHTML = '❌ Ảnh không tải được';
+                    placeholder.style.cssText = 'display: flex; align-items: center; justify-content: center; height: 100px; background: #f5f5f5; color: #666; border: 1px dashed #ccc;';
+                    e.currentTarget.parentNode?.appendChild(placeholder);
+                  }}
+                />
               </div>
               <div className="progress-bar"><div style={{ width: '100%' }}></div></div>
               <span className="checkmark">✔</span>
@@ -368,7 +411,14 @@ const ProductForm: React.FC = () => {
                   type="button" 
                   onClick={() => {
                     setImageFile(null);
-                    setImagePreview(product.img_url || null);
+                    // ✅ Quay lại ảnh gốc từ server
+                    if (product.img_url) {
+                      const isFullUrl = product.img_url.startsWith('http');
+                      const originalUrl = isFullUrl ? product.img_url : `http://localhost:5000${product.img_url}`;
+                      setImagePreview(originalUrl);
+                    } else {
+                      setImagePreview('');
+                    }
                   }}
                   style={{
                     position: 'absolute',
