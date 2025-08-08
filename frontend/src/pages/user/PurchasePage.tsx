@@ -28,7 +28,7 @@ const translateStatus = (status: string): string => {
 const PurchasePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const { orders } = useOrders();
+  const { orders, updateOrderStatus } = useOrders(); // Giả định updateOrderStatus có trong context
   const { clearCart, addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -75,20 +75,26 @@ const PurchasePage: React.FC = () => {
           _id: product._id,
           name: product.name,
           price: product.price,
-          img_url: product.img_url || '',
+          img_url: product.img_url,
           quantity: item.quantity,
         });
-      } catch {
-        await addToCart({
-          _id: productId,
-          name: item.name,
-          price: item.price,
-          img_url: item.img_url || '',
-          quantity: item.quantity,
-        });
+      } catch (error) {
+        console.error("Lỗi khi thêm sản phẩm vào giỏ:", error);
       }
     }
-    navigate('/cart');
+    navigate("/cart");
+  };
+
+  // Handler for canceling order
+  const handleCancelOrder = async (orderId: string) => {
+    if (window.confirm("Bạn có chắc muốn hủy đơn hàng này?")) {
+      try {
+        await updateOrderStatus(orderId, "canceled"); // Giả định API này tồn tại
+        console.log(`Đơn hàng ${orderId} đã được hủy.`);
+      } catch (error) {
+        console.error("Lỗi khi hủy đơn hàng:", error);
+      }
+    }
   };
 
   return (
@@ -99,7 +105,7 @@ const PurchasePage: React.FC = () => {
           {TABS.map((tab) => (
             <button
               key={tab.id}
-              className={`tab-item ${activeTab === tab.id ? 'active' : ''}`}
+              className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -107,9 +113,9 @@ const PurchasePage: React.FC = () => {
           ))}
         </div>
 
-        {/* Search Bar */}
+        {/* Search Section */}
         <div className="search-section">
-          <form onSubmit={handleSearch} className="search-form">
+          <form className="search-form" onSubmit={handleSearch}>
             <div className="search-input-wrapper">
               <FaSearch className="search-icon" />
               <input
@@ -167,9 +173,16 @@ const PurchasePage: React.FC = () => {
                       );
                     })}
                   </div>
-                  <button className="reorder-btn" onClick={() => handleReorder(order)}>
-                    Mua lần nữa
-                  </button>
+                  <div className="button-group">
+                    <button className="reorder-btn" onClick={() => handleReorder(order)}>
+                      Mua lần nữa
+                    </button>
+                    {["pending", "shipping"].includes(order.status) && (
+                      <button className="cancel-btn" onClick={() => handleCancelOrder(order._id)}>
+                        Hủy đơn hàng
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -180,4 +193,4 @@ const PurchasePage: React.FC = () => {
   );
 };
 
-export default PurchasePage; 
+export default PurchasePage;
