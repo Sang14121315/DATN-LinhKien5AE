@@ -4,11 +4,19 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 const path = require('path');
+const fs = require('fs');
 const { Server } = require('socket.io');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 dotenv.config();
 connectDB();
+
+// Tạo thư mục uploads nếu chưa tồn tại
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads directory');
+}
 
 const app = express(); // ✅ app phải được khai báo trước
 
