@@ -12,7 +12,23 @@ const orderSchema = new mongoose.Schema({
   customer: customerSchema,
   payment_method: { type: String, enum: ['cod', 'bank'], default: 'cod' },
   total: Number,
-  status: { type: String, default: 'pending' },
+  // Trạng thái đơn hàng: chuẩn hóa và giới hạn các giá trị hợp lệ
+  status: { 
+    type: String, 
+    enum: [
+      'pending',     // Chờ xử lý
+      'confirmed',   // Đã xác nhận
+      'shipping',    // Đang giao hàng
+      'completed',   // Hoàn thành/Đã giao
+      'canceled',    // Đã hủy (chuẩn hóa)
+      'cancelled',   // Biến thể cũ để tương thích dữ liệu cũ
+      'paid',        // Đã thanh toán (từ MoMo)
+      'failed',      // Thanh toán thất bại (từ MoMo)
+      'processing',  // Đang xử lý (tùy trường hợp)
+      'delivered'    // Alias của completed (tương thích nội dung email)
+    ], 
+    default: 'pending' 
+  },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
 });

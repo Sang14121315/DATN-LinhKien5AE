@@ -10,6 +10,7 @@ import { fetchProductById } from "@/api/user/productAPI";
 const TABS = [
   { id: "all", label: "Tất cả" },
   { id: "pending", label: "Chờ xử lý" },
+  { id: "confirmed", label: "Đã xác nhận" },
   { id: "shipping", label: "Đang giao" },
   { id: "completed", label: "Đã giao" },
   { id: "canceled", label: "Đã hủy" },
@@ -18,9 +19,12 @@ const TABS = [
 const translateStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
     pending: "Đang chờ xử lý",
+    confirmed: "Đã xác nhận",
     shipping: "Đang giao",
     completed: "Đã giao",
     canceled: "Đã hủy",
+    processing: "Đang xử lý",
+    paid: "Đã thanh toán",
   };
   return statusMap[status] || status;
 };
@@ -87,13 +91,11 @@ const PurchasePage: React.FC = () => {
 
   // Handler for canceling order
   const handleCancelOrder = async (orderId: string) => {
-    if (window.confirm("Bạn có chắc muốn hủy đơn hàng này?")) {
-      try {
-        await updateOrderStatus(orderId, "canceled"); // Giả định API này tồn tại
-        console.log(`Đơn hàng ${orderId} đã được hủy.`);
-      } catch (error) {
-        console.error("Lỗi khi hủy đơn hàng:", error);
-      }
+    try {
+      await updateOrderStatus(orderId, "canceled");
+      console.log(`Đơn hàng ${orderId} đã được hủy.`);
+    } catch (error) {
+      console.error("Lỗi khi hủy đơn hàng:", error);
     }
   };
 
@@ -177,7 +179,7 @@ const PurchasePage: React.FC = () => {
                     <button className="reorder-btn" onClick={() => handleReorder(order)}>
                       Mua lần nữa
                     </button>
-                    {["pending", "shipping"].includes(order.status) && (
+                    { ["pending", "confirmed", "processing"].includes(order.status) && (
                       <button className="cancel-btn" onClick={() => handleCancelOrder(order._id)}>
                         Hủy đơn hàng
                       </button>
