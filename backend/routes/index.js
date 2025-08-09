@@ -13,6 +13,8 @@ const homeController = require("../controllers/homeController");
 const contactController = require("../controllers/contactController");
 const productTypeController = require("../controllers/productTypeController");
 const cartController = require("../controllers/cartController");
+const favoriteController = require('../controllers/favoriteController');
+const reviewController = require('../controllers/reviewController');
 const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
@@ -161,5 +163,18 @@ router.patch("/contacts/:id/open", contactController.openContact);
 router.delete("/contacts/:id", contactController.deleteContact);
 router.get("/contacts/:id", contactController.getContactById);
 router.post("/contacts/:id/reply", contactController.replyContact);
+
+// Favorite (user)
+router.post('/favorite/add', auth, favoriteController.addFavorite);
+router.post('/favorite/remove', auth, favoriteController.removeFavorite);
+router.get('/favorite/my', auth, favoriteController.getUserFavorites);
+
+// Review (user)
+router.post('/review/add', auth, reviewController.addOrUpdateReview);
+router.post('/review/remove', auth, reviewController.removeReview);
+router.get('/review/product/:product_id', reviewController.getProductReviews);
+
+// Review (admin)
+router.post('/review/admin-reply', auth, reviewController.adminReply);
 
 module.exports = router;
