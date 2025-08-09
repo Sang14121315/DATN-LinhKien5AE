@@ -97,7 +97,8 @@ const AdminOrderPage: React.FC = () => {
       // Hiển thị thông báo thành công
       const statusText = {
         'pending': 'Chờ xử lý',
-        'shipping': 'Đang giao',
+        'confirmed': 'Đã xác nhận',
+        'shipping': 'Đang giao',  
         'completed': 'Đã giao hàng',
         'canceled': 'Đã hủy'
       }[newStatus] || newStatus;
