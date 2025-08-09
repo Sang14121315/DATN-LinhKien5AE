@@ -1,0 +1,43 @@
+const ReviewService = require('../services/ReviewService');
+
+exports.addOrUpdateReview = async (req, res) => {
+  try {
+    const { product_id, rating, comment } = req.body;
+    const userId = req.user.id;
+    const review = await ReviewService.addOrUpdate(userId, product_id, rating, comment);
+    res.json(review);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.removeReview = async (req, res) => {
+  try {
+    const { product_id } = req.body;
+    const userId = req.user.id;
+    await ReviewService.remove(userId, product_id);
+    res.json({ message: 'Đã xóa đánh giá' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getProductReviews = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    const reviews = await ReviewService.getProductReviews(product_id);
+    res.json(reviews);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.adminReply = async (req, res) => {
+  try {
+    const { review_id, reply } = req.body;
+    const review = await ReviewService.adminReply(review_id, reply);
+    res.json(review);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
