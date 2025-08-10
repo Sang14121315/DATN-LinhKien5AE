@@ -15,6 +15,7 @@ import {
 } from "@/api/user/productAPI";
 import "@/styles/pages/user/productDetail.scss";
 import { useCart } from "@/context/CartContext";
+
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
@@ -104,7 +105,9 @@ const ProductDetail: React.FC = () => {
             </div>
             <div className="availability">
               Tình trạng:{" "}
-              <strong>{product.stock > 0 ? "Còn hàng" : "Hết hàng"}</strong>
+              <strong className={product.stock > 0 ? "in-stock" : "out-of-stock"}>
+                {product.stock > 0 ? `Còn hàng (${product.stock})` : "Hết hàng"}
+              </strong>
             </div>
           </div>
 
@@ -147,7 +150,7 @@ const ProductDetail: React.FC = () => {
           <div className="cta">
             <button
               className="add-cart"
-              onClick={() => addToCart({ ...product, quantity: 1 })}
+              onClick={() => addToCart({ ...product, quantity })}
             >
               <FaCartPlus /> THÊM VÀO GIỎ
             </button>
@@ -274,7 +277,10 @@ const ProductDetail: React.FC = () => {
                   </div>
                   <button
                     className="add-cart"
-                    onClick={() => addToCart({ ...product, quantity: 1 })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart({ ...vp, quantity: 1 });
+                    }}
                   >
                     <FaShoppingCart /> THÊM VÀO GIỎ
                   </button>

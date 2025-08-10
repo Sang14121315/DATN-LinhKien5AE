@@ -1,0 +1,113 @@
+.container {
+  padding: 20px; // Giữ padding bên trong để phù hợp với profile-content
+
+  h1 {
+    color: #333;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+
+    .border {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.2s;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        margin-bottom: 8px;
+        border-radius: 4px;
+      }
+
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 10px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      p {
+        font-size: 16px;
+        font-weight: 700;
+        color: #007BFF;
+        margin-bottom: 8px;
+      }
+
+      .flex {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+
+        button {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 6px 12px;
+          border-radius: 4px;
+          font-size: 14px;
+          transition: all 0.2s;
+
+          &:hover {
+            transform: translateY(-1px);
+          }
+
+          &.remove {
+            color: #dc3545;
+
+            &:hover {
+              color: #b02a37;
+            }
+          }
+
+          &.add-to-cart {
+            color: #007BFF;
+
+            &:hover {
+              color: #0056b3;
+            }
+          }
+        }
+      }
+    }
+
+    .text-center {
+      text-align: center;
+      padding: 40px 0;
+
+      .text-4xl {
+        font-size: 40px;
+        margin-bottom: 8px;
+        color: #d1d5db;
+      }
+
+      .text-gray-500 {
+        color: #6b7280;
+      }
+    }
+  }
+
+  // Responsive cho layout profile
+  @media (max-width: 768px) {
+    padding: 10px; // Giảm padding khi màn hình nhỏ, tương tự userProfile.layout.scss
+    .grid {
+      grid-template-columns: 1fr; // Chuyển về 1 cột trên mobile
+    }
+  }
+}

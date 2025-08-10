@@ -56,6 +56,16 @@
         .availability {
           font-size: 14px;
         }
+
+        .in-stock {
+          color: #28a745; // Màu xanh lá cây cho trạng thái còn hàng
+          font-weight: 600;
+        }
+
+        .out-of-stock {
+          color: #dc3545; // Màu đỏ cho trạng thái hết hàng
+          font-weight: 600;
+        }
       }
 
       .price-section {
@@ -93,23 +103,54 @@
         .quantity-input {
           display: flex;
           align-items: center;
-          gap: 6px;
+          background: #F5F5F5;
+          border-radius: 6px;
+          padding: 2px;
 
           button {
-            width: 32px;
-            height: 32px;
-            font-size: 18px;
-            background: #F5F5F5;
-            border: 1px solid #ddd;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #FFFFFF;
+            color: #007BFF;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+
+            &:hover:not(:disabled) {
+              background: #007BFF;
+              color: #FFFFFF;
+            }
+
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+
+            &:first-child {
+              margin-right: 2px;
+            }
+
+            &:last-child {
+              margin-left: 2px;
+            }
           }
 
           input {
             width: 50px;
-            height: 32px;
+            height: 10px;
             text-align: center;
-            border: 1px solid #ddd;
+            border: none;
             border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            background: #FFFFFF;
+            margin: 0 2px;
           }
         }
       }
