@@ -6,6 +6,7 @@ import { fetchCoupons } from "@/api/couponAPI";
 import "@/styles/pages/user/checkoutPage.scss";
 import { useNavigate } from "react-router-dom";
 import { createMomoOrder } from '@/api/momoAPI';
+import { getCurrentUser } from '@/api/user/userAPI';
 import { sendOrderConfirmationEmail } from '@/services/emailService';
 import { Row, Col, Card, Form, Input, Select, Radio, Button, Divider, Space, Typography, Alert, Modal } from 'antd';
 import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, ShoppingCartOutlined, CreditCardOutlined, BankOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
@@ -49,6 +50,28 @@ const CheckoutPage: React.FC = () => {
 
   useEffect(() => {
     setProvinces(getProvinces());
+  }, []);
+
+  // Prefill thông tin khách hàng nếu đã đăng nhập
+  useEffect(() => {
+    const prefillUserInfo = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setFormData(prev => ({
+            ...prev,
+            name: user.name || prev.name,
+            phone: user.phone || prev.phone,
+            email: user.email || prev.email,
+            address: user.address || prev.address,
+          }));
+        }
+      } catch (err) {
+        // Không đăng nhập hoặc không lấy được user -> bỏ qua
+        console.log('Checkout prefill: no user or cannot fetch profile');
+      }
+    };
+    prefillUserInfo();
   }, []);
 
   useEffect(() => {

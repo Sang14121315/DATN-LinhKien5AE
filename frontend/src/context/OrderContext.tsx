@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createOrder, getOrders, cancelOrderAPI } from '@/api/orderAPI';
+import { createOrder, getOrders, cancelOrderAPI, updateOrderStatus as updateOrderStatusAPI } from '@/api/orderAPI';
 
 interface OrderItem {
   product_id: string;
@@ -105,8 +105,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (status === 'canceled' && (orderToUpdate.status === 'completed' || orderToUpdate.status === 'canceled')) {
         throw new Error('Không thể hủy đơn hàng đã hoàn thành hoặc đã hủy trước đó');
       }
-      // Giả định API cancelOrderAPI có thể dùng để cập nhật trạng thái, nếu không có API riêng, cần thêm
-      await cancelOrderAPI(id); // Thay bằng API updateOrderStatus nếu có
+      await updateOrderStatusAPI(id, status);
       await fetchOrders(); // Refresh danh sách sau khi cập nhật
     } catch (err) {
       console.error("❌ Cập nhật trạng thái thất bại:", err);

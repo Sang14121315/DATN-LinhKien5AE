@@ -22,7 +22,7 @@ class OrderService {
   }
 
   static async update(id, data) {
-    const updated = await Order.findByIdAndUpdate(id, data, { new: true });
+    const updated = await Order.findByIdAndUpdate(id, data, { new: true, runValidators: true, context: 'query' });
     if (!updated) throw new Error('Order not found');
     return updated;
   }
