@@ -36,12 +36,14 @@ FRONTEND_URL=http://localhost:5173
   - Địa chỉ giao hàng
   - Thông tin liên hệ hỗ trợ
 
-### 2.2. Email thông báo đơn hàng mới (cho admin)
+### 2.2. Email thông báo đơn hàng mới (cho admin) ✅ ĐÃ IMPLEMENT
 - **Khi nào gửi**: Khi có đơn hàng mới
 - **Nội dung**:
   - Thông tin khách hàng
   - Chi tiết đơn hàng
   - Link quản lý đơn hàng
+- **Template**: `backend/utils/adminOrderNotificationTemplate.html`
+- **Function**: `sendOrderNotificationToAdmin()` trong `emailService.js`
 
 ### 2.3. Email cập nhật trạng thái (cho khách hàng)
 - **Khi nào gửi**: Khi trạng thái đơn hàng thay đổi

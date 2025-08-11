@@ -21,6 +21,7 @@ interface Order {
   total: number;
   status: string;
   created_at: string;
+  updated_at: string; // Added updated_at
   items: OrderItem[];
 }
 
@@ -109,8 +110,9 @@ const AdminOrderPage: React.FC = () => {
       // Cập nhật trạng thái trong database
       await updateOrderStatus(orderId, requestedStatus);
       
-      // Cập nhật state
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: requestedStatus } : o));
+      // Cập nhật state và reload danh sách để đảm bảo sort đúng
+      const updatedOrders = await getOrders();
+      setOrders(updatedOrders);
       
       // Gửi email thông báo từ frontend
       try {
@@ -193,13 +195,36 @@ const AdminOrderPage: React.FC = () => {
     return searchMatch && statusMatch && dateMatch && totalMatch;
   });
 
-  const totalOrders = filteredOrders.length;
+  // Sắp xếp: ưu tiên updated_at, sau đó đến created_at
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
+    const aUpdated = a.updated_at ? new Date(a.updated_at).getTime() : -Infinity;
+    const bUpdated = b.updated_at ? new Date(b.updated_at).getTime() : -Infinity;
+    if (aUpdated !== bUpdated) return bUpdated - aUpdated;
+
+    const aCreated = a.created_at ? new Date(a.created_at).getTime() : -Infinity;
+    const bCreated = b.created_at ? new Date(b.created_at).getTime() : -Infinity;
+    return bCreated - aCreated;
+  });
+
+  const totalOrders = sortedOrders.length;
   const totalPages = Math.ceil(totalOrders / ordersPerPage);
-  const paginatedOrders = filteredOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
+  const paginatedOrders = sortedOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
 
   return (
     <div className="admin-orders">
       <h2>📦 Quản lý đơn hàng</h2>
+      <div style={{ 
+        fontSize: '14px', 
+        color: '#666', 
+        marginBottom: '16px',
+        padding: '8px 12px',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '6px',
+        border: '1px solid #e8e8e8'
+      }}>
+        💡 <strong>Lưu ý:</strong> Đơn hàng được sắp xếp theo thứ tự cập nhật gần nhất, sau đó theo ngày tạo. 
+        Đơn hàng vừa được cập nhật trạng thái sẽ hiển thị lên đầu danh sách.
+      </div>
       {/* Bộ lọc */}
       <form className="order-filter-form" onSubmit={e => e.preventDefault()}>
         <input
@@ -287,16 +312,28 @@ const AdminOrderPage: React.FC = () => {
                     ))}
                     {order.items.length > 2 && <div>...và {order.items.length - 2} sản phẩm khác</div>}
                   </td>
-                  <td>{new Date(order.created_at).toLocaleDateString('vi-VN')}</td>
+                  <td>
+                    <div>
+                      <div style={{ fontWeight: '500' }}>
+                        {new Date(order.created_at).toLocaleDateString('vi-VN')}
+                      </div>
+                      {order.updated_at && order.updated_at !== order.created_at && (
+                        <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                          Cập nhật: {new Date(order.updated_at).toLocaleDateString('vi-VN')}
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td>{order.customer.name}</td>
                   <td>{order.total.toLocaleString()}₫</td>
                   <td>
-                    <select
-                      value={order.status}
-                      onChange={e => handleStatusChange(order._id, e.target.value)}
-                      className={`status-label ${order.status}`}
-                      style={{ minWidth: 140 }}
-                    >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <select
+                        value={order.status}
+                        onChange={e => handleStatusChange(order._id, e.target.value)}
+                        className={`status-label ${order.status}`}
+                        style={{ minWidth: 140 }}
+                      >
                       {(() => {
                         const current = canonicalizeStatus(order.status);
                         const nexts = allowedTransitions[current] || [];
@@ -308,8 +345,14 @@ const AdminOrderPage: React.FC = () => {
                           </option>
                         ));
                       })()}
-                    </select>
-                  </td>
+                        </select>
+                        {order.updated_at && order.updated_at !== order.created_at && (
+                          <div style={{ fontSize: '11px', color: '#1890ff', fontStyle: 'italic' }}>
+                            ⏰ Vừa cập nhật
+                          </div>
+                        )}
+                      </div>
+                    </td>
                   <td>
                     <button onClick={() => navigate(`/admin/orders/${order._id}`)} className="view-btn">
                       <FaEye /> Xem
