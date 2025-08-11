@@ -86,7 +86,6 @@ router.post('/categories', categoryController.createCategory);
 router.put('/categories/:id', categoryController.updateCategory);
 router.delete('/categories/:id', categoryController.deleteCategory);
 
-
 // Brands
 router.get("/brands", brandController.getBrands);
 router.get("/brands/:id", brandController.getBrandById);
