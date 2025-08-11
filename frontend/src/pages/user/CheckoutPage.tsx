@@ -17,7 +17,6 @@ const CheckoutPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
-
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<any>(null);
   const [discount, setDiscount] = useState(0);

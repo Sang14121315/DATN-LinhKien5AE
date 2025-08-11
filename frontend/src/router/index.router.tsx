@@ -27,6 +27,7 @@ import LoginPage from "@/pages/user/LoginPage";
 import RegisterPage from "@/pages/user/RegisterPage";
 import ForgotPasswordPage from "@/pages/user/ForgotPasswordPage";
 
+import FavoritePage from "@/pages/user/FavoritePage";
 import CartPage from "@/pages/user/CartPage";
 import CheckoutPage from "@/pages/user/CheckoutPage";
 import SearchResultPage from "@/pages/user/searchResult";
@@ -79,6 +80,7 @@ const MainRouter = () => {
         <Route path="coupons/create" element={<CouponForm />} />
         <Route path="coupons/:id/edit" element={<CouponForm />} />
       </Route>
+
       {/* User layout */}
       <Route path="/" element={<AuthLayout />}>
         <Route index element={<HomePage />} />
@@ -144,6 +146,7 @@ const MainRouter = () => {
         >
           <Route path="profile" element={<ProfilePage />} />
           <Route path="purchase" element={<PurchasePage />} />
+          <Route path="favorite" element={<FavoritePage />} />
         </Route>
       </Route>
     </Routes>

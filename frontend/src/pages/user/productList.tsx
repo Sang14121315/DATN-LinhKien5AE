@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaRegHeart, FaHeart } from "react-icons/fa";
 import "@/styles/pages/user/productList.scss";
+import axios from "axios";
 
 import { useCart } from "@/context/CartContext";
+import { useFavorite } from "@/context/FavoriteContext";
+import { useAuth } from "@/context/AuthContext";
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
 import { Category, fetchAllCategories, fetchCategoriesByProductType } from "@/api/user/categoryAPI";
-import {
-  ProductType,
-  fetchAllProductTypes,
-} from "@/api/user/productTypeAPI";
+import { ProductType, fetchAllProductTypes } from "@/api/user/productTypeAPI";
 
 const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -25,29 +25,23 @@ const ProductListPage: React.FC = () => {
 
   const [searchParams] = useSearchParams();
 
-  const [expandedProductType, setExpandedProductType] = useState<string | null>(
-    null
-  );
-  const [productTypeCategories, setProductTypeCategories] = useState<
-    Record<string, Category[]>
-  >({});
+  const [expandedProductType, setExpandedProductType] = useState<string | null>(null);
+  const [productTypeCategories, setProductTypeCategories] = useState<Record<string, Category[]>>({});
 
   const navigate = useNavigate();
   const itemsPerPage = 16;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = products.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const paginatedProducts = products.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(products.length / itemsPerPage);
+
   const { addToCart } = useCart();
+  const { addToFavorite, removeFromFavorite, favorites } = useFavorite();
+  const { user } = useAuth();
 
   const formatCurrency = (amount: number): string =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
 
+  // Load danh mục, thương hiệu, loại sản phẩm
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -60,7 +54,6 @@ const ProductListPage: React.FC = () => {
         setCategories(categoryData);
         setProductTypes(productTypeData);
 
-        // Load categories for each product type
         const categoriesByProductType: Record<string, Category[]> = {};
         for (const productType of productTypeData) {
           const categories = await fetchCategoriesByProductType(productType._id);
@@ -75,8 +68,8 @@ const ProductListPage: React.FC = () => {
     loadData();
   }, []);
 
+  // Load filters từ URL hoặc sessionStorage
   useEffect(() => {
-    // Handle category from URL query parameter
     const categoryFromUrl = searchParams.get("category");
     if (categoryFromUrl) {
       setSelectedCategory(categoryFromUrl);
@@ -93,17 +86,13 @@ const ProductListPage: React.FC = () => {
     setFiltersInitialized(true);
   }, [searchParams]);
 
+  // Lọc sản phẩm theo bộ lọc
   useEffect(() => {
     if (!filtersInitialized) return;
 
     const fetchProducts = async () => {
       try {
-        const filters: {
-          category_id?: string;
-          brand_id?: string;
-          minPrice?: number;
-          maxPrice?: number;
-        } = {};
+        const filters: { category_id?: string; brand_id?: string; minPrice?: number; maxPrice?: number } = {};
 
         if (selectedCategory !== "all") filters.category_id = selectedCategory;
         if (selectedBrand !== "all") filters.brand_id = selectedBrand;
@@ -125,57 +114,84 @@ const ProductListPage: React.FC = () => {
   }, [selectedCategory, selectedBrand, selectedPrice, filtersInitialized]);
 
   const toggleProductType = (productTypeId: string) => {
-    setExpandedProductType(
-      expandedProductType === productTypeId ? null : productTypeId
-    );
+    setExpandedProductType(expandedProductType === productTypeId ? null : productTypeId);
+  };
+
+  const handleFavoriteClick = async (product: Product) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      navigate("/login");
+      return;
+    }
+
+    const isFavorite = favorites.some((f) => f._id === product._id);
+
+    try {
+      if (isFavorite) {
+        await axios.post(
+          "/api/favorite/remove",
+          { product_id: product._id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        removeFromFavorite(product._id);
+      } else {
+        await axios.post(
+          "/api/favorite/add",
+          { product_id: product._id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        addToFavorite({
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          img_url: product.img_url,
+        });
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi cập nhật yêu thích:", error.response?.data || error.message);
+    }
   };
 
   return (
     <div className="product-page-container">
       <div className="product-layout">
+        {/* Sidebar */}
         <aside className="sidebar">
+          {/* Danh mục */}
           <div className="sidebar-section">
             <div className="dropdown-header">
               <span>DANH MỤC SẢN PHẨM</span>
             </div>
-
             <ul className="dropdown-content">
-              <li
-                onClick={() => setSelectedCategory("all")}
-                className={selectedCategory === "all" ? "active" : ""}
-              >
+              <li onClick={() => setSelectedCategory("all")} className={selectedCategory === "all" ? "active" : ""}>
                 TẤT CẢ SẢN PHẨM
               </li>
-
               {productTypes.map((productType) => (
                 <React.Fragment key={productType._id}>
                   <li
-                    className={`product-type-item ${
-                      expandedProductType === productType._id ? "expanded" : ""
-                    }`}
+                    className={`product-type-item ${expandedProductType === productType._id ? "expanded" : ""}`}
                     onClick={() => toggleProductType(productType._id)}
                   >
                     {productType.name.toUpperCase()}
-                    <span className="dropdown-icon">
-                      {expandedProductType === productType._id ? "▼" : "▶"}
-                    </span>
+                    <span className="dropdown-icon">{expandedProductType === productType._id ? "▼" : "▶"}</span>
                   </li>
-
                   {expandedProductType === productType._id && (
                     <div className="sub-categories">
-                      {productTypeCategories[productType._id]?.map(
-                        (category) => (
-                          <li
-                            key={category._id}
-                            onClick={() => setSelectedCategory(category._id)}
-                            className={
-                              selectedCategory === category._id ? "active" : ""
-                            }
-                          >
-                            {category.name}
-                          </li>
-                        )
-                      )}
+                      {productTypeCategories[productType._id]?.map((category) => (
+                        <li
+                          key={category._id}
+                          onClick={() => setSelectedCategory(category._id)}
+                          className={selectedCategory === category._id ? "active" : ""}
+                        >
+                          {category.name}
+                        </li>
+                      ))}
                     </div>
                   )}
                 </React.Fragment>
@@ -183,6 +199,7 @@ const ProductListPage: React.FC = () => {
             </ul>
           </div>
 
+          {/* Lọc giá */}
           <div className="sidebar-section">
             <h3>LỌC GIÁ</h3>
             <div className="price-radio-group">
@@ -209,18 +226,14 @@ const ProductListPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Banner */}
           <div className="sidebar-banner">
-            <img
-              src="/public/assets/about_vertical_sale_banner.png"
-              alt="Giảm giá sốc"
-            />
-            <img
-              src="/public/assets/about_vertical_sale2_banner.png"
-              alt="Giảm giá sốc"
-            />
+            <img src="/public/assets/about_vertical_sale_banner.png" alt="Giảm giá sốc" />
+            <img src="/public/assets/about_vertical_sale2_banner.png" alt="Giảm giá sốc" />
           </div>
         </aside>
 
+        {/* Main content */}
         <main className="product-content">
           <div className="brand-bar">
             <h3>THƯƠNG HIỆU</h3>
@@ -238,7 +251,7 @@ const ProductListPage: React.FC = () => {
                   onClick={() => setSelectedBrand(b._id)}
                 >
                   <img
-                    src={b.logo_url || b.logo_data || '/public/assets/default_brand_logo.png'}
+                    src={b.logo_url || b.logo_data || "/public/assets/default_brand_logo.png"}
                     alt={b.name}
                     className="brand-logo"
                     title={b.name}
@@ -252,77 +265,78 @@ const ProductListPage: React.FC = () => {
             <h2>
               {selectedCategory === "all"
                 ? "Sản phẩm"
-                : categories.find((c) => c._id === selectedCategory)?.name ||
-                  "Sản phẩm"}
+                : categories.find((c) => c._id === selectedCategory)?.name || "Sản phẩm"}
             </h2>
           </div>
 
           <div className="product-grid">
             {products.length > 0 ? (
-              paginatedProducts.map((product) => (
-                <div className="product-card" key={product._id}>
-                  <img
-                    src={product.img_url}
-                    alt={product.name}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      sessionStorage.setItem(
-                        "productFilters",
-                        JSON.stringify({
-                          category: selectedCategory,
-                          brand: selectedBrand,
-                          price: selectedPrice,
-                          scroll: window.scrollY,
-                        })
-                      );
-                      navigate(`/product/${product._id}`);
-                    }}
-                  />
-                  <p className="product-brand">
-                    {typeof product.brand_id === "object"
-                      ? product.brand_id.name
-                      : product.brand_id}
-                  </p>
-                  <h4 className="product-name">{product.name}</h4>
+              paginatedProducts.map((product) => {
+                const isFavorite = favorites.some((f) => f._id === product._id);
+                return (
+                  <div className="product-card" key={product._id}>
+                    <img
+                      src={product.img_url}
+                      alt={product.name}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        sessionStorage.setItem(
+                          "productFilters",
+                          JSON.stringify({
+                            category: selectedCategory,
+                            brand: selectedBrand,
+                            price: selectedPrice,
+                            scroll: window.scrollY,
+                          })
+                        );
+                        navigate(`/product/${product._id}`);
+                      }}
+                    />
+                    <button
+                      className="favorite-icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFavoriteClick(product);
+                      }}
+                    >
+                      {isFavorite ? <FaHeart /> : <FaRegHeart />}
+                    </button>
+                    <p className="product-brand">
+                      {typeof product.brand_id === "object" ? product.brand_id.name : product.brand_id}
+                    </p>
+                    <h4 className="product-name">{product.name}</h4>
 
-                  <div className="price-block">
-                    <div className="price-left">
-                      {product.sale ? (
-                        <>
-                          <div className="discount-price">
-                            {formatCurrency(product.price * 0.66)}
-                          </div>
-                          <div className="original-price">
-                            {formatCurrency(product.price)}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="discount-price">
-                          {formatCurrency(product.price)}
-                        </div>
-                      )}
+                    <div className="price-block">
+                      <div className="price-left">
+                        {product.sale ? (
+                          <>
+                            <div className="discount-price">{formatCurrency(product.price * 0.66)}</div>
+                            <div className="original-price">{formatCurrency(product.price)}</div>
+                          </>
+                        ) : (
+                          <div className="discount-price">{formatCurrency(product.price)}</div>
+                        )}
+                      </div>
+                      {product.sale && <div className="discount-percent">-34%</div>}
                     </div>
-                    {product.sale && (
-                      <div className="discount-percent">-34%</div>
-                    )}
-                  </div>
 
-                  <button
-                    className="add-to-cart"
-                    onClick={() =>
-                      addToCart({
-                        _id: product._id,
-                        name: product.name,
-                        price: product.price,
-                        quantity: 1,
-                        img_url: product.img_url,
-                      })
-                    }
-                  >
-                    <FaShoppingCart /> Thêm vào giỏ
-                  </button>
-                </div>
-              ))
+                    <button
+                      className="add-to-cart"
+                      onClick={() =>
+                        addToCart({
+                          _id: product._id,
+                          name: product.name,
+                          price: product.price,
+                          quantity: 1,
+                          img_url: product.img_url,
+                        })
+                      }
+                    >
+                      <FaShoppingCart /> Thêm vào giỏ
+                    </button>
+                  </div>
+                );
+              })
             ) : (
               <p>Không có sản phẩm phù hợp.</p>
             )}
@@ -330,10 +344,7 @@ const ProductListPage: React.FC = () => {
 
           {totalPages > 1 && (
             <div className="pagination">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
+              <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
                 &laquo; Trước
               </button>
               {Array.from({ length: totalPages }, (_, i) => (
@@ -346,9 +357,7 @@ const ProductListPage: React.FC = () => {
                 </button>
               ))}
               <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
               >
                 Sau &raquo;

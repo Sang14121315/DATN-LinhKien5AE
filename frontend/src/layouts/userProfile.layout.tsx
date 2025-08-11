@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { FaUser, FaFileAlt } from "react-icons/fa";
+import { FaUser, FaFileAlt, FaHeart } from "react-icons/fa";
 import { getCurrentUser, User } from "@/api/user/userAPI";
 import { useState, useEffect } from "react";
 import "@/styles/layouts/userProfile.layout.scss";
@@ -29,6 +29,12 @@ const UserProfileLayout: React.FC = () => {
       label: "Hồ Sơ",
       icon: FaUser,
       path: "/profile"
+    },
+    {
+      id: "favorite",
+      label: "Yêu Thích",
+      icon: FaHeart,
+      path: "/favorite"
     },
     {
       id: "purchases",
