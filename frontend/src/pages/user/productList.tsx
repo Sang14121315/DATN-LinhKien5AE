@@ -113,32 +113,6 @@ const ProductListPage: React.FC = () => {
     fetchProducts();
   }, [selectedCategory, selectedBrand, selectedPrice, filtersInitialized]);
 
-  // Load danh sách yêu thích từ API khi đã đăng nhập
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!user) return;
-      try {
-        const res = await axios.get("/favorite/my", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        if (Array.isArray(res.data)) {
-          res.data.forEach((fav: any) => {
-            addToFavorite({
-              _id: fav.product_id._id,
-              name: fav.product_id.name,
-              price: fav.product_id.price,
-              img_url: fav.product_id.img_url,
-            });
-          });
-        }
-      } catch (error) {
-        console.error("Lỗi khi tải favorites:", error);
-      }
-    };
-
-    fetchFavorites();
-  }, [user]);
-
   const toggleProductType = (productTypeId: string) => {
     setExpandedProductType(expandedProductType === productTypeId ? null : productTypeId);
   };
@@ -149,21 +123,28 @@ const ProductListPage: React.FC = () => {
       return;
     }
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      navigate("/login");
+      return;
+    }
+
     const isFavorite = favorites.some((f) => f._id === product._id);
 
     try {
       if (isFavorite) {
         await axios.post(
-          "/favorite/remove",
+          "/api/favorite/remove",
           { product_id: product._id },
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         removeFromFavorite(product._id);
       } else {
         await axios.post(
-          "/favorite/add",
+          "/api/favorite/add",
           { product_id: product._id },
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         addToFavorite({
           _id: product._id,
@@ -172,15 +153,17 @@ const ProductListPage: React.FC = () => {
           img_url: product.img_url,
         });
       }
-    } catch (error) {
-      console.error("Lỗi khi cập nhật yêu thích:", error);
+    } catch (error: any) {
+      console.error("Lỗi khi cập nhật yêu thích:", error.response?.data || error.message);
     }
   };
 
   return (
     <div className="product-page-container">
       <div className="product-layout">
+        {/* Sidebar */}
         <aside className="sidebar">
+          {/* Danh mục */}
           <div className="sidebar-section">
             <div className="dropdown-header">
               <span>DANH MỤC SẢN PHẨM</span>
@@ -216,6 +199,7 @@ const ProductListPage: React.FC = () => {
             </ul>
           </div>
 
+          {/* Lọc giá */}
           <div className="sidebar-section">
             <h3>LỌC GIÁ</h3>
             <div className="price-radio-group">
@@ -242,12 +226,14 @@ const ProductListPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Banner */}
           <div className="sidebar-banner">
             <img src="/public/assets/about_vertical_sale_banner.png" alt="Giảm giá sốc" />
             <img src="/public/assets/about_vertical_sale2_banner.png" alt="Giảm giá sốc" />
           </div>
         </aside>
 
+        {/* Main content */}
         <main className="product-content">
           <div className="brand-bar">
             <h3>THƯƠNG HIỆU</h3>
@@ -306,7 +292,13 @@ const ProductListPage: React.FC = () => {
                         navigate(`/product/${product._id}`);
                       }}
                     />
-                    <button className="favorite-icon" onClick={() => handleFavoriteClick(product)}>
+                    <button
+                      className="favorite-icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFavoriteClick(product);
+                      }}
+                    >
                       {isFavorite ? <FaHeart /> : <FaRegHeart />}
                     </button>
                     <p className="product-brand">

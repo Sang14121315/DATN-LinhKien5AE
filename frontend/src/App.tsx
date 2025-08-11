@@ -8,16 +8,16 @@ import { FavoriteProvider } from "./context/FavoriteContext";
 
 const App: React.FC = () => {
   return (
-    <FavoriteProvider>
-      <AuthProvider>
+    <AuthProvider> {/* Di chuyển AuthProvider ra ngoài cùng vì FavoriteProvider có thể phụ thuộc vào user từ AuthContext */}
+      <FavoriteProvider>
         <CartProvider>
           <OrderProvider>
             <MainRouter />
             <ToastContainer position="top-right" autoClose={3000} />
           </OrderProvider>
         </CartProvider>
-      </AuthProvider>
-    </FavoriteProvider>
+      </FavoriteProvider>
+    </AuthProvider>
   );
 };
 

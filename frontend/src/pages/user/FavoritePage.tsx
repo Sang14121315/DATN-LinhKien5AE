@@ -1,51 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { FaHeart, FaShoppingCart, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "@/styles/pages/user/favorite.scss";
+import { useFavorite } from "@/context/FavoriteContext";
 
 const FavoritePage: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
+  const { favorites, removeFromFavorite } = useFavorite();
   const navigate = useNavigate();
-  const [favorites, setFavorites] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
+  if (!isAuthenticated) {
+    navigate("/login");
+    return <div>Vui lòng đăng nhập để xem danh sách yêu thích!</div>;
+  }
 
-    const fetchFavorites = async () => {
-      try {
-        const response = await axios.get(`/favorite/my`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        if (Array.isArray(response.data)) {
-          setFavorites(response.data);
-        } else {
-          setFavorites([]);
-          setError("Dữ liệu yêu thích không hợp lệ từ server.");
-        }
-      } catch (error: any) {
-        console.error("Lỗi khi lấy danh sách yêu thích:", error);
-        setError(error.message || "Không thể tải danh sách yêu thích.");
-        setFavorites([]);
-      }
-    };
-
-    fetchFavorites();
-  }, [isAuthenticated, navigate]);
-
-  const removeFavorite = async (productId: string) => {
+  const handleRemoveFavorite = async (productId: string) => {
     try {
-      await axios.post(`/favorite/remove`, { product_id: productId }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setFavorites(favorites.filter((fav) => fav.product_id._id !== productId));
+      await axios.post(
+        `/api/favorite/remove`,
+        { product_id: productId },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      removeFromFavorite(productId);
       setError(null);
     } catch (error: any) {
       console.error("Lỗi khi xóa khỏi yêu thích:", error);
@@ -53,38 +36,62 @@ const FavoritePage: React.FC = () => {
     }
   };
 
-  if (!isAuthenticated) {
-    return <div>Vui lòng đăng nhập để xem danh sách yêu thích!</div>;
-  }
-
   return (
-    <div className="container">
-      <h1>Danh sách yêu thích</h1>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
+    <div className="favorite-container">
+      <div className="favorite-header">
+        <h1>Danh sách yêu thích</h1>
+        {favorites.length > 0 && (
+          <span className="favorite-count">{favorites.length} sản phẩm</span>
+        )}
+      </div>
+      
+      {error && <div className="error-message">{error}</div>}
+      
       {favorites.length === 0 ? (
-        <div className="grid">
-          <div className="border text-center">
-            <FaHeart className="text-4xl" />
-            <p className="text-gray-500">Chưa có sản phẩm nào trong danh sách yêu thích.</p>
+        <div className="empty-favorite">
+          <div className="empty-content">
+            <FaHeart className="empty-icon" />
+            <p className="empty-text">Chưa có sản phẩm nào trong danh sách yêu thích.</p>
+            <button 
+              className="browse-button"
+              onClick={() => navigate("/")}
+            >
+              Xem sản phẩm
+            </button>
           </div>
         </div>
       ) : (
-        <div className="grid">
+        <div className="favorite-grid">
           {favorites.map((fav) => (
-            <div key={fav.product_id._id} className="border">
-              <img
-                src={fav.product_id.img_url || "https://via.placeholder.com/150"}
-                alt={fav.product_id.name}
-                className="img"
-              />
-              <h3>{fav.product_id.name.length > 20 ? `${fav.product_id.name.substring(0, 20)}...` : fav.product_id.name}</h3>
-              <p>{new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(fav.product_id.price)}</p>
-              <div className="flex">
-                <button onClick={() => removeFavorite(fav.product_id._id)} className="remove">
-                  <FaTrash className="mr-1" /> Xóa
+            <div key={fav._id} className="favorite-item">
+              <div className="item-image-container">
+                <img
+                  src={fav.img_url || "https://via.placeholder.com/150"}
+                  alt={fav.name}
+                  className="item-image"
+                />
+              </div>
+              <div className="item-details">
+                <h3 className="item-name">{fav.name}</h3>
+                <p className="item-price">
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(fav.price)}
+                </p>
+              </div>
+              <div className="item-actions">
+                <button
+                  onClick={() => handleRemoveFavorite(fav._id)}
+                  className="remove-button"
+                >
+                  <FaTrash className="button-icon" /> Bỏ yêu thích
                 </button>
-                <button onClick={() => addToCart({ ...fav.product_id, quantity: 1 })} className="add-to-cart">
-                  <FaShoppingCart className="mr-1" /> Thêm giỏ
+                <button
+                  onClick={() => addToCart({ ...fav, quantity: 1 })}
+                  className="add-to-cart-button"
+                >
+                  <FaShoppingCart className="button-icon" /> Thêm giỏ
                 </button>
               </div>
             </div>

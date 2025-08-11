@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   FaShoppingCart,
   FaFacebook,
@@ -18,6 +18,7 @@ import { useCart } from "@/context/CartContext";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
@@ -105,7 +106,9 @@ const ProductDetail: React.FC = () => {
             </div>
             <div className="availability">
               Tình trạng:{" "}
-              <strong className={product.stock > 0 ? "in-stock" : "out-of-stock"}>
+              <strong
+                className={product.stock > 0 ? "in-stock" : "out-of-stock"}
+              >
                 {product.stock > 0 ? `Còn hàng (${product.stock})` : "Hết hàng"}
               </strong>
             </div>
@@ -154,7 +157,15 @@ const ProductDetail: React.FC = () => {
             >
               <FaCartPlus /> THÊM VÀO GIỎ
             </button>
-            <button className="buy-now">MUA NGAY</button>
+            <button
+              className="buy-now"
+              onClick={() => {
+                addToCart({ ...product, quantity });
+                navigate("/checkout");
+              }}
+            >
+              MUA NGAY
+            </button>
           </div>
 
           <div className="share">
