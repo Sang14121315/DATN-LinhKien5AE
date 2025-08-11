@@ -27,6 +27,13 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
+  const getImageUrl = (url?: string): string => {
+    if (!url) return '/images/no-image.png';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+    return `http://localhost:5000/uploads/products/${url}`;
+  };
+
   // Banner images array
   const bannerImages = [
     "/img/bn1.png",
@@ -71,6 +78,7 @@ const HomePage: React.FC = () => {
     fetchData();
   }, []);
 
+
   // Fetch products by category
   useEffect(() => {
     const fetchProductsByCategory = async () => {
@@ -82,12 +90,12 @@ const HomePage: React.FC = () => {
           filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
         }
         setAllCategoryProducts(filteredProducts);
-        setCategoryProducts(filteredProducts.slice(0, 4));
+        setCategoryProducts(filteredProducts.slice(0, 5));
         setCurrentProductIndex(0);
       } catch (error) {
         console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
         setAllCategoryProducts(hotProducts);
-        setCategoryProducts(hotProducts.slice(0, 4));
+        setCategoryProducts(hotProducts.slice(0, 5));
         setCurrentProductIndex(0);
       }
     };
@@ -120,19 +128,20 @@ const HomePage: React.FC = () => {
     setSelectedCategory(categoryId);
   };
 
+  // Navigation functions
   const nextProducts = () => {
-    const nextIndex = currentProductIndex + 4;
+    const nextIndex = currentProductIndex + 5;
     if (nextIndex < allCategoryProducts.length) {
       setCurrentProductIndex(nextIndex);
-      setCategoryProducts(allCategoryProducts.slice(nextIndex, nextIndex + 4));
+      setCategoryProducts(allCategoryProducts.slice(nextIndex, nextIndex + 5));
     }
   };
 
   const prevProducts = () => {
-    const prevIndex = currentProductIndex - 4;
+    const prevIndex = currentProductIndex - 5;
     if (prevIndex >= 0) {
       setCurrentProductIndex(prevIndex);
-      setCategoryProducts(allCategoryProducts.slice(prevIndex, prevIndex + 4));
+      setCategoryProducts(allCategoryProducts.slice(prevIndex, prevIndex + 5));
     }
   };
 
@@ -157,7 +166,7 @@ const HomePage: React.FC = () => {
   const renderProductItem = (product: Product) => (
     <div key={product._id} className="product-item">
       <img
-        src={product.img_url || '/images/no-image.png'}
+        src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
         alt={product.name}
         onClick={() => navigate(`/product/${product._id}`)}
         style={{ cursor: 'pointer' }}
@@ -168,7 +177,18 @@ const HomePage: React.FC = () => {
         <span className="discount">-20%</span>
       </div>
       <div className="old-price">{(product.price * 1.2).toLocaleString()}đ</div>
-      <button className="add-to-cart" onClick={() => addToCart({ _id: product._id, name: product.name, price: product.price, img_url: product.img_url, quantity: 1 })}>
+      <button
+        className="add-to-cart"
+        onClick={() =>
+          addToCart({
+            _id: product._id,
+            name: product.name,
+            price: product.price,
+            img_url: product.img_url,
+            quantity: 1,
+          })
+        }
+      >
         Thêm vào giỏ
       </button>
     </div>
@@ -180,7 +200,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       <section id="banner">
-        <div className="container">
+        <div className="home-page-container">
           <aside className="sidebar">
             <div className="sidebar-section">
               <div className="dropdown-header">Danh mục sản phẩm</div>
@@ -269,6 +289,10 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+<section>
+  
+</section>
+
       <section className="hot-products">
         <div className="hot-sale-header">
           <div className="header-left">
@@ -313,18 +337,51 @@ const HomePage: React.FC = () => {
                 </div>
                 <div className="product-image">
                   <img
-                    src={product.img_url || '/images/no-image.png'}
+                    src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
                     alt={product.name}
                     onClick={() => navigate(`/product/${product._id}`)}
                   />
                 </div>
                 <div className="product-info">
                   <h4 className="product-name">{product.name}</h4>
-                  <div className="price-section">
-                    <span className="current-price">{product.price.toLocaleString()}₫</span>
-                    <span className="original-price">{(product.price * 1.15).toLocaleString()}₫</span>
+                  <div className="rating-section">
+                    <div className="stars">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                          key={star}
+                          className={`star ${star <= 4 ? 'filled' : ''}`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="rating-text">(4.0)</span>
                   </div>
-                  <p className="installment-info">Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6...</p>
+                  <div className="price-section">
+                    <span className="current-price">
+                      {product.price?.toLocaleString('vi-VN')}₫
+                    </span>
+                    <span className="original-price">
+                      {(product.price * 1.15).toLocaleString('vi-VN')}₫
+                    </span>
+                  </div>
+                  <div className="installment-info">
+                    Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6 tháng
+                  </div>
+                  <div className="action-buttons">
+                    <button className="favorite-btn">
+                      ❤️
+                    </button>
+                    <button 
+                      className="add-to-cart-btn"
+                      onClick={() => addToCart({ _id: product._id, name: product.name, price: product.price, img_url: product.img_url, quantity: 1 })}
+                      onMouseEnter={(e) => e.currentTarget.classList.add('expanded')}
+                      onMouseLeave={(e) => e.currentTarget.classList.remove('expanded')}
+                    >
+                      🛒
+                      <span className="btn-text">Thêm vào giỏ</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -332,24 +389,23 @@ const HomePage: React.FC = () => {
           <button 
             className="carousel-arrow next" 
             onClick={nextProducts}
-            disabled={currentProductIndex + 4 >= allCategoryProducts.length}
+            disabled={currentProductIndex + 5 >= allCategoryProducts.length}
           >
             ›
           </button>
         </div>
       </section>
 
-      <section className="km-products">
+     <section className="km-products">
         <div className="section-header">
           <h2>Sản phẩm khuyến mãi</h2>
-          <button className="view-all-btn" onClick={() => navigate(`/product-list?category=${selectedCategoryId}`)}>Xem tất cả</button>
         </div>
         <div className="product-list no-scroll">
           {categoryProducts.slice(0, 5).map((product) => (
             <div key={product._id} className="sale-product-card">
               <div className="product-image small">
                 <img
-                  src={product.img_url || '/images/no-image.png'}
+                  src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
                   alt={product.name}
                   onClick={() => navigate(`/product/${product._id}`)}
                 />
@@ -378,55 +434,62 @@ const HomePage: React.FC = () => {
       </section>
 
       {categories.map((category) => (
-        <section key={category._id} id="qc-gh">
-          <div className="wrapper">
-            <h2>{category.name}</h2>
-            <div className="workstation-section">
-              <div className="right-products">
-                <div className="product-grid">
-                  {(productsByCategory[category._id] || []).map((p) => (
-                    <div key={p._id} className="product-card">
-                      <div className="product-image">
-                        <img
-                          src={p.img_url || '/images/no-image.png'}
-                          alt={p.name}
-                          onClick={() => navigate(`/product/${p._id}`)}
-                        />
-                      </div>
-                      <div className="product-details">
-                        <div className="rating-section">
-                        </div>
-                        <h4 className="product-name">{p.name}</h4>
-                        <div className="price-section">
-                          <div className="original-price">
-                            {(p.price * 1.3).toLocaleString()}₫
-                          </div>
-                          <div className="current-price">{p.price.toLocaleString()}₫</div>
-                        </div>
-                        <div className="availability">
-                          <span className="check-icon">✓</span>
-                          <span>Sẵn hàng</span>
-                        </div>
-                        <button
-                          className="add-to-cart-btn"
-                          onClick={() => addToCart({ _id: p._id, name: p.name, price: p.price, img_url: p.img_url, quantity: 1 })}
-                        >
-                          🛒
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+  <section key={category._id} id="qc-gh">
+    <div className="wrapper">
+      <h2>{category.name}</h2>
+      <div className="workstation-section">
+        <div className="right-products">
+          <div className="product-grid">
+            {(productsByCategory[category._id] || []).map((p) => (
+              <div key={p._id} className="product-card">
+                <div className="product-image">
+                  <img
+                    src={getImageUrl(p.img_url)}
+                    alt={p.name}
+                    onClick={() => navigate(`/product/${p._id}`)}
+                  />
                 </div>
-                <div className="load-more">
-                  <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
-                    Xem thêm
+                <div className="product-details">
+                  <div className="rating-section"></div>
+                  <h4 className="product-name">{p.name}</h4>
+                  <div className="price-section">
+                    <div className="original-price">
+                      {(p.price * 1.3).toLocaleString()}₫
+                    </div>
+                    <div className="current-price">{p.price.toLocaleString()}₫</div>
+                  </div>
+                  <div className="availability">
+                    <span className="check-icon">✓</span>
+                    <span>Sẵn hàng</span>
+                  </div>
+                  <button
+                    className="add-to-cart-btn"
+                    onClick={() =>
+                      addToCart({
+                        _id: p._id,
+                        name: p.name,
+                        price: p.price,
+                        img_url: getImageUrl(p.img_url),
+                        quantity: 1,
+                      })
+                    }
+                  >
+                    🛒
                   </button>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        </section>
-      ))}
+          <div className="load-more">
+            <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
+              Xem thêm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+))}
     </div>
   );
 };
