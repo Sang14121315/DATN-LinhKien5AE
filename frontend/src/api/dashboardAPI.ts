@@ -75,3 +75,25 @@ export const fetchTop5BestSellerProducts = async (): Promise<TopProduct[]> => {
   });
   return response.data;
 };
+
+// Review Management APIs
+export const getAllReviews = async () => {
+  const response = await axios.get('http://localhost:5000/api/admin/reviews', {
+    withCredentials: true,
+  });
+  return response.data;
+};
+
+export const adminReplyToReview = async (reviewId: string, reply: string) => {
+  const response = await axios.put(`http://localhost:5000/api/admin/reviews/${reviewId}/reply`, { reply }, {
+    withCredentials: true,
+  });
+  return response.data;
+};
+
+export const deleteReview = async (reviewId: string) => {
+  const response = await axios.delete(`http://localhost:5000/api/admin/reviews/${reviewId}`, {
+    withCredentials: true,
+  });
+  return response.data;
+};

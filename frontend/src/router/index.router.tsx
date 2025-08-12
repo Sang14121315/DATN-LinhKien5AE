@@ -14,6 +14,7 @@ import ProductTypeFormPage from "@/pages/admin/ProductTypeForm";
 import AdminUserPage from "@/pages/admin/AdminUserPage";
 import AdminContactPage from "@/pages/admin/AdminContactPage";
 import MessageManagement from "@/pages/admin/MessageManagement";
+import ReviewManagement from "@/pages/admin/ReviewManagement";
 
 import CouponForm from "@/pages/admin/CouponForm";
 
@@ -76,6 +77,7 @@ const MainRouter = () => {
         <Route path="users" element={<AdminUserPage />} />
         <Route path="feedback" element={<AdminContactPage />} />
         <Route path="messages" element={<MessageManagement />} />
+        <Route path="reviews" element={<ReviewManagement />} />
 
         <Route path="coupons/create" element={<CouponForm />} />
         <Route path="coupons/:id/edit" element={<CouponForm />} />

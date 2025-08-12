@@ -20,6 +20,17 @@ class ReviewService {
   static async adminReply(reviewId, reply) {
     return await Review.findByIdAndUpdate(reviewId, { reply }, { new: true });
   }
+
+  static async getAllReviews() {
+    return await Review.find({})
+      .populate('user_id', 'name email')
+      .populate('product_id', 'name img_url')
+      .sort({ created_at: -1 });
+  }
+
+  static async deleteReview(reviewId) {
+    return await Review.findByIdAndDelete(reviewId);
+  }
 }
 
 module.exports = ReviewService;
