@@ -6,6 +6,9 @@ import {
   FaFacebookMessenger,
   FaPinterest,
   FaCartPlus,
+  FaStar,
+  FaTrash,
+  FaTimes,
 } from "react-icons/fa";
 import { AiFillTwitterCircle } from "react-icons/ai";
 import {
@@ -14,7 +17,19 @@ import {
   fetchProductById,
 } from "@/api/user/productAPI";
 import "@/styles/pages/user/productDetail.scss";
+import "@/styles/pages/user/reviewSection.scss";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import axios from "@/api/user/index";
+
+interface Review {
+  _id: string;
+  user_id: { _id: string; name: string };
+  rating: number;
+  comment: string;
+  created_at: string;
+  reply?: string;
+}
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
@@ -24,6 +39,13 @@ const ProductDetail: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [viewedProducts, setViewedProducts] = useState<Product[]>([]);
   const { addToCart } = useCart();
+  const { user, isAuthenticated } = useAuth();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [visibleReviews, setVisibleReviews] = useState(5);
 
   const formatCurrency = (amount: number): string =>
     new Intl.NumberFormat("vi-VN", {
@@ -31,47 +53,141 @@ const ProductDetail: React.FC = () => {
       currency: "VND",
     }).format(amount);
 
+  // Tính trung bình đánh giá
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchProductById(id as string);
         setProduct(data);
 
-        // Lưu sản phẩm đã xem vào localStorage
         const viewedRaw = localStorage.getItem("viewedProducts");
         const viewed: Product[] = viewedRaw ? JSON.parse(viewedRaw) : [];
-
-        // Kiểm tra nếu sản phẩm đã có trong danh sách thì loại ra (tránh trùng)
         const updatedViewed = [
           data,
           ...viewed.filter((p) => p._id !== data._id),
-        ].slice(0, 10); // Giới hạn 10 sản phẩm
+        ].slice(0, 10);
         localStorage.setItem("viewedProducts", JSON.stringify(updatedViewed));
-
         const stored = localStorage.getItem("viewedProducts");
         if (stored) {
           setViewedProducts(JSON.parse(stored));
         }
 
-        // Sản phẩm liên quan
         if (data?.category_id && typeof data.category_id === "object") {
           const categoryId = data.category_id._id || data.category_id;
           const allInSameCategory = await fetchFilteredProducts({
             category_id: categoryId,
           });
-
           const related = allInSameCategory.filter(
             (p) => String(p._id) !== String(data._id)
           );
           setRelatedProducts(related);
         }
+
+        const reviewResponse = await axios.get(`/api/review/product/${id}`);
+        setReviews(reviewResponse.data);
       } catch (error) {
-        console.error("Lỗi khi lấy sản phẩm:", error);
+        console.error("Lỗi khi lấy dữ liệu:", error);
       }
     };
 
     fetchData();
   }, [id]);
+
+  const handleSubmitReview = async () => {
+    if (!isAuthenticated) {
+      alert("Vui lòng đăng nhập để gửi đánh giá!");
+      navigate("/login");
+      return;
+    }
+    if (!rating || !comment) {
+      alert("Vui lòng chọn số sao và nhập bình luận!");
+      return;
+    }
+
+    // Kiểm tra xem người dùng đã đánh giá trước đó chưa
+    const existingReview = reviews.find(
+      (review) => user && review.user_id._id === user._id
+    );
+
+    if (existingReview) {
+      if (!window.confirm("Bạn đã đánh giá trên sản phẩm này, bạn có chắc chắn muốn đánh giá lại?")) {
+        setIsModalOpen(false);
+        return;
+      }
+    }
+
+    try {
+      const response = await axios.post("/api/review/add", {
+        product_id: id,
+        rating,
+        comment,
+      });
+      // Đảm bảo response.data có đầy đủ thông tin
+      const newReview: Review = {
+        ...response.data,
+        user_id: {
+          _id: user?._id || "",
+          name: user?.name || "Người dùng ẩn danh",
+        },
+        created_at: new Date().toISOString(),
+      };
+      // Cập nhật reviews: loại bỏ đánh giá cũ (nếu có) và thêm đánh giá mới
+      setReviews((prevReviews) =>
+        [newReview, ...prevReviews.filter((r) => r._id !== newReview._id)]
+      );
+      setRating(0);
+      setComment("");
+      setIsModalOpen(false);
+      setVisibleReviews(5); // Reset về 5 sau khi gửi
+      alert("Đánh giá đã được gửi thành công!");
+    } catch (error: any) {
+      console.error("Lỗi khi gửi đánh giá:", error);
+      if (error.response?.status === 404) {
+        alert("Không tìm thấy endpoint đánh giá. Vui lòng kiểm tra server!");
+      } else if (error.response?.status === 401) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        navigate("/login");
+      } else {
+        alert("Không thể gửi đánh giá, vui lòng thử lại!");
+      }
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!isAuthenticated) {
+      alert("Vui lòng đăng nhập để xóa đánh giá!");
+      navigate("/login");
+      return;
+    }
+
+    if (window.confirm("Bạn có chắc muốn xóa đánh giá này?")) {
+      try {
+        await axios.post("/api/review/remove", { product_id: id });
+        setReviews(reviews.filter((review) => review._id !== reviewId));
+        setVisibleReviews(5); // Reset về 5 sau khi xóa
+        alert("Đã xóa đánh giá!");
+      } catch (error: any) {
+        console.error("Lỗi khi xóa đánh giá:", error);
+        if (error.response?.status === 404) {
+          alert("Không tìm thấy endpoint xóa đánh giá. Vui lòng kiểm tra server!");
+        } else if (error.response?.status === 401) {
+          alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+          navigate("/login");
+        } else {
+          alert("Không thể xóa đánh giá, vui lòng thử lại!");
+        }
+      }
+    }
+  };
+
+  const handleViewMore = () => {
+    setVisibleReviews(reviews.length);
+  };
 
   if (!product) return <div>Đang tải sản phẩm...</div>;
 
@@ -173,8 +289,8 @@ const ProductDetail: React.FC = () => {
             <div className="icons">
               <FaFacebook />
               <FaFacebookMessenger />
-              <AiFillTwitterCircle />
               <FaPinterest />
+              <AiFillTwitterCircle />
             </div>
           </div>
         </div>
@@ -254,7 +370,7 @@ const ProductDetail: React.FC = () => {
           <h2>Các sản phẩm đã xem</h2>
           <div className="product-grid">
             {viewedProducts
-              .filter((p) => p._id !== product._id) // loại sản phẩm hiện tại
+              .filter((p) => p._id !== product._id)
               .slice(0, 6)
               .map((vp) => (
                 <div
@@ -300,6 +416,111 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      <div className="review-section">
+        <div className="review-header">
+          <h2>Đánh giá {product.name}</h2>
+          <div className="rating-summary">
+            <div className="average-rating">
+              {[...Array(5)].map((_, index) => (
+                <FaStar
+                  key={index}
+                  className={
+                    index < Math.round(averageRating)
+                      ? "star active"
+                      : "star"
+                  }
+                />
+              ))}
+              <span className="rating-value">
+                {averageRating.toFixed(1)} / 5
+              </span>
+            </div>
+            <span className="total-reviews">
+              ({reviews.length} đánh giá)
+            </span>
+          </div>
+        </div>
+        <button className="write-review-btn" onClick={() => setIsModalOpen(true)}>
+          Viết đánh giá
+        </button>
+        <div className="review-list">
+          {reviews.length > 0 ? (
+            <>
+              {reviews.slice(0, visibleReviews).map((review) => (
+                <div key={review._id} className="review-item">
+                  <div className="review-header">
+                    <span className="review-user">{review.user_id.name}</span>
+                    <div className="review-stars">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          className={star <= review.rating ? "star active" : "star"}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="review-comment">{review.comment}</p>
+                  {review.reply && (
+                    <p className="review-reply">
+                      <strong>Phản hồi từ quản trị viên:</strong> {review.reply}
+                    </p>
+                  )}
+                  <p className="review-date">
+                    {new Date(review.created_at).toLocaleDateString("vi-VN")}
+                  </p>
+                  {user && review.user_id._id === user._id && (
+                    <button
+                      className="delete-review"
+                      onClick={() => handleDeleteReview(review._id)}
+                    >
+                      <FaTrash /> Xóa
+                    </button>
+                  )}
+                </div>
+              ))}
+              {reviews.length > 5 && visibleReviews < reviews.length && (
+                <button className="view-more-btn" onClick={handleViewMore}>
+                  Xem thêm
+                </button>
+              )}
+            </>
+          ) : (
+            <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+          )}
+        </div>
+
+        {isModalOpen && (
+          <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setIsModalOpen(false)}>
+                <FaTimes />
+              </button>
+              <h3>Viết đánh giá</h3>
+              <div className="star-rating">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FaStar
+                    key={star}
+                    className={star <= (hoverRating || rating) ? "star active" : "star"}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  />
+                ))}
+              </div>
+              <textarea
+                className="comment-input"
+                placeholder="Viết bình luận của bạn..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <button className="submit-review" onClick={handleSubmitReview}>
+                Gửi đánh giá
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
