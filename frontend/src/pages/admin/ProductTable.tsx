@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '@/styles/pages/admin/products.scss';
 
-import { Product, fetchAllProducts, ProductQueryParams } from '@/api/productAPI';
+import { Product, fetchAllProducts, ProductQueryParams, formatCurrency } from '@/api/productAPI';
 import { fetchAllCategories } from '@/api/categoryAPI';
 import { fetchAllBrands } from '@/api/brandAPI';
 import { fetchAllProductTypes } from '@/api/productTypeAPI';
-import { formatCurrency } from '@/api/productAPI';
 
 const ProductTable: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -19,19 +18,46 @@ const ProductTable: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const getImageUrl = (url?: string): string => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+    return `http://localhost:5000/uploads/products/${url}`;
+  };
 
   const loadProducts = async () => {
     try {
       const data = await fetchAllProducts({ ...filters, name: search });
-      // Sửa: nếu data.products là mảng thì lấy, nếu data là mảng thì lấy luôn, nếu không thì []
+      let productList: Product[] = [];
+
       if (Array.isArray((data as any)?.products)) {
-        setProducts((data as any).products);
+        productList = (data as any).products;
       } else if (Array.isArray(data)) {
-        setProducts(data as any);
-      } else {
-        setProducts([]);
+        productList = data;
       }
+
+      // Nếu vừa cập nhật/thêm sản phẩm thì đưa nó lên đầu
+      const { state } = location;
+      if (state?.updatedProduct || state?.newProduct) {
+        const updated = state.updatedProduct || state.newProduct;
+        productList = [
+          updated,
+          ...productList.filter(p => p._id !== updated._id)
+        ];
+        // Xóa state để tránh thêm lặp
+        navigate(location.pathname, { replace: true, state: {} });
+      } else {
+        // Mặc định sort mới nhất lên đầu
+        productList.sort((a, b) => {
+          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+        });
+      }
+
+      setProducts(productList);
       setError(null);
     } catch (err) {
       console.error('Lỗi tải sản phẩm:', err);
@@ -76,57 +102,54 @@ const ProductTable: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Sửa lỗi slice trên undefined
-  const paginated = (products || []).slice(
+  const paginated = products.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  const totalPages = Math.ceil((products || []).length / itemsPerPage);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   return (
     <div className="products-page">
       <h1>Sản phẩm</h1>
 
-<div className="filters">
-  <div className="filter-group">
-    <select onChange={e => handleFilterChange('category_id', e.target.value)}>
-      <option value="">📂 Danh mục</option>
-      {categories.map((cat: any) => (
-        <option key={cat._id} value={cat._id}>{cat.name}</option>
-      ))}
-    </select>
+      <div className="filters">
+        <div className="filter-group">
+          <select onChange={e => handleFilterChange('category_id', e.target.value)}>
+            <option value="">📂 Danh mục</option>
+            {categories.map((cat: any) => (
+              <option key={cat._id} value={cat._id}>{cat.name}</option>
+            ))}
+          </select>
 
-    <select onChange={e => handleFilterChange('product_type_id', e.target.value)}>
-      <option value="">📄 Loại</option>
-      {types.map((type: any) => (
-        <option key={type._id} value={type._id}>{type.name}</option>
-      ))}
-    </select>
+          <select onChange={e => handleFilterChange('product_type_id', e.target.value)}>
+            <option value="">📄 Loại</option>
+            {types.map((type: any) => (
+              <option key={type._id} value={type._id}>{type.name}</option>
+            ))}
+          </select>
 
-    <select onChange={e => handleFilterChange('brand_id', e.target.value)}>
-      <option value="">🔁 Thương hiệu</option>
-      {brands.map((brand: any) => (
-        <option key={brand._id} value={brand._id}>{brand.name}</option>
-      ))}
-    </select>
+          <select onChange={e => handleFilterChange('brand_id', e.target.value)}>
+            <option value="">🔁 Thương hiệu</option>
+            {brands.map((brand: any) => (
+              <option key={brand._id} value={brand._id}>{brand.name}</option>
+            ))}
+          </select>
 
-    
+          <input
+            type="text"
+            placeholder="Tìm kiếm..."
+            value={search}
+            onChange={e => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
 
-    <input
-      type="text"
-      placeholder="Tìm kiếm..."
-      value={search}
-      onChange={e => {
-        setSearch(e.target.value);
-        setCurrentPage(1);
-      }}
-    />
-  </div>
-
-  <button className="add-button" onClick={() => navigate('/admin/products/create')}>
-    ＋ Thêm
-  </button>
-</div>
+        <button className="add-button" onClick={() => navigate('/admin/products/create')}>
+          ＋ Thêm
+        </button>
+      </div>
 
       <table>
         <thead>
@@ -149,7 +172,7 @@ const ProductTable: React.FC = () => {
                 <td className="product-cell">
                   <div className="image-placeholder">
                     {product.img_url && (
-                      <img src={product.img_url} alt={product.name} />
+                      <img src={getImageUrl(product.img_url)} alt={product.name} />
                     )}
                   </div>
                   <span>{product.name}</span>

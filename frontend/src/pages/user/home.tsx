@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
-import { Product, fetchAllProducts } from "@/api/user/productAPI";
+import { useFavorite } from "@/context/FavoriteContext";
+import { useAuth } from "@/context/AuthContext";
+import { FaShoppingCart, FaRegHeart, FaHeart, FaBars } from "react-icons/fa";
+import axios from "axios";
+
+import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { fetchHomeData, HomeDataResponse } from '../../api/user/homeAPI';
 import { Category, fetchCategoriesByProductType } from '../../api/user/categoryAPI';
-import { fetchFilteredProducts } from "@/api/user/productAPI";
 import { ProductType, fetchAllProductTypes } from "@/api/user/productTypeAPI";
 import "@/styles/pages/user/home.scss";
 
@@ -23,14 +27,67 @@ const HomePage: React.FC = () => {
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [expandedProductType, setExpandedProductType] = useState<string | null>(null);
   const [productTypeCategories, setProductTypeCategories] = useState<Record<string, Category[]>>({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { favorites, addToFavorite, removeFromFavorite } = useFavorite();
+  const { user } = useAuth();
 
-  // Banner images array
+  const formatCurrency = (amount: number): string =>
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+
+  const getImageUrl = (url?: string): string => {
+    if (!url) return '/images/no-image.png';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+    return `http://localhost:5000/uploads/products/${url}`;
+  };
+
+  const handleFavoriteClick = async (product: Product) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      navigate("/login");
+      return;
+    }
+
+    const isFavorite = favorites.some((f) => f._id === product._id);
+
+    try {
+      if (isFavorite) {
+        await axios.post(
+          "/api/favorite/remove",
+          { product_id: product._id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        removeFromFavorite(product._id);
+      } else {
+        await axios.post(
+          "/api/favorite/add",
+          { product_id: product._id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        addToFavorite({
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          img_url: product.img_url,
+        });
+      }
+    } catch (error: any) {
+      console.error("Lỗi khi cập nhật yêu thích:", error.response?.data || error.message);
+    }
+  };
+
   const bannerImages = [
     "/img/bn1.png",
-    "/img/bn2.png", 
+    "/img/bn2.png",
     "/img/bn3.png",
     "/img/bn4.jpeg"
   ];
@@ -44,24 +101,33 @@ const HomePage: React.FC = () => {
         setSaleProducts(data.saleProducts);
         setBestSellerProducts(data.bestSellerProducts);
 
-        // Fetch all products grouped by category
         const allCategoryProducts: Record<string, Product[]> = {};
-        for (const category of data.categories) {
-          const res = await fetchFilteredProducts({ category_id: category._id });
-          allCategoryProducts[category._id] = res;
-        }
+        const productPromises = data.categories.map((category) =>
+          fetchFilteredProducts({ category_id: category._id, limit: 5 }).then((res) => ({
+            categoryId: category._id,
+            products: res,
+          }))
+        );
+        const results = await Promise.all(productPromises);
+        results.forEach(({ categoryId, products }) => {
+          allCategoryProducts[categoryId] = products;
+        });
         setProductsByCategory(allCategoryProducts);
 
-        // Fetch product types and their categories
         const productTypeData = await fetchAllProductTypes();
         setProductTypes(productTypeData);
 
-        // Fetch categories for each product type
         const categoriesByProductType: Record<string, Category[]> = {};
-        for (const productType of productTypeData) {
-          const categories = await fetchCategoriesByProductType(productType._id);
-          categoriesByProductType[productType._id] = categories;
-        }
+        const categoryPromises = productTypeData.map((productType) =>
+          fetchCategoriesByProductType(productType._id).then((categories) => ({
+            productTypeId: productType._id,
+            categories,
+          }))
+        );
+        const categoryResults = await Promise.all(categoryPromises);
+        categoryResults.forEach(({ productTypeId, categories }) => {
+          categoriesByProductType[productTypeId] = categories;
+        });
         setProductTypeCategories(categoriesByProductType);
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu trang chủ:', error);
@@ -71,7 +137,6 @@ const HomePage: React.FC = () => {
     fetchData();
   }, []);
 
-  // Fetch products by category
   useEffect(() => {
     const fetchProductsByCategory = async () => {
       try {
@@ -82,12 +147,12 @@ const HomePage: React.FC = () => {
           filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
         }
         setAllCategoryProducts(filteredProducts);
-        setCategoryProducts(filteredProducts.slice(0, 4));
+        setCategoryProducts(filteredProducts.slice(0, 5));
         setCurrentProductIndex(0);
       } catch (error) {
-        console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
+        console.error('Lỗi khi lọc sản phẩm theo danh mục:', error);
         setAllCategoryProducts(hotProducts);
-        setCategoryProducts(hotProducts.slice(0, 4));
+        setCategoryProducts(hotProducts.slice(0, 5));
         setCurrentProductIndex(0);
       }
     };
@@ -95,11 +160,10 @@ const HomePage: React.FC = () => {
     fetchProductsByCategory();
   }, [selectedCategory, hotProducts]);
 
-  // Auto slide effect
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
-    }, 5000); // Change slide every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [bannerImages.length]);
@@ -118,21 +182,22 @@ const HomePage: React.FC = () => {
 
   const handleCategoryFilter = (categoryId: string) => {
     setSelectedCategory(categoryId);
+    setIsSidebarOpen(false);
   };
 
   const nextProducts = () => {
-    const nextIndex = currentProductIndex + 4;
+    const nextIndex = currentProductIndex + 5;
     if (nextIndex < allCategoryProducts.length) {
       setCurrentProductIndex(nextIndex);
-      setCategoryProducts(allCategoryProducts.slice(nextIndex, nextIndex + 4));
+      setCategoryProducts(allCategoryProducts.slice(nextIndex, nextIndex + 5));
     }
   };
 
   const prevProducts = () => {
-    const prevIndex = currentProductIndex - 4;
+    const prevIndex = currentProductIndex - 5;
     if (prevIndex >= 0) {
       setCurrentProductIndex(prevIndex);
-      setCategoryProducts(allCategoryProducts.slice(prevIndex, prevIndex + 4));
+      setCategoryProducts(allCategoryProducts.slice(prevIndex, prevIndex + 5));
     }
   };
 
@@ -154,79 +219,118 @@ const HomePage: React.FC = () => {
     setExpandedProductType(expandedProductType === productTypeId ? null : productTypeId);
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   const renderProductItem = (product: Product) => (
     <div key={product._id} className="product-item">
       <img
-        src={product.img_url || '/images/no-image.png'}
+        src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
         alt={product.name}
         onClick={() => navigate(`/product/${product._id}`)}
         style={{ cursor: 'pointer' }}
       />
       <div className="product-name">{product.name}</div>
       <div>
-        <span className="price">{product.price.toLocaleString()}đ</span>
-        <span className="discount">-20%</span>
+        <span className="price">{product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}</span>
+        {product.sale && <span className="discount">-20%</span>}
       </div>
-      <div className="old-price">{(product.price * 1.2).toLocaleString()}đ</div>
-      <button className="add-to-cart" onClick={() => addToCart({ _id: product._id, name: product.name, price: product.price, img_url: product.img_url, quantity: 1 })}>
+      {product.sale && product.price && (
+        <div className="old-price">{formatCurrency(product.price * 1.2)}</div>
+      )}
+      <button
+        className="add-to-cart"
+        onClick={() =>
+          addToCart({
+            _id: product._id,
+            name: product.name,
+            price: product.price,
+            img_url: product.img_url,
+            quantity: 1,
+          })
+        }
+      >
         Thêm vào giỏ
       </button>
     </div>
   );
 
-  const selectedCategoryName = categories.find(c => c._id === selectedCategory)?.name || "Danh mục";
-  const selectedCategoryId = selectedCategory;
-
   return (
     <div className="home-page">
       <section id="banner">
-        <div className="container">
-          <aside className="sidebar">
-            <div className="sidebar-section">
-              <div className="dropdown-header">Danh mục sản phẩm</div>
-              <ul className="dropdown-content">
-                <li
-                  className={selectedCategory === 'all' ? 'active' : ''}
-                  onClick={() => setSelectedCategory('all')}
-                >
-                  Tất cả sản phẩm
-                </li>
-                {productTypes.map((productType) => (
-                  <React.Fragment key={productType._id}>
-                    <li
-                      className={`product-type-item ${expandedProductType === productType._id ? 'expanded' : ''}`}
-                      onClick={() => toggleProductType(productType._id)}
-                    >
-                      {productType.name}
-                      <span className="toggle-icon">{expandedProductType === productType._id ? '▼' : '▶'}</span>
-                    </li>
-                    {expandedProductType === productType._id && (
-                      <ul className="subcategory-list">
-                        {productTypeCategories[productType._id]?.map((category) => (
-                          <li
-                            key={category._id}
-                            className={selectedCategory === category._id ? 'active' : ''}
-                            onClick={() => {
-                              setSelectedCategory(category._id);
-                              navigate(`/product-list?category=${category._id}`);
-                            }}
-                          >
-                            {category.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </React.Fragment>
-                ))}
-              </ul>
-            </div>
-          </aside>
-          
+        <div className="home-page-container">
+          <button className="sidebar-toggle" onClick={toggleSidebar}>
+            <FaBars />
+          </button>
+          <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+  <div className="sidebar-section">
+    <div className="dropdown-header">Danh mục sản phẩm</div>
+    <ul className="dropdown-content">
+      <li
+  className={selectedCategory === 'all' ? 'active' : ''}
+  onClick={() => {
+    setSelectedCategory("all"); // lọc ngay nếu đang ở product-list
+    navigate('/product-list');
+    setIsSidebarOpen(false);
+  }}
+>
+  Tất cả sản phẩm
+</li>
+
+{productTypes.map((productType) => (
+  <React.Fragment key={productType._id}>
+    <li className={`product-type-item ${expandedProductType === productType._id ? 'expanded' : ''}`}>
+      <span
+        style={{ cursor: 'pointer', flex: 1 }}
+        onClick={() => {
+          setSelectedCategory("all");
+          navigate(`/product-list?productType=${productType._id}`);
+          setIsSidebarOpen(false);
+        }}
+      >
+        {productType.name.toUpperCase()}
+      </span>
+      <span
+        className="dropdown-icon"
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleProductType(productType._id);
+        }}
+      >
+        {expandedProductType === productType._id ? '▼' : '▶'}
+      </span>
+    </li>
+
+    {expandedProductType === productType._id && (
+      <div className="sub-categories">
+        {productTypeCategories[productType._id]?.map((category) => (
+          <li
+            key={category._id}
+            className={selectedCategory === category._id ? 'active' : ''}
+            onClick={() => {
+              setSelectedCategory(category._id);
+              navigate(`/product-list?category=${category._id}`);
+              setIsSidebarOpen(false);
+            }}
+          >
+            {category.name}
+          </li>
+        ))}
+      </div>
+    )}
+  </React.Fragment>
+))}
+    </ul>
+  </div>
+</aside>
+
+
           <div className="content-right">
             <div className="hero-banner">
               <div className="main-banner">
                 <div className="slider-container">
-                  <div 
+                  <div
                     className="slider-track"
                     style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                   >
@@ -278,7 +382,7 @@ const HomePage: React.FC = () => {
             </div>
           </div>
           <div className="category-filters">
-            <button 
+            <button
               className={`filter-btn ${selectedCategory === 'all' ? 'active' : ''}`}
               onClick={() => handleCategoryFilter('all')}
             >
@@ -295,44 +399,93 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         </div>
-        
+
         <div className="product-carousel">
-          <button 
-            className="carousel-arrow prev" 
+          <button
+            className="carousel-arrow prev"
             onClick={prevProducts}
             disabled={currentProductIndex === 0}
           >
             ‹
           </button>
           <div className="product-list">
-            {categoryProducts.map((product) => (
-              <div key={product._id} className="hot-product-card">
-                <div className="card-header">
-                  <span className="discount-tag">Giảm 13%</span>
-                  <span className="installment-tag">Trả góp 0%</span>
-                </div>
-                <div className="product-image">
-                  <img
-                    src={product.img_url || '/images/no-image.png'}
-                    alt={product.name}
-                    onClick={() => navigate(`/product/${product._id}`)}
-                  />
-                </div>
-                <div className="product-info">
-                  <h4 className="product-name">{product.name}</h4>
-                  <div className="price-section">
-                    <span className="current-price">{product.price.toLocaleString()}₫</span>
-                    <span className="original-price">{(product.price * 1.15).toLocaleString()}₫</span>
+            {categoryProducts.length > 0 ? (
+              categoryProducts.map((product) => (
+                <div key={product._id} className="hot-product-card">
+                  <div className="card-header">
+                    <span className="discount-tag">Giảm 13%</span>
+                    <span className="installment-tag">Trả góp 0%</span>
                   </div>
-                  <p className="installment-info">Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6...</p>
+                  <div className="product-image">
+                    <img
+                      src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
+                      alt={product.name}
+                      onClick={() => navigate(`/product/${product._id}`)}
+                    />
+                  </div>
+                  <div className="product-info">
+                    <h4 className="product-name">{product.name}</h4>
+                    <div className="rating-section">
+                      <div className="stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={`star ${star <= 4 ? 'filled' : ''}`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span className="rating-text">(4.0)</span>
+                    </div>
+                    <div className="price-section">
+                      <span className="current-price">
+                        {product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}
+                      </span>
+                      {product.sale && product.price && (
+                        <span className="original-price">{formatCurrency(product.price * 1.15)}</span>
+                      )}
+                    </div>
+                    <div className="installment-info">
+                      Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6 tháng
+                    </div>
+                    <div className="action-buttons">
+                      <button
+                        className="add-to-cart-btn"
+                        onClick={() =>
+                          addToCart({
+                            _id: product._id,
+                            name: product.name,
+                            price: product.price,
+                            img_url: product.img_url,
+                            quantity: 1,
+                          })
+                        }
+                      >
+                        <FaShoppingCart className="cart-icon" />
+                        <span className="btn-text">Thêm vào giỏ</span>
+                      </button>
+                      <button
+                        className="favorite-iconm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFavoriteClick(product);
+                        }}
+                      >
+                        {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p>Không có sản phẩm nào trong danh mục này.</p>
+            )}
           </div>
-          <button 
-            className="carousel-arrow next" 
+          <button
+            className="carousel-arrow next"
             onClick={nextProducts}
-            disabled={currentProductIndex + 4 >= allCategoryProducts.length}
+            disabled={currentProductIndex + 5 >= allCategoryProducts.length}
           >
             ›
           </button>
@@ -342,38 +495,78 @@ const HomePage: React.FC = () => {
       <section className="km-products">
         <div className="section-header">
           <h2>Sản phẩm khuyến mãi</h2>
-          <button className="view-all-btn" onClick={() => navigate(`/product-list?category=${selectedCategoryId}`)}>Xem tất cả</button>
         </div>
-        <div className="product-list no-scroll">
-          {categoryProducts.slice(0, 5).map((product) => (
-            <div key={product._id} className="sale-product-card">
-              <div className="product-image small">
-                <img
-                  src={product.img_url || '/images/no-image.png'}
-                  alt={product.name}
-                  onClick={() => navigate(`/product/${product._id}`)}
-                />
-              </div>
-              <div className="product-details">
-                <h4 className="product-name">{product.name}</h4>
-                <div className="price-section">
-                  <div className="original-price">{(product.price * 1.3).toLocaleString()}₫</div>
-                  <div className="savings">(Tiết kiệm: 30%)</div>
-                  <div className="current-price">{product.price.toLocaleString()}₫</div>
+        <div className="product-carousel">
+          <div className="product-list">
+            {saleProducts.length > 0 ? (
+              saleProducts.slice(currentSaleIndex, currentSaleIndex + 5).map((product) => (
+                <div key={product._id} className="hot-product-card">
+                  <div className="card-header">
+                    <span className="discount-tag">Giảm 20%</span>
+                    <span className="installment-tag">Trả góp 0%</span>
+                  </div>
+                  <div className="product-image">
+                    <img
+                      src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
+                      alt={product.name}
+                      onClick={() => navigate(`/product/${product._id}`)}
+                    />
+                    <button
+                      className="favorite-icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFavoriteClick(product);
+                      }}
+                    >
+                      {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                    </button>
+                  </div>
+                  <div className="product-info">
+                    <h4 className="product-name">{product.name}</h4>
+                    <div className="rating-section">
+                      <div className="stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} className={`star ${star <= 4 ? 'filled' : ''}`}>★</span>
+                        ))}
+                      </div>
+                      <span className="rating-text">(4.0)</span>
+                    </div>
+                    <div className="price-section">
+                      <span className="current-price">
+                        {product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}
+                      </span>
+                      {product.sale && product.price && (
+                        <span className="original-price">{formatCurrency(product.price * 1.25)}</span>
+                      )}
+                    </div>
+                    <div className="installment-info">
+                      Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng 3-6 tháng
+                    </div>
+                    <div className="action-buttons">
+                      <button
+                        className="add-to-cart-btn"
+                        onClick={() =>
+                          addToCart({
+                            _id: product._id,
+                            name: product.name,
+                            price: product.price,
+                            img_url: product.img_url,
+                            quantity: 1,
+                          })
+                        }
+                        onMouseEnter={(e) => e.currentTarget.classList.add('expanded')}
+                        onMouseLeave={(e) => e.currentTarget.classList.remove('expanded')}
+                      >
+                        <span className="btn-text">Thêm vào giỏ</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="availability">
-                  <span className="check-icon">✓</span>
-                  <span>Sẵn hàng</span>
-                </div>
-                <button 
-                  className="add-to-cart-btn"
-                  onClick={() => addToCart({ _id: product._id, name: product.name, price: product.price, img_url: product.img_url, quantity: 1 })}
-                >
-                  🛒
-                </button>
-              </div>
-            </div>
-          ))}
+              ))
+            ) : (
+              <p>Không có sản phẩm khuyến mãi.</p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -384,38 +577,79 @@ const HomePage: React.FC = () => {
             <div className="workstation-section">
               <div className="right-products">
                 <div className="product-grid">
-                  {(productsByCategory[category._id] || []).map((p) => (
-                    <div key={p._id} className="product-card">
-                      <div className="product-image">
+                  {(productsByCategory[category._id] || []).length > 0 ? (
+                    (productsByCategory[category._id] || []).slice(0, 5).map((product) => (
+                      <div className="product-card" key={product._id}>
                         <img
-                          src={p.img_url || '/images/no-image.png'}
-                          alt={p.name}
-                          onClick={() => navigate(`/product/${p._id}`)}
+                          src={getImageUrl(product.img_url)}
+                          alt={product.name}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            sessionStorage.setItem(
+                              "productFilters",
+                              JSON.stringify({
+                                category: category._id,
+                                brand: null,
+                                price: null,
+                                scroll: window.scrollY,
+                              })
+                            );
+                            navigate(`/product/${product._id}`);
+                          }}
                         />
-                      </div>
-                      <div className="product-details">
-                        <div className="rating-section">
-                        </div>
-                        <h4 className="product-name">{p.name}</h4>
-                        <div className="price-section">
-                          <div className="original-price">
-                            {(p.price * 1.3).toLocaleString()}₫
+                        <button
+                          className="favorite-icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFavoriteClick(product);
+                          }}
+                        >
+                          {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                        </button>
+                        <p className="product-brand">
+                          {typeof product.brand_id === "object"
+                            ? product.brand_id.name
+                            : product.brand_id}
+                        </p>
+                        <h4 className="product-name">{product.name}</h4>
+                        <div className="price-block">
+                          <div className="price-left">
+                            {product.sale && product.price ? (
+                              <>
+                                <div className="discount-price">
+                                  {formatCurrency(product.price * 0.66)}
+                                </div>
+                                <div className="original-price">
+                                  {formatCurrency(product.price)}
+                                </div>
+                              </>
+                            ) : (
+                              <div className="discount-price">
+                                {product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}
+                              </div>
+                            )}
                           </div>
-                          <div className="current-price">{p.price.toLocaleString()}₫</div>
-                        </div>
-                        <div className="availability">
-                          <span className="check-icon">✓</span>
-                          <span>Sẵn hàng</span>
+                          {product.sale && <div className="discount-percent">-34%</div>}
                         </div>
                         <button
-                          className="add-to-cart-btn"
-                          onClick={() => addToCart({ _id: p._id, name: p.name, price: p.price, img_url: p.img_url, quantity: 1 })}
+                          className="add-to-cart"
+                          onClick={() =>
+                            addToCart({
+                              _id: product._id,
+                              name: product.name,
+                              price: product.price,
+                              quantity: 1,
+                              img_url: getImageUrl(product.img_url),
+                            })
+                          }
                         >
-                          🛒
+                          <FaShoppingCart /> Thêm vào giỏ
                         </button>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p>Không có sản phẩm trong danh mục này.</p>
+                  )}
                 </div>
                 <div className="load-more">
                   <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
