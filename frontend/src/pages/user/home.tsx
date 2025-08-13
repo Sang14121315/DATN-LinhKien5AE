@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useFavorite } from "@/context/FavoriteContext";
 import { useAuth } from "@/context/AuthContext";
-import { FaShoppingCart, FaRegHeart, FaHeart } from "react-icons/fa";
+import { FaShoppingCart, FaRegHeart, FaHeart, FaBars } from "react-icons/fa";
 import axios from "axios";
 
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
@@ -27,6 +27,7 @@ const HomePage: React.FC = () => {
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [expandedProductType, setExpandedProductType] = useState<string | null>(null);
   const [productTypeCategories, setProductTypeCategories] = useState<Record<string, Category[]>>({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -43,7 +44,6 @@ const HomePage: React.FC = () => {
     return `http://localhost:5000/uploads/products/${url}`;
   };
 
-  // Handle favorite click with authentication check
   const handleFavoriteClick = async (product: Product) => {
     if (!user) {
       navigate("/login");
@@ -85,7 +85,6 @@ const HomePage: React.FC = () => {
     }
   };
 
-  // Banner images array
   const bannerImages = [
     "/img/bn1.png",
     "/img/bn2.png",
@@ -102,7 +101,6 @@ const HomePage: React.FC = () => {
         setSaleProducts(data.saleProducts);
         setBestSellerProducts(data.bestSellerProducts);
 
-        // Fetch all products grouped by category concurrently
         const allCategoryProducts: Record<string, Product[]> = {};
         const productPromises = data.categories.map((category) =>
           fetchFilteredProducts({ category_id: category._id, limit: 5 }).then((res) => ({
@@ -116,7 +114,6 @@ const HomePage: React.FC = () => {
         });
         setProductsByCategory(allCategoryProducts);
 
-        // Fetch product types and their categories
         const productTypeData = await fetchAllProductTypes();
         setProductTypes(productTypeData);
 
@@ -140,7 +137,6 @@ const HomePage: React.FC = () => {
     fetchData();
   }, []);
 
-  // Fetch products by category
   useEffect(() => {
     const fetchProductsByCategory = async () => {
       try {
@@ -154,7 +150,7 @@ const HomePage: React.FC = () => {
         setCategoryProducts(filteredProducts.slice(0, 5));
         setCurrentProductIndex(0);
       } catch (error) {
-        console.error('Lỗi khi tải sản phẩm theo danh mục:', error);
+        console.error('Lỗi khi lọc sản phẩm theo danh mục:', error);
         setAllCategoryProducts(hotProducts);
         setCategoryProducts(hotProducts.slice(0, 5));
         setCurrentProductIndex(0);
@@ -164,7 +160,6 @@ const HomePage: React.FC = () => {
     fetchProductsByCategory();
   }, [selectedCategory, hotProducts]);
 
-  // Auto slide effect
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
@@ -187,6 +182,7 @@ const HomePage: React.FC = () => {
 
   const handleCategoryFilter = (categoryId: string) => {
     setSelectedCategory(categoryId);
+    setIsSidebarOpen(false);
   };
 
   const nextProducts = () => {
@@ -221,6 +217,10 @@ const HomePage: React.FC = () => {
 
   const toggleProductType = (productTypeId: string) => {
     setExpandedProductType(expandedProductType === productTypeId ? null : productTypeId);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   const renderProductItem = (product: Product) => (
@@ -260,46 +260,71 @@ const HomePage: React.FC = () => {
     <div className="home-page">
       <section id="banner">
         <div className="home-page-container">
-          <aside className="sidebar">
-            <div className="sidebar-section">
-              <div className="dropdown-header">Danh mục sản phẩm</div>
-              <ul className="dropdown-content">
-                <li
-                  className={selectedCategory === 'all' ? 'active' : ''}
-                  onClick={() => setSelectedCategory('all')}
-                >
-                  Tất cả sản phẩm
-                </li>
-                {productTypes.map((productType) => (
-                  <React.Fragment key={productType._id}>
-                    <li
-                      className={`product-type-item ${expandedProductType === productType._id ? 'expanded' : ''}`}
-                      onClick={() => toggleProductType(productType._id)}
-                    >
-                      {productType.name}
-                      <span className="toggle-icon">{expandedProductType === productType._id ? '▼' : '▶'}</span>
-                    </li>
-                    {expandedProductType === productType._id && (
-                      <ul className="subcategory-list">
-                        {productTypeCategories[productType._id]?.map((category) => (
-                          <li
-                            key={category._id}
-                            className={selectedCategory === category._id ? 'active' : ''}
-                            onClick={() => {
-                              setSelectedCategory(category._id);
-                              navigate(`/product-list?category=${category._id}`);
-                            }}
-                          >
-                            {category.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </React.Fragment>
-                ))}
-              </ul>
-            </div>
-          </aside>
+          <button className="sidebar-toggle" onClick={toggleSidebar}>
+            <FaBars />
+          </button>
+          <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+  <div className="sidebar-section">
+    <div className="dropdown-header">Danh mục sản phẩm</div>
+    <ul className="dropdown-content">
+      <li
+  className={selectedCategory === 'all' ? 'active' : ''}
+  onClick={() => {
+    setSelectedCategory("all"); // lọc ngay nếu đang ở product-list
+    navigate('/product-list');
+    setIsSidebarOpen(false);
+  }}
+>
+  Tất cả sản phẩm
+</li>
+
+{productTypes.map((productType) => (
+  <React.Fragment key={productType._id}>
+    <li className={`product-type-item ${expandedProductType === productType._id ? 'expanded' : ''}`}>
+      <span
+        style={{ cursor: 'pointer', flex: 1 }}
+        onClick={() => {
+          setSelectedCategory("all");
+          navigate(`/product-list?productType=${productType._id}`);
+          setIsSidebarOpen(false);
+        }}
+      >
+        {productType.name.toUpperCase()}
+      </span>
+      <span
+        className="dropdown-icon"
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleProductType(productType._id);
+        }}
+      >
+        {expandedProductType === productType._id ? '▼' : '▶'}
+      </span>
+    </li>
+
+    {expandedProductType === productType._id && (
+      <div className="sub-categories">
+        {productTypeCategories[productType._id]?.map((category) => (
+          <li
+            key={category._id}
+            className={selectedCategory === category._id ? 'active' : ''}
+            onClick={() => {
+              setSelectedCategory(category._id);
+              navigate(`/product-list?category=${category._id}`);
+              setIsSidebarOpen(false);
+            }}
+          >
+            {category.name}
+          </li>
+        ))}
+      </div>
+    )}
+  </React.Fragment>
+))}
+    </ul>
+  </div>
+</aside>
+
 
           <div className="content-right">
             <div className="hero-banner">
@@ -397,7 +422,6 @@ const HomePage: React.FC = () => {
                       alt={product.name}
                       onClick={() => navigate(`/product/${product._id}`)}
                     />
-                    
                   </div>
                   <div className="product-info">
                     <h4 className="product-name">{product.name}</h4>
@@ -442,14 +466,14 @@ const HomePage: React.FC = () => {
                         <span className="btn-text">Thêm vào giỏ</span>
                       </button>
                       <button
-                      className="favorite-iconm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteClick(product);
-                      }}
-                    >
-                      {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                    </button>
+                        className="favorite-iconm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFavoriteClick(product);
+                        }}
+                      >
+                        {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                      </button>
                     </div>
                   </div>
                 </div>
