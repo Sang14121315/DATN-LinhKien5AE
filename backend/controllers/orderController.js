@@ -4,7 +4,7 @@ const CartService = require('../services/CartService');
 const UserService = require('../services/userService');
 const Joi = require('joi');
 const { createMomoPayment } = require('../services/orderService');
-const { sendOrderStatusUpdateEmail } = require('../utils/emailService');
+const { sendOrderStatusUpdateEmail, sendOrderNotificationToAdmin } = require('../utils/emailService');
 
 const orderSchema = Joi.object({
   payment_method: Joi.string().valid('cod', 'bank').default('cod'),
@@ -160,8 +160,21 @@ module.exports = {
       await OrderDetailService.createMany(detailDocs);
       await CartService.clearCart(userId);
 
-      // Email sẽ được gửi từ frontend (EmailJS)
-      console.log('📧 Email sẽ được gửi từ frontend (EmailJS)');
+      // Gửi email xác nhận cho khách hàng (từ frontend EmailJS)
+      console.log('📧 Email xác nhận sẽ được gửi từ frontend (EmailJS)');
+
+      // Gửi email thông báo cho admin
+      try {
+        const orderWithItems = {
+          ...order._doc,
+          items: detailDocs
+        };
+        await sendOrderNotificationToAdmin(orderWithItems);
+        console.log('✅ Email thông báo đã gửi cho admin');
+      } catch (emailError) {
+        console.error('❌ Lỗi gửi email thông báo cho admin:', emailError);
+        // Không dừng quá trình tạo đơn hàng nếu email thất bại
+      }
 
       const io = req.app.get('io');
       if (io) {

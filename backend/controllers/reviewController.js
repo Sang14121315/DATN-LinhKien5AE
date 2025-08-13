@@ -41,3 +41,22 @@ exports.adminReply = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+exports.getAllReviews = async (req, res) => {
+  try {
+    const reviews = await ReviewService.getAllReviews();
+    res.json(reviews);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.deleteReview = async (req, res) => {
+  try {
+    const { review_id } = req.params;
+    await ReviewService.deleteReview(review_id);
+    res.json({ message: 'Đã xóa đánh giá' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

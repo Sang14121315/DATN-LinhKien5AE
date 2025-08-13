@@ -7,6 +7,7 @@ const defaultForm = {
   code: "",
   discount_type: "fixed",
   discount_value: 0,
+  min_order_value: 0,
   start_date: "",
   end_date: "",
   max_uses: 1,
@@ -40,6 +41,7 @@ const CouponForm: React.FC = () => {
       const payload = {
         ...rest,
         discount_value: Number(formData.discount_value),
+        min_order_value: Number(formData.min_order_value),
         max_uses: Number(formData.max_uses),
         start_date: new Date(formData.start_date).toISOString(),
         end_date: new Date(formData.end_date).toISOString(),
@@ -136,6 +138,53 @@ const CouponForm: React.FC = () => {
             />
           </div>
         </div>
+        
+        <div className="row">
+          <div>
+            <label>Giá trị đơn hàng tối thiểu (₫)</label>
+            <input 
+              name="min_order_value" 
+              type="number"
+              value={formData.min_order_value} 
+              onChange={handleChange} 
+              placeholder="0"
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
+          </div>
+          <div>
+            <label>Lượt dùng</label>
+            <input 
+              name="max_uses" 
+              value={formData.max_uses} 
+              onChange={handleChange} 
+              required 
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
+          </div>
+        </div>
+        
         <div className="row">
           <div>
             <label>Ngày bắt đầu</label>
@@ -182,28 +231,8 @@ const CouponForm: React.FC = () => {
             />
           </div>
         </div>
+        
         <div className="row">
-          <div>
-            <label>Lượt dùng</label>
-            <input 
-              name="max_uses" 
-              value={formData.max_uses} 
-              onChange={handleChange} 
-              required 
-              style={{
-                height: '40px',
-                padding: '0 16px',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                fontSize: '14px',
-                boxSizing: 'border-box',
-                lineHeight: '40px',
-                outline: 'none',
-                margin: 0,
-                width: '100%'
-              }}
-            />
-          </div>
           <div>
             <label>Tình trạng</label>
             <select 

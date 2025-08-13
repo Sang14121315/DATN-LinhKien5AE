@@ -5,6 +5,7 @@ const productController = require("../controllers/productController");
 const orderController = require("../controllers/orderController");
 const adminController = require("../controllers/adminController");
 const brandController = require("../controllers/brandController");
+const reviewController = require("../controllers/reviewController");
 const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const adminAuth = require("../middleware/adminAuth");
@@ -34,6 +35,11 @@ router.post(
 router.get("/orders/manage", adminAuth, orderController.getOrders);
 router.put("/orders/:id/status", adminAuth, orderController.updateOrder);
 router.patch("/users/:id/block", adminAuth, userController.blockUser);
+
+// Admin routes: Review Management
+router.get("/reviews", auth, adminAuth, reviewController.getAllReviews);
+router.put("/reviews/:review_id/reply", auth, adminAuth, reviewController.adminReply);
+router.delete("/reviews/:review_id", auth, adminAuth, reviewController.deleteReview);
 
 // Admin routes: Notification Management
 router.get(
