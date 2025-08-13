@@ -1,18 +1,19 @@
-const Contact = require('../models/Contact');
-const MessageService = require('./MessageService');
-const NotificationService = require('./notificationService');
-const UserService = require('./userService');
+const Contact = require("../models/Contact");
+const MessageService = require("./MessageService");
+const NotificationService = require("./notificationService");
+const UserService = require("./userService");
+const { sendContactReplyEmail } = require("../utils/contactReplyEmailService");
 
 class ContactService {
   static async create(data) {
     let user = null;
     if (data.user_id) {
       user = await UserService.getById(data.user_id);
-      if (!user) throw new Error('Invalid user ID');
+      if (!user) throw new Error("Invalid user ID");
     }
 
-    const admins = await UserService.getAll({ role: 'admin' });
-    if (admins.length === 0) throw new Error('No admin available');
+    const admins = await UserService.getAll({ role: "admin" });
+    if (admins.length === 0) throw new Error("No admin available");
 
     const contactData = {
       title: data.title,
@@ -21,7 +22,7 @@ class ContactService {
       email: data.email,
       phone: data.phone,
       user_id: user ? user._id : null,
-      status: 'pending'
+      status: "pending",
     };
     const contact = await Contact.create(contactData);
 
@@ -29,7 +30,7 @@ class ContactService {
       sender_id: user ? user._id : null,
       receiver_id: admins[0]._id,
       content: `Liên hệ từ ${data.name} (${data.email}, ${data.phone}): ${data.title} - ${data.message}`,
-      sender_info: { name: data.name, email: data.email, phone: data.phone }
+      sender_info: { name: data.name, email: data.email, phone: data.phone },
     };
     const message = await MessageService.create(messageData);
 
@@ -39,10 +40,10 @@ class ContactService {
     await NotificationService.create({
       user_id: admins[0]._id,
       content: `Tin nhắn liên hệ mới từ ${data.name} (${data.email}) về: ${data.title}`,
-      type: 'contact_message',
+      type: "contact_message",
       related_id: message._id,
-      related_model: 'Message',
-      related_action: 'chat_with_admin'
+      related_model: "Message",
+      related_action: "chat_with_admin",
     });
 
     return contact;
@@ -50,8 +51,8 @@ class ContactService {
 
   static async getAll(filters = {}) {
     return await Contact.find(filters)
-      .populate('user_id', 'name email')
-      .populate('message_id')
+      .populate("user_id", "name email")
+      .populate("message_id")
       .sort({ created_at: -1 });
   }
 
@@ -66,16 +67,35 @@ class ContactService {
   static async reply(id, reply) {
     const contact = await Contact.findById(id);
     if (!contact) return null;
+
     contact.reply = reply;
-    contact.status = 'replied';
+    contact.status = "replied";
     contact.updated_at = new Date();
     await contact.save();
-    // Gửi email cho khách
+
+    // Gửi email phản hồi cho khách hàng
     if (contact.email) {
-      // Gửi email bằng nodemailer hoặc service khác
-      // (giả lập, bạn có thể tích hợp thực tế)
-      // await sendEmail(contact.email, 'Phản hồi từ 5AnhEmPC', reply);
+      try {
+        const contactData = {
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone,
+          title: contact.title,
+          message: contact.message,
+        };
+
+        await sendContactReplyEmail(contactData, reply);
+        console.log(
+          "✅ Contact reply email sent successfully to:",
+          contact.email
+        );
+      } catch (error) {
+        console.error("❌ Error sending contact reply email:", error);
+        // Không throw error để không ảnh hưởng đến việc lưu reply
+        // Chỉ log lỗi để admin biết
+      }
     }
+
     return contact;
   }
 

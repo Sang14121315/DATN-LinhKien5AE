@@ -3,7 +3,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 class OrderService {
-  static async getAll(filters = {}, sort = { created_at: -1 }) {
+  static async getAll(filters = {}, sort = { updated_at: -1, created_at: -1 }) {
     return await Order.find(filters).sort(sort).populate('user_id');
   }
 
@@ -22,7 +22,9 @@ class OrderService {
   }
 
   static async update(id, data) {
-    const updated = await Order.findByIdAndUpdate(id, data, { new: true });
+    // Tự động set updated_at khi cập nhật
+    const updateData = { ...data, updated_at: new Date() };
+    const updated = await Order.findByIdAndUpdate(id, updateData, { new: true, runValidators: true, context: 'query' });
     if (!updated) throw new Error('Order not found');
     return updated;
   }

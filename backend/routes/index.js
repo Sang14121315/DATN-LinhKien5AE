@@ -13,6 +13,8 @@ const homeController = require("../controllers/homeController");
 const contactController = require("../controllers/contactController");
 const productTypeController = require("../controllers/productTypeController");
 const cartController = require("../controllers/cartController");
+const favoriteController = require('../controllers/favoriteController');
+const reviewController = require('../controllers/reviewController');
 const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
@@ -77,11 +79,12 @@ router.delete(
 );
 
 // Categories
-router.get("/categories", categoryController.getCategories);
-router.get("/categories/:id", categoryController.getCategoryById);
-router.post("/categories", categoryController.createCategory);
-router.put("/categories/:id", categoryController.updateCategory);
-router.delete("/categories/:id", categoryController.deleteCategory);
+router.get('/categories', categoryController.getCategories);
+router.get('/categories/by-product-type/:productTypeId', categoryController.getCategoriesByProductType);
+router.get('/categories/:id', categoryController.getCategoryById);
+router.post('/categories', categoryController.createCategory);
+router.put('/categories/:id', categoryController.updateCategory);
+router.delete('/categories/:id', categoryController.deleteCategory);
 
 // Brands
 router.get("/brands", brandController.getBrands);
@@ -159,5 +162,20 @@ router.patch("/contacts/:id/open", contactController.openContact);
 router.delete("/contacts/:id", contactController.deleteContact);
 router.get("/contacts/:id", contactController.getContactById);
 router.post("/contacts/:id/reply", contactController.replyContact);
+
+// Favorite (user)
+router.post('/favorite/add', auth, favoriteController.addFavorite);
+router.post('/favorite/remove', auth, favoriteController.removeFavorite);
+router.get('/favorite/my', auth, favoriteController.getUserFavorites);
+
+// Review (user)
+router.post('/review/add', auth, reviewController.addOrUpdateReview);
+router.post('/review/remove', auth, reviewController.removeReview);
+router.get('/review/product/:product_id', reviewController.getProductReviews);
+router.get('/review/user/:product_id', auth, reviewController.getUserReviewsForProduct);
+router.get('/orders/check/:product_id', auth, reviewController.getValidOrderCount);
+
+// Review (admin)
+router.post('/review/admin-reply', auth, reviewController.adminReply);
 
 module.exports = router;

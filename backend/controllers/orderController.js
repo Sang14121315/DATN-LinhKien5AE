@@ -4,7 +4,7 @@ const CartService = require('../services/CartService');
 const UserService = require('../services/userService');
 const Joi = require('joi');
 const { createMomoPayment } = require('../services/orderService');
-const { sendOrderStatusUpdateEmail } = require('../utils/emailService');
+const { sendOrderStatusUpdateEmail, sendOrderNotificationToAdmin } = require('../utils/emailService');
 
 const orderSchema = Joi.object({
   payment_method: Joi.string().valid('cod', 'bank').default('cod'),
@@ -160,8 +160,21 @@ module.exports = {
       await OrderDetailService.createMany(detailDocs);
       await CartService.clearCart(userId);
 
-      // Email sẽ được gửi từ frontend (EmailJS)
-      console.log('📧 Email sẽ được gửi từ frontend (EmailJS)');
+      // Gửi email xác nhận cho khách hàng (từ frontend EmailJS)
+      console.log('📧 Email xác nhận sẽ được gửi từ frontend (EmailJS)');
+
+      // Gửi email thông báo cho admin
+      try {
+        const orderWithItems = {
+          ...order._doc,
+          items: detailDocs
+        };
+        await sendOrderNotificationToAdmin(orderWithItems);
+        console.log('✅ Email thông báo đã gửi cho admin');
+      } catch (emailError) {
+        console.error('❌ Lỗi gửi email thông báo cho admin:', emailError);
+        // Không dừng quá trình tạo đơn hàng nếu email thất bại
+      }
 
       const io = req.app.get('io');
       if (io) {
@@ -195,12 +208,50 @@ module.exports = {
       const order = await OrderService.getById(req.params.id);
       if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
 
-      if (req.body.status === 'cancelled' && order.status !== 'pending') {
-        return res.status(400).json({ message: 'Chỉ được hủy đơn đang chờ' });
+      // Chỉ cho phép cập nhật trạng thái theo hướng tiến lên, không được quay lại hay bỏ qua bước
+      const canonicalizeStatus = (status) => {
+        if (status === 'cancelled') return 'canceled';
+        if (status === 'delivered') return 'completed';
+        return status;
+      };
+
+      const allowedTransitions = {
+        pending: ['confirmed', 'canceled', 'paid', 'processing'],
+        confirmed: ['shipping', 'canceled'],
+        paid: ['confirmed', 'shipping'],
+        processing: ['confirmed', 'shipping', 'canceled'],
+        shipping: ['completed'],
+        completed: [],
+        canceled: []
+      };
+
+      const oldStatus = canonicalizeStatus(order.status);
+      const requestedStatus = canonicalizeStatus(req.body.status);
+
+      if (!requestedStatus) {
+        return res.status(400).json({ message: 'Thiếu trạng thái cần cập nhật' });
       }
 
-      const oldStatus = order.status;
-      const updated = await OrderService.update(req.params.id, req.body);
+      // Không cho phép sửa đơn đã hoàn thành hoặc đã hủy
+      if (oldStatus === 'completed' || oldStatus === 'canceled') {
+        return res.status(400).json({ message: 'Đơn hàng đã kết thúc, không thể cập nhật trạng thái' });
+      }
+
+      // Yêu cầu trạng thái mới khác trạng thái cũ
+      if (requestedStatus === oldStatus) {
+        return res.status(400).json({ message: 'Trạng thái mới phải khác trạng thái hiện tại' });
+      }
+
+      // Kiểm tra bước chuyển hợp lệ
+      const nextStatuses = allowedTransitions[oldStatus] || [];
+      if (!nextStatuses.includes(requestedStatus)) {
+        return res.status(400).json({ 
+          message: `Chuyển trạng thái không hợp lệ: từ "${oldStatus}" chỉ có thể sang ${nextStatuses.length ? nextStatuses.map(s => `"${s}"`).join(', ') : 'không trạng thái nào'}`
+        });
+      }
+
+      // Không cho phép quay lùi: enforce tiến từng bước; tuy nhiên API cho phép gọi nhiều lần liên tiếp để đi tiếp
+      const updated = await OrderService.update(req.params.id, { status: requestedStatus, updated_at: new Date() });
 
       // Email sẽ được gửi từ frontend thay vì backend
       console.log('📧 Order status updated. Email will be sent from frontend.');

@@ -6,6 +6,7 @@ import { fetchCoupons } from "@/api/couponAPI";
 import "@/styles/pages/user/checkoutPage.scss";
 import { useNavigate } from "react-router-dom";
 import { createMomoOrder } from '@/api/momoAPI';
+import { getCurrentUser } from '@/api/user/userAPI';
 import { sendOrderConfirmationEmail } from '@/services/emailService';
 import { Row, Col, Card, Form, Input, Select, Radio, Button, Divider, Space, Typography, Alert, Modal } from 'antd';
 import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, ShoppingCartOutlined, CreditCardOutlined, BankOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
@@ -16,7 +17,6 @@ const CheckoutPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
-
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
@@ -49,6 +49,28 @@ const CheckoutPage: React.FC = () => {
 
   useEffect(() => {
     setProvinces(getProvinces());
+  }, []);
+
+  // Prefill thông tin khách hàng nếu đã đăng nhập
+  useEffect(() => {
+    const prefillUserInfo = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setFormData(prev => ({
+            ...prev,
+            name: user.name || prev.name,
+            phone: user.phone || prev.phone,
+            email: user.email || prev.email,
+            address: user.address || prev.address,
+          }));
+        }
+      } catch (err) {
+        // Không đăng nhập hoặc không lấy được user -> bỏ qua
+        console.log('Checkout prefill: no user or cannot fetch profile');
+      }
+    };
+    prefillUserInfo();
   }, []);
 
   useEffect(() => {
@@ -143,7 +165,7 @@ const CheckoutPage: React.FC = () => {
 
       // Kiểm tra điều kiện tối thiểu
       if (selectedCoupon.min_order_value && subtotal < selectedCoupon.min_order_value) {
-        alert(`Đơn hàng phải tối thiểu ${selectedCoupon.min_order_value.toLocaleString()} ₫ để áp dụng voucher`);
+        alert(`Đơn hàng phải tối thiểu ${selectedCoupon.min_order_value.toLocaleString()} ₫ để áp dụng voucher ${selectedCoupon.code}.\n\nĐơn hàng hiện tại: ${subtotal.toLocaleString()} ₫\nCần thêm: ${(selectedCoupon.min_order_value - subtotal).toLocaleString()} ₫`);
         return;
       }
 
@@ -640,7 +662,12 @@ const CheckoutPage: React.FC = () => {
                             .filter(c => !c.min_order_value || subtotal >= c.min_order_value)
                             .map(c => (
                               <Select.Option key={c.code} value={c.code}>
-                                {c.code}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span>{c.code}</span>
+                                  <span style={{ fontSize: '12px', color: '#666' }}>
+                                    {c.min_order_value ? `Tối thiểu ${c.min_order_value.toLocaleString()}₫` : 'Không giới hạn'}
+                                  </span>
+                                </div>
                               </Select.Option>
                             ))}
                         </Select>
@@ -673,21 +700,59 @@ const CheckoutPage: React.FC = () => {
                         return isActive && startDate <= now && endDate >= now;
                       }).filter(c => !c.min_order_value || subtotal >= c.min_order_value);
                       
-                                             if (validCoupons.length === 0) {
-                         return (
-                           <Alert
-                             message="Không có voucher nào phù hợp với đơn hàng hiện tại"
-                             type="info"
-                             showIcon
-                             style={{ marginTop: 12, borderRadius: '8px' }}
-                           />
-                         );
-                       }
+                      const allActiveCoupons = availableCoupons.filter(c => {
+                        const now = new Date();
+                        const startDate = new Date(c.start_date);
+                        const endDate = new Date(c.end_date);
+                        const isActive = c.is_active !== false;
+                        return isActive && startDate <= now && endDate >= now;
+                      });
+                      
+                      if (validCoupons.length === 0) {
+                        return (
+                          <div style={{ marginTop: 12 }}>
+                            <Alert
+                              message="Không có voucher nào phù hợp với đơn hàng hiện tại"
+                              description={`Đơn hàng hiện tại: ${subtotal.toLocaleString()}₫. Một số voucher có thể yêu cầu giá trị đơn hàng tối thiểu.`}
+                              type="info"
+                              showIcon
+                              style={{ borderRadius: '8px', marginBottom: 8 }}
+                            />
+                            {allActiveCoupons.length > 0 && (
+                              <div style={{ 
+                                padding: '8px 12px', 
+                                background: '#fff7e6', 
+                                border: '1px solid #ffd591',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                color: '#d46b08'
+                              }}>
+                                <strong>Voucher có sẵn:</strong>
+                                {allActiveCoupons.map((c, idx) => (
+                                  <div key={c.code} style={{ marginTop: '4px' }}>
+                                    • {c.code}: {c.discount_type === 'percentage' ? `${c.discount_value}%` : `${c.discount_value.toLocaleString()}₫`}
+                                    {c.min_order_value && (
+                                      <span style={{ color: '#d48806' }}>
+                                        {' '}(Tối thiểu {c.min_order_value.toLocaleString()}₫)
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
                       return null;
                     })()}
                     {coupon && (
                       <Alert
                         message={`Đã áp dụng mã: ${coupon.code} (-${discount.toLocaleString()} ₫)`}
+                        description={
+                          coupon.min_order_value ? 
+                          `Voucher này yêu cầu đơn hàng tối thiểu ${coupon.min_order_value.toLocaleString()}₫` : 
+                          'Voucher này không có điều kiện giá trị tối thiểu'
+                        }
                         type="success"
                         showIcon
                         style={{ marginTop: 12, borderRadius: '8px' }}

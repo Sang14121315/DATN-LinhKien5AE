@@ -10,6 +10,7 @@ import {
   FaTicketAlt,
   FaUser,
   FaCommentDots,
+  FaStar,
 } from "react-icons/fa";
 import "@/styles/components/admin/sidebar.scss";
 
@@ -27,11 +28,12 @@ const SidebarMenu: React.FC = () => {
     { icon: <FaTicketAlt />, label: "Mã giảm giá", path: "/admin/coupons" },
     { icon: <FaUser />, label: "Người dùng", path: "/admin/users" },
     { icon: <FaCommentDots />, label: "Phản hồi", path: "/admin/feedback" },
+    { icon: <FaStar />, label: "Quản lý đánh giá", path: "/admin/reviews" },
   ];
 
   return (
     <nav className="sidebar-menu">
-      <div className="logo">5AE</div>
+      <div className="logo"><img src="../src/assets/Logo.png" alt="" /></div>
       {menuItems.map(({ icon, label, path }) => {
         const isActive = location.pathname === path;
         return (

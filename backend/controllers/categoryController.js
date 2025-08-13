@@ -27,6 +27,16 @@ const getCategories = async (req, res) => {
   }
 };
 
+const getCategoriesByProductType = async (req, res) => {
+  try {
+    const { productTypeId } = req.params;
+    const categories = await CategoryService.getAll({ productType: productTypeId });
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error fetching categories by product type' });
+  }
+};
+
 const getCategoryById = async (req, res) => {
   try {
     const category = await CategoryService.getById(req.params.id);
@@ -82,9 +92,9 @@ const getCategoryNames = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getCategories,
+  getCategoriesByProductType,
   getCategoryById,
   createCategory,
   updateCategory,

@@ -52,7 +52,7 @@ class CouponService {
   }
 
   static async getAll(filters = {}) {
-    return await Coupon.find(filters);
+    return await Coupon.find(filters).sort({ updated_at: -1, created_at: -1 });
   }
 
   static async getById(id) {
@@ -61,7 +61,11 @@ class CouponService {
 
   static async update(id, data) {
     if ('created_at' in data) delete data.created_at;
-    return await Coupon.findByIdAndUpdate(id, data, { new: true });
+    return await Coupon.findByIdAndUpdate(
+      id,
+      { ...data, updated_at: new Date() },
+      { new: true }
+    );
   }
 
   static async delete(id) {
