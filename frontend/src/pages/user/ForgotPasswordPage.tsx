@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "@/styles/pages/user/forgotPassword.scss";
 
 import { forgotPassword, resetPassword } from "@/api/user/userAPI";
+import { X } from "lucide-react";
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -176,240 +177,275 @@ const ForgotPasswordPage: React.FC = () => {
     }
   };
 
-  return (
-    <div className="forgot-password-layout">
-      {/* Banner trái - Link tới sản phẩm 684b0b700a18dcee50370f35 */}
-      <Link
-        to="/product/684b0b700a18dcee50370f35"
-        className="forgot-password-side-banner-link"
-      >
-        <div className="forgot-password-side-banner">
-          <img src="/assets/banner-left.png" alt="Banner trái" />
-        </div>
-      </Link>
+  // Mobile bottom sheet state (consistent with Login/Register)
+  const [isMobile, setIsMobile] = useState<boolean>(
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
+  const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
 
-      {/* Nội dung chính */}
-      <div className="forgot-password-main-content">
-        <div className="forgot-password-top-menu">
-          <span>🛡️ Chất lượng đảm bảo</span>
-          <span>🚛 Vận chuyển siêu nhanh</span>
-          <span>📞 Tư vấn PC</span>
-          <span>✉️ Liên hệ</span>
-        </div>
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
-        <form
-          className="forgot-password-form-container"
-          onSubmit={showOtpInput ? handleResetPassword : handleSendOTP}
-        >
-          <div className="forgot-password-tabs">
-            <span>
-              <Link to="/login">Đăng nhập</Link>
-            </span>
-            <span className="active">Quên mật khẩu</span>
+  useEffect(() => {
+    if (isSheetOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSheetOpen]);
+
+  const renderForgotForm = () => (
+    <form
+      className="forgot-password-form-container"
+      onSubmit={showOtpInput ? handleResetPassword : handleSendOTP}
+    >
+      <div className="forgot-password-tabs">
+        <span>
+          <Link to="/login">Đăng nhập</Link>
+        </span>
+        <span className="active">Quên mật khẩu</span>
+      </div>
+
+      {message && (
+        <div className={`forgot-password-message ${message.type}`}>
+          <span className="message-icon">
+            {message.type === "success" ? "✅" : "❌"}
+          </span>
+          {message.text}
+        </div>
+      )}
+
+      <div className="forgot-password-form-group forgot-password-email-group">
+        <input
+          type="email"
+          placeholder="Vui lòng nhập email của bạn"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={showOtpInput}
+        />
+      </div>
+
+      {!showOtpInput ? (
+        <>
+          <div className="forgot-password-info">
+            <p>
+              Nhập email của bạn để nhận mã xác thực 6 số. Mã sẽ được gửi đến
+              hộp thư của bạn.
+            </p>
           </div>
 
-          {message && (
-            <div className={`forgot-password-message ${message.type}`}>
-              <span className="message-icon">
-                {message.type === "success" ? "✅" : "❌"}
-              </span>
-              {message.text}
-            </div>
-          )}
+          <button
+            type="submit"
+            className="forgot-password-submit-btn"
+            disabled={sending}
+          >
+            {sending ? (
+              <>
+                <span className="spinner"></span>
+                Đang gửi mã...
+              </>
+            ) : (
+              "Gửi mã xác thực"
+            )}
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="forgot-password-email-display">
+            <p>
+              <strong>Email:</strong> {email}
+            </p>
+            <button
+              type="button"
+              className="forgot-password-change-email-btn"
+              onClick={() => {
+                setShowOtpInput(false);
+                setOtp("");
+                setNewPassword("");
+                setConfirmPassword("");
+                setResetToken("");
+                setMessage(null);
+              }}
+            >
+              ✏️ Không phải mail này
+            </button>
+          </div>
 
-          <div className="forgot-password-form-group forgot-password-email-group">
+          <div className="forgot-password-form-group forgot-password-otp-group">
+            <label>Nhập mã xác thực 6 số:</label>
+            <div className="otp-input-container">
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <input
+                  key={index}
+                  type="text"
+                  maxLength={1}
+                  pattern="[0-9]*"
+                  value={otp[index] || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.match(/^[0-9]$/)) {
+                      const newOtp = otp.split("");
+                      newOtp[index] = value;
+                      setOtp(newOtp.join(""));
+
+                      if (index < 5 && value) {
+                        const nextInput = (e.target as HTMLInputElement)
+                          .parentElement?.children[
+                          index + 1
+                        ] as HTMLInputElement;
+                        nextInput?.focus();
+                      }
+                    } else if (value === "") {
+                      const newOtp = otp.split("");
+                      newOtp[index] = "";
+                      setOtp(newOtp.join(""));
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Backspace") {
+                      if (otp[index]) {
+                        const newOtp = otp.split("");
+                        newOtp[index] = "";
+                        setOtp(newOtp.join(""));
+                      } else if (index > 0) {
+                        const newOtp = otp.split("");
+                        newOtp[index - 1] = "";
+                        setOtp(newOtp.join(""));
+                        const prevInput = (e.target as HTMLInputElement)
+                          .parentElement?.children[
+                          index - 1
+                        ] as HTMLInputElement;
+                        prevInput?.focus();
+                      }
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData("text");
+                    const numbers = pastedData.replace(/\D/g, "").slice(0, 6);
+                    if (numbers.length === 6) {
+                      setOtp(numbers);
+                      const lastInput = (e.target as HTMLInputElement)
+                        .parentElement?.children[5] as HTMLInputElement;
+                      lastInput?.focus();
+                    }
+                  }}
+                  onFocus={(e) => {
+                    e.target.select();
+                  }}
+                  className="otp-input"
+                  required
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="forgot-password-form-group forgot-password-new-password-group">
             <input
-              type="email"
-              placeholder="Vui lòng nhập email của bạn"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="password"
+              placeholder="Nhập mật khẩu mới"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               required
-              disabled={showOtpInput}
             />
           </div>
 
-          {!showOtpInput ? (
-            <>
-              <div className="forgot-password-info">
-                <p>
-                  Nhập email của bạn để nhận mã xác thực 6 số. Mã sẽ được gửi
-                  đến hộp thư của bạn.
-                </p>
-              </div>
+          <div className="forgot-password-form-group forgot-password-confirm-password-group">
+            <input
+              type="password"
+              placeholder="Xác nhận mật khẩu mới"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
 
-              <button
-                type="submit"
-                className="forgot-password-submit-btn"
-                disabled={sending}
-              >
-                {sending ? (
-                  <>
-                    <span className="spinner"></span>
-                    Đang gửi mã...
-                  </>
-                ) : (
-                  "Gửi mã xác thực"
-                )}
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="forgot-password-email-display">
-                <p>
-                  <strong>Email:</strong> {email}
-                </p>
-                <button
-                  type="button"
-                  className="forgot-password-change-email-btn"
-                  onClick={() => {
-                    setShowOtpInput(false);
-                    setOtp("");
-                    setNewPassword("");
-                    setConfirmPassword("");
-                    setResetToken("");
-                    setMessage(null);
-                  }}
-                >
-                  ✏️ Không phải mail này
-                </button>
-              </div>
+          <button
+            type="submit"
+            className="forgot-password-submit-btn"
+            disabled={sending}
+          >
+            {sending ? (
+              <>
+                <span className="spinner"></span>
+                Đang xử lý...
+              </>
+            ) : (
+              "Đặt lại mật khẩu"
+            )}
+          </button>
+        </>
+      )}
 
-              <div className="forgot-password-form-group forgot-password-otp-group">
-                <label>Nhập mã xác thực 6 số:</label>
-                <div className="otp-input-container">
-                  {[0, 1, 2, 3, 4, 5].map((index) => (
-                    <input
-                      key={index}
-                      type="text"
-                      maxLength={1}
-                      pattern="[0-9]*"
-                      value={otp[index] || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Chỉ cho phép số
-                        if (value.match(/^[0-9]$/)) {
-                          const newOtp = otp.split("");
-                          newOtp[index] = value;
-                          setOtp(newOtp.join(""));
+      <div className="forgot-password-form-footer">
+        <p>
+          Bạn chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+        </p>
+        <p>
+          Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+        </p>
+      </div>
+    </form>
+  );
 
-                          // Tự động focus vào ô tiếp theo
-                          if (index < 5 && value) {
-                            const nextInput = (e.target as HTMLInputElement)
-                              .parentElement?.children[
-                              index + 1
-                            ] as HTMLInputElement;
-                            nextInput?.focus();
-                          }
-                        } else if (value === "") {
-                          // Cho phép xóa (khi value rỗng)
-                          const newOtp = otp.split("");
-                          newOtp[index] = "";
-                          setOtp(newOtp.join(""));
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        // Xử lý backspace để xóa và focus về ô trước
-                        if (e.key === "Backspace") {
-                          if (otp[index]) {
-                            // Nếu ô hiện tại có số, xóa số đó
-                            const newOtp = otp.split("");
-                            newOtp[index] = "";
-                            setOtp(newOtp.join(""));
-                          } else if (index > 0) {
-                            // Nếu ô hiện tại trống và không phải ô đầu, xóa ô trước
-                            const newOtp = otp.split("");
-                            newOtp[index - 1] = "";
-                            setOtp(newOtp.join(""));
-                            const prevInput = (e.target as HTMLInputElement)
-                              .parentElement?.children[
-                              index - 1
-                            ] as HTMLInputElement;
-                            prevInput?.focus();
-                          }
-                        }
-                      }}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const pastedData = e.clipboardData.getData("text");
-                        const numbers = pastedData
-                          .replace(/\D/g, "")
-                          .slice(0, 6);
-                        if (numbers.length === 6) {
-                          setOtp(numbers);
-                          // Focus vào ô cuối cùng sau khi paste
-                          const lastInput = (e.target as HTMLInputElement)
-                            .parentElement?.children[5] as HTMLInputElement;
-                          lastInput?.focus();
-                        }
-                      }}
-                      onFocus={(e) => {
-                        // Select toàn bộ text khi focus
-                        e.target.select();
-                      }}
-                      className="otp-input"
-                      required
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="forgot-password-form-group forgot-password-new-password-group">
-                <input
-                  type="password"
-                  placeholder="Nhập mật khẩu mới"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="forgot-password-form-group forgot-password-confirm-password-group">
-                <input
-                  type="password"
-                  placeholder="Xác nhận mật khẩu mới"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="forgot-password-submit-btn"
-                disabled={sending}
-              >
-                {sending ? (
-                  <>
-                    <span className="spinner"></span>
-                    Đang xử lý...
-                  </>
-                ) : (
-                  "Đặt lại mật khẩu"
-                )}
-              </button>
-            </>
-          )}
-
-          <div className="forgot-password-form-footer">
+  return (
+    <div className="forgot-layout-new">
+      <div className="forgot-left-column">
+        <div className="left-banner-card">
+          <div className="banner-icon">🔒</div>
+          <div className="banner-text">
+            <h2>Bảo vệ tài khoản của bạn</h2>
             <p>
-              Bạn chưa có tài khoản? <Link to="/register">Đăng ký</Link>
-            </p>
-            <p>
-              Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+              Sử dụng tính năng quên mật khẩu để đặt lại mật khẩu nhanh chóng và
+              an toàn.
             </p>
           </div>
-        </form>
+        </div>
+
+        {isMobile && (
+          <div className="mobile-cta">
+            <Link to="/login" className="btn btn-outline">
+              Đăng nhập
+            </Link>
+            <button
+              className="btn btn-primary"
+              onClick={() => setIsSheetOpen(true)}
+            >
+              Quên mật khẩu
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Banner phải - Link tới sản phẩm 684b0b700a18dcee50370f3f */}
-      <Link
-        to="/product/684b0b700a18dcee50370f3f"
-        className="forgot-password-side-banner-link"
-      >
-        <div className="forgot-password-side-banner">
-          <img src="/assets/banner-right.png" alt="Banner phải" />
+      <div className="forgot-right-column">{renderForgotForm()}</div>
+
+      {isMobile && (
+        <div
+          className={`mobile-forgot-sheet ${isSheetOpen ? "open" : ""}`}
+          onClick={() => setIsSheetOpen(false)}
+        >
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-header">
+              <div className="sheet-drag-handle" />
+              <button
+                className="sheet-close"
+                onClick={() => setIsSheetOpen(false)}
+                aria-label="Đóng"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="sheet-content">{renderForgotForm()}</div>
+          </div>
         </div>
-      </Link>
+      )}
     </div>
   );
 };
