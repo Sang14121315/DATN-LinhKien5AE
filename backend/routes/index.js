@@ -172,6 +172,8 @@ router.get('/favorite/my', auth, favoriteController.getUserFavorites);
 router.post('/review/add', auth, reviewController.addOrUpdateReview);
 router.post('/review/remove', auth, reviewController.removeReview);
 router.get('/review/product/:product_id', reviewController.getProductReviews);
+router.get('/review/user/:product_id', auth, reviewController.getUserReviewsForProduct);
+router.get('/orders/check/:product_id', auth, reviewController.getValidOrderCount);
 
 // Review (admin)
 router.post('/review/admin-reply', auth, reviewController.adminReply);

@@ -7,9 +7,16 @@ const customerSchema = {
   address: String,
 };
 
+const itemSchema = new mongoose.Schema({
+  product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+  quantity: { type: Number, required: true },
+  price: { type: Number, required: true },
+});
+
 const orderSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   customer: customerSchema,
+  items: [itemSchema], // Thêm trường items để lưu sản phẩm trong đơn hàng
   payment_method: { type: String, enum: ['cod', 'bank'], default: 'cod' },
   total: Number,
   // Trạng thái đơn hàng: chuẩn hóa và giới hạn các giá trị hợp lệ
