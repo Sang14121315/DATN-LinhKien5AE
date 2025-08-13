@@ -2,9 +2,9 @@ const ReviewService = require('../services/ReviewService');
 
 exports.addOrUpdateReview = async (req, res) => {
   try {
-    const { product_id, rating, comment } = req.body;
+    const { product_id, rating, comment, isUpdate } = req.body;
     const userId = req.user.id;
-    const review = await ReviewService.addOrUpdate(userId, product_id, rating, comment);
+    const review = await ReviewService.addOrUpdate(userId, product_id, rating, comment, isUpdate);
     res.json(review);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -56,6 +56,28 @@ exports.deleteReview = async (req, res) => {
     const { review_id } = req.params;
     await ReviewService.deleteReview(review_id);
     res.json({ message: 'Đã xóa đánh giá' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getUserReviewsForProduct = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    const { user_id } = req.query;
+    const reviews = await ReviewService.getUserReviewsForProduct(user_id, product_id);
+    res.json(reviews);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.getValidOrderCount = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    const { user_id } = req.query;
+    const count = await ReviewService.getValidOrderCount(user_id, product_id);
+    res.json({ validOrderDetailsCount: count });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
