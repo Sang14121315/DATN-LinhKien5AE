@@ -1,10 +1,22 @@
 const ReviewService = require('../services/ReviewService');
 
-exports.addOrUpdateReview = async (req, res) => {
+exports.addReview = async (req, res) => {
   try {
-    const { product_id, rating, comment, isUpdate } = req.body;
+    const { product_id, order_detail_id, rating, comment, images } = req.body;
     const userId = req.user.id;
-    const review = await ReviewService.addOrUpdate(userId, product_id, rating, comment, isUpdate);
+    const review = await ReviewService.add(userId, product_id, order_detail_id, rating, comment, images);
+    res.json(review);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.updateReview = async (req, res) => {
+  try {
+    const { review_id } = req.params;
+    const { rating, comment, images } = req.body;
+    const userId = req.user.id;
+    const review = await ReviewService.update(review_id, userId, rating, comment, images);
     res.json(review);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -13,9 +25,9 @@ exports.addOrUpdateReview = async (req, res) => {
 
 exports.removeReview = async (req, res) => {
   try {
-    const { product_id } = req.body;
+    const { order_detail_id } = req.body;
     const userId = req.user.id;
-    await ReviewService.remove(userId, product_id);
+    await ReviewService.remove(userId, order_detail_id);
     res.json({ message: 'Đã xóa đánh giá' });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -73,12 +85,12 @@ exports.getUserReviewsForProduct = async (req, res) => {
   }
 };
 
-exports.getValidOrderCount = async (req, res) => {
+exports.getUnreviewedOrderDetails = async (req, res) => {
   try {
     const { product_id } = req.params;
-    const { user_id } = req.query;
-    const count = await ReviewService.getValidOrderCount(user_id, product_id);
-    res.json({ validOrderDetailsCount: count });
+    const userId = req.user.id;
+    const unreviewedOrders = await ReviewService.getUnreviewedOrderDetails(userId, product_id);
+    res.json(unreviewedOrders);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
