@@ -25,7 +25,9 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout(); // Sử dụng logout từ AuthContext
+    logout();
+    setShowUserDropdown(false);
+    setShowMobileMenu(false);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +89,6 @@ const Header: React.FC = () => {
             <span>🔄 Thu cũ - Đổi mới - Giá cao</span>
             <span className="separator">•</span>
             <span>📞 Tư vấn kỹ thuật: 1900.6868</span>
-            {/* Nhân đôi nội dung để lặp mượt */}
             <span className="separator">•</span>
             <span>🔌 Linh kiện xịn - Giá tốt - Bảo hành dài</span>
             <span className="separator">•</span>
@@ -113,7 +114,7 @@ const Header: React.FC = () => {
               </Col>
 
               {/* Search */}
-              <Col xs={12} sm={12} md={10} className="header__search">
+              <Col xs={16} sm={12} md={10} className="header__search">
                 <div className="search-input-wrapper">
                   <input
                     type="text"
@@ -168,9 +169,9 @@ const Header: React.FC = () => {
                 </nav>
               </Col>
 
-              {/* User + Cart */}
-              <Col xs={4} sm={2} md={4} className="header__actions">
-                <div className="header__auth-cart-group hide-on-mobile">
+              {/* User + Cart (Desktop only) */}
+              <Col xs={0} sm={2} md={4} className="header__actions">
+                <div className="header__auth-cart-group">
                   <div className="header__auth" ref={userDropdownRef}>
                     {user ? (
                       <div className="header__user-dropdown">
@@ -237,48 +238,36 @@ const Header: React.FC = () => {
                       <Link to="/productlist" className="nav-item" onClick={() => setShowMobileMenu(false)}>Sản phẩm</Link>
                       <Link to="/contact" className="nav-item" onClick={() => setShowMobileMenu(false)}>Liên hệ</Link>
                       <Link to="/about" className="nav-item" onClick={() => setShowMobileMenu(false)}>Giới thiệu</Link>
-                      <div className="nav-item" onClick={handleLogout}>Đăng xuất</div>
-                    </nav>
-                    <div className="mobile-user-cart">
-                      <div className="header__auth">
-                        {user ? (
-                          <div className="header__user-dropdown">
-                            <div
-                              className="auth-user user-vertical"
-                              onClick={() => setShowUserDropdown((prev) => !prev)}
-                            >
-                              <FaUserCircle className="user-icon" />
-                              <div className="user-info-vertical">
-                                <span className="user-name">{user.name}</span>
-                                <span className="user-arrow">▼</span>
-                              </div>
-                            </div>
-                            {showUserDropdown && (
-                              <div className="dropdown-menu">
-                                <div className="dropdown-item" onClick={() => navigate("/profile")}>Hồ sơ</div>
-                                <div className="dropdown-item" onClick={() => navigate("/forgot-password")}>Quên mật khẩu</div>
-                                <div className="dropdown-item" onClick={handleLogout}>Đăng xuất</div>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <Link to="/login" className="auth-link">
-                            <FaUserCircle />
-                          </Link>
+                      <div className="nav-item" onClick={() => { setIsOpen(true); setShowMobileMenu(false); }}>
+                        <FaShoppingCart className="nav-icon" /> Giỏ hàng
+                        {isAuthenticated && totalQuantity > 0 && (
+                          <span className="cart-count">{totalQuantity}</span>
                         )}
                       </div>
-                      <div className="header__cart-wrapper">
-                        <button
-                          className="header__cart"
-                          onClick={() => setIsOpen(true)}
-                        >
-                          <FaShoppingCart className="icon" />
-                          {isAuthenticated && totalQuantity > 0 && (
-                            <span className="cart-count">{totalQuantity}</span>
+                      {user ? (
+                        <div className="header__user-dropdown nav-item" ref={userDropdownRef}>
+                          <div
+                            className="auth-user"
+                            onClick={() => setShowUserDropdown((prev) => !prev)}
+                          >
+                            <FaUserCircle className="nav-icon" /> {user.name}
+                          </div>
+                          {showUserDropdown && (
+                            <div className="dropdown-menu">
+                              <div className="dropdown-item" onClick={() => { navigate("/profile"); setShowMobileMenu(false); }}>Hồ sơ</div>
+                              <div className="dropdown-item" onClick={() => { navigate("/favorite"); setShowMobileMenu(false); }}>Yêu thích</div>
+                              <div className="dropdown-item" onClick={() => { navigate("/forgot-password"); setShowMobileMenu(false); }}>Quên mật khẩu</div>
+                              <div className="dropdown-item" onClick={handleLogout}>Đăng xuất</div>
+                            </div>
                           )}
-                        </button>
-                      </div>
-                    </div>
+                        </div>
+                      ) : (
+                        <Link to="/login" className="nav-item" onClick={() => setShowMobileMenu(false)}>
+                          <FaUserCircle className="nav-icon" /> Đăng nhập
+                        </Link>
+                      )}
+                     
+                    </nav>
                   </div>
                 </div>
               </>
