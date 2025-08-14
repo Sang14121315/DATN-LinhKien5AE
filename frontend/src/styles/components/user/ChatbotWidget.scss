@@ -14,6 +14,11 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
 
     span {
       font-size: 24px;
@@ -45,6 +50,18 @@
         color: #fff;
         font-size: 20px;
         cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.2);
+        }
       }
     }
 
@@ -55,12 +72,13 @@
 
       .welcome-message {
         display: flex;
-        align-items: center;
-        margin-bottom: 8px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        gap: 8px;
 
         .bot-icon {
-          font-size: 24px;
-          margin-right: 8px;
+          font-size: 20px;
+          margin-top: 4px;
         }
 
         .message-bubble {
@@ -68,6 +86,8 @@
           border-radius: 8px;
           padding: 8px 12px;
           max-width: 80%;
+          word-wrap: break-word;
+          color: #333;
         }
       }
 
@@ -75,31 +95,52 @@
         max-height: 280px;
         overflow-y: auto;
 
+        .loading-message {
+          text-align: center;
+          color: #666;
+          font-style: italic;
+          margin: 8px 0;
+        }
+
         .message {
           margin: 8px 0;
 
           &.user {
             text-align: right;
+
+            .message-bubble.user-message {
+              background: #f5ba09;
+              color: #fff;
+              display: inline-block;
+              border-radius: 8px;
+              padding: 8px 12px;
+              max-width: 70%;
+              word-wrap: break-word;
+            }
           }
 
           &.bot {
             text-align: left;
-          }
 
-          .message-bubble {
-            display: inline-block;
-            border-radius: 8px;
-            padding: 8px 12px;
-            max-width: 70%;
+            .bot-message {
+              display: flex;
+              align-items: flex-start;
+              gap: 8px;
 
-            &.user {
-              background: #f5ba09;
-              color: #fff;
-            }
+              .bot-icon {
+                font-size: 20px;
+                margin-top: 4px;
+              }
 
-            &.bot {
-              background: #f1f1f1;
-              color: #333;
+              .message-bubble.bot-bubble {
+                background: #f1f1f1;
+                color: #333;
+                display: inline-block;
+                border-radius: 8px;
+                padding: 8px 12px;
+                max-width: 70%;
+                word-wrap: break-word;
+              }
             }
           }
         }
@@ -111,17 +152,28 @@
       border-top: 1px solid #eee;
       display: flex;
       align-items: center;
+      gap: 8px;
 
       input {
-        width: 80%;
-        padding: 8px;
+        flex: 1;
+        padding: 8px 12px;
         border-radius: 6px;
         border: 1px solid #ccc;
-        margin-right: 8px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s ease;
+
+        &:focus {
+          border-color: #f5ba09;
+        }
 
         &:disabled {
           cursor: not-allowed;
           opacity: 0.6;
+        }
+
+        &::placeholder {
+          color: #999;
         }
       }
 
@@ -132,12 +184,32 @@
         color: #fff;
         border: none;
         cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+
+        &:hover:not(:disabled) {
+          background: #e6a800;
+        }
 
         &:disabled {
           cursor: not-allowed;
           opacity: 0.6;
         }
       }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .chatbot-widget {
+    bottom: 16px;
+    right: 16px;
+
+    .chat-container {
+      width: 320px;
+      height: 400px;
     }
   }
 }

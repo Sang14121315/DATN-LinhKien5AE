@@ -157,6 +157,10 @@
   background: #fffbe6;
   color: #b8860b;
 }
+.order-table select.status-label.confirmed {
+  background: #eaf7ff;
+  color: #0b69b8;
+}
 .order-table select.status-label.shipping {
   background: #e6f7ff;
   color: #007bff;

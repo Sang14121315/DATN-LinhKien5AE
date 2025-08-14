@@ -175,11 +175,19 @@ const AdminCouponPage: React.FC = () => {
     }
   };
 
-  // Sắp xếp coupon mới nhất lên đầu (ưu tiên created_at, fallback start_date)
+  // Sắp xếp: ưu tiên updated_at, sau đó đến created_at, cuối cùng fallback start_date
   const sortedCoupons = [...filteredCoupons].sort((a, b) => {
-    const dateA = a.created_at ? new Date(a.created_at) : new Date(a.start_date);
-    const dateB = b.created_at ? new Date(b.created_at) : new Date(b.start_date);
-    return dateB.getTime() - dateA.getTime();
+    const aUpdated = a.updated_at ? new Date(a.updated_at).getTime() : -Infinity;
+    const bUpdated = b.updated_at ? new Date(b.updated_at).getTime() : -Infinity;
+    if (aUpdated !== bUpdated) return bUpdated - aUpdated;
+
+    const aCreated = a.created_at ? new Date(a.created_at).getTime() : -Infinity;
+    const bCreated = b.created_at ? new Date(b.created_at).getTime() : -Infinity;
+    if (aCreated !== bCreated) return bCreated - aCreated;
+
+    const aStart = a.start_date ? new Date(a.start_date).getTime() : -Infinity;
+    const bStart = b.start_date ? new Date(b.start_date).getTime() : -Infinity;
+    return bStart - aStart;
   });
 
   const totalCoupons = sortedCoupons.length;
@@ -278,7 +286,17 @@ const AdminCouponPage: React.FC = () => {
                     : `${coupon.discount_value.toLocaleString()}₫`
                   }
                 </td>
-                <td>{coupon.min_order_value?.toLocaleString()}₫</td>
+                <td>
+                  {coupon.min_order_value ? (
+                    <span style={{ color: '#d46b08', fontWeight: '500' }}>
+                      {coupon.min_order_value.toLocaleString()}₫
+                    </span>
+                  ) : (
+                    <span style={{ color: '#52c41a', fontSize: '12px' }}>
+                      Không giới hạn
+                    </span>
+                  )}
+                </td>
                 <td>{new Date(coupon.start_date).toLocaleDateString('vi-VN')}</td>
                 <td>{new Date(coupon.end_date).toLocaleDateString('vi-VN')}</td>
                 <td>

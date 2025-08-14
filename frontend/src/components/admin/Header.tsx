@@ -128,10 +128,7 @@ const Header: React.FC = () => {
     <header className="admin-header">
       <div className="right-section">
         {/* Nút chuông thông báo */}
-        <div className="icon-button" onClick={handleToggleNotification}>
-          <FaBell />
-          {notifications.some(n => !n.read) && <span className="notification-badge"></span>}
-        </div>
+
 
         {/* Dropdown Thông báo */}
         {showDropdown && (

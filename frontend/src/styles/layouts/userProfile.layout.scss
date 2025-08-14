@@ -55,7 +55,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        color: #ff6b35;
+        color: #007BFF;
         font-size: 14px;
         cursor: pointer;
 
@@ -80,20 +80,22 @@
       transition: all 0.2s ease;
 
       &:hover {
-        color: #ff6b35;
+        color: #007BFF;
         background: rgba(255, 107, 53, 0.05);
         border-radius: 4px;
         padding: 12px 8px;
         margin: 0 -8px 8px -8px;
+        background-color: #d0e6fe;
       }
 
       &.active {
-        color: #ff6b35;
+        color: #007BFF;
         font-weight: 600;
         background: rgba(255, 107, 53, 0.1);
         border-radius: 4px;
         padding: 12px 8px;
         margin: 0 -8px 8px -8px;
+        background-color: #d0e6fe;
       }
 
       svg {

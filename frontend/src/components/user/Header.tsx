@@ -107,7 +107,7 @@ const Header: React.FC = () => {
               {/* Logo */}
               <Col xs={4} sm={4} md={3} className="header__logo">
                 <Link to="/">
-                  <span className="logo-desktop">🖥 5AE</span>
+                  <span className="logo-desktop"><img src="./src/assets/Logo.png" alt="" /></span>
                   <span className="logo-mobile">5AE</span>
                 </Link>
               </Col>
@@ -187,6 +187,7 @@ const Header: React.FC = () => {
                         {showUserDropdown && (
                           <div className="dropdown-menu">
                             <div className="dropdown-item" onClick={() => navigate("/profile")}>Hồ sơ</div>
+                            <div className="dropdown-item" onClick={() => navigate("/favorite")}>Yêu thích</div>
                             <div className="dropdown-item" onClick={() => navigate("/forgot-password")}>Quên mật khẩu</div>
                             <div className="dropdown-item" onClick={handleLogout}>Đăng xuất</div>
                           </div>
@@ -236,6 +237,7 @@ const Header: React.FC = () => {
                       <Link to="/productlist" className="nav-item" onClick={() => setShowMobileMenu(false)}>Sản phẩm</Link>
                       <Link to="/contact" className="nav-item" onClick={() => setShowMobileMenu(false)}>Liên hệ</Link>
                       <Link to="/about" className="nav-item" onClick={() => setShowMobileMenu(false)}>Giới thiệu</Link>
+                      <div className="nav-item" onClick={handleLogout}>Đăng xuất</div>
                     </nav>
                     <div className="mobile-user-cart">
                       <div className="header__auth">

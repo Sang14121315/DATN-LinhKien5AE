@@ -457,7 +457,7 @@
       font-weight: bold;
     }
 
-    img {
+    .span-img {
       width: 40px;
       height: 40px;
       object-fit: contain;
@@ -506,4 +506,9 @@
   font-size: 13px;
   color: #FFF;
   margin-left: 2px;
+}
+
+.logo-desktop img {
+  max-height: 80px;
+  padding: 1px 0;
 }
