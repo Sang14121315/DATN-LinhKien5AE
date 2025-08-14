@@ -103,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🔐 AuthContext - Login called with:', { token, userData });
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('currentUser', JSON.stringify(userData)); // Thêm dòng này để đồng bộ cho ChatbotWidget
     setUser(userData);
     setIsAuthenticated(true);
     console.log('🔐 AuthContext - Login completed, user set to:', userData);

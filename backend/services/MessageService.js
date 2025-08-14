@@ -14,6 +14,18 @@ class MessageService {
       .sort({ created_at: 1 });
   }
 
+  static async getConversationWithAdmins(userId, adminIds) {
+    return await Message.find({
+      $or: [
+        { sender_id: userId, receiver_id: { $in: adminIds } },
+        { sender_id: { $in: adminIds }, receiver_id: userId }
+      ]
+    })
+      .populate('sender_id', 'name email')
+      .populate('receiver_id', 'name email')
+      .sort({ created_at: 1 });
+  }
+
   static async create(data) {
     const message = await Message.create(data);
 

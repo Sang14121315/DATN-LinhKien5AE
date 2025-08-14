@@ -15,7 +15,6 @@ connectDB();
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📁 Created uploads directory');
 }
 
 const app = express(); // ✅ app phải được khai báo trước
@@ -60,16 +59,10 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   socket.on('join', (userId) => {
     socket.join(userId);
-    console.log(`User ${userId} joined`);
   });
 
   socket.on('join-admin', () => {
     socket.join('admin');
-    console.log('Admin joined');
-  });
-
-  socket.on('send-message', (message) => {
-    io.to(message.receiver_id).emit('new-message', message);
   });
 });
 
