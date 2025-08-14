@@ -7,19 +7,8 @@ const errorHandler = require("./middleware/errorHandler");
 const path = require("path");
 const { Server } = require("socket.io");
 const cookieParser = require("cookie-parser");
-require("dotenv").config();
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
-const errorHandler = require('./middleware/errorHandler');
-const path = require('path');
-const fs = require('fs');
-const { Server } = require('socket.io');
-const cookieParser = require('cookie-parser');
-require('dotenv').config();
-
 dotenv.config();
+
 connectDB();
 
 // Tạo thư mục uploads nếu chưa tồn tại
@@ -48,7 +37,6 @@ app.use("/api/google", require("./routes/googleOAuth"));
 
 // Image upload
 app.use("/api/upload", require("./routes/upload"));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // EmailJS được sử dụng ở frontend, không cần test route
 
@@ -75,7 +63,6 @@ io.on("connection", (socket) => {
     socket.join(userId);
   });
 
-
   socket.on("join-admin", () => {
     socket.join("admin");
     console.log("Admin joined");
@@ -83,10 +70,6 @@ io.on("connection", (socket) => {
 
   socket.on("send-message", (message) => {
     io.to(message.receiver_id).emit("new-message", message);
-
-  socket.on('join-admin', () => {
-    socket.join('admin');
-
   });
 });
 
