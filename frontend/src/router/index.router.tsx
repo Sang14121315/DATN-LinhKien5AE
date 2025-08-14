@@ -33,6 +33,7 @@ import SearchResultPage from "@/pages/user/searchResult";
 import OrderTrackingPage from "@/pages/user/OrderTrackingPage";
 import ContactPage from "@/pages/user/ContactPage";
 import MomoCallbackPage from "@/pages/user/MomoCallbackPage";
+import GoogleCallbackPage from "@/pages/user/GoogleCallbackPage";
 import ProfilePage from "@/pages/user/ProfilePage";
 import PurchasePage from "@/pages/user/PurchasePage";
 import UserProfileLayout from "@/layouts/userProfile.layout";
@@ -133,6 +134,7 @@ const MainRouter = () => {
         />
         <Route path="contact" element={<ContactPage />} />
         <Route path="momo-callback" element={<MomoCallbackPage />} />
+        <Route path="auth/google/callback" element={<GoogleCallbackPage />} />
 
         {/* User Profile Layout */}
         <Route
