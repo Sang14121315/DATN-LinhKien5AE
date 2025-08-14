@@ -34,7 +34,8 @@ exports.getProductReviews = async (req, res) => {
 
 exports.adminReply = async (req, res) => {
   try {
-    const { review_id, reply } = req.body;
+    const { review_id } = req.params;
+    const { reply } = req.body;
     const review = await ReviewService.adminReply(review_id, reply);
     res.json(review);
   } catch (error) {
