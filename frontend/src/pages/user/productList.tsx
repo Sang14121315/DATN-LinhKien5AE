@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaShoppingCart, FaRegHeart, FaHeart } from "react-icons/fa";
-import { Row, Col, Grid } from "antd";
+import { Row, Col, Grid, Dropdown, Menu } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 import "@/styles/pages/user/productList.scss";
 import axios from "axios";
 
@@ -10,8 +11,7 @@ import { useFavorite } from "@/context/FavoriteContext";
 import { useAuth } from "@/context/AuthContext";
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
-import { Category, fetchAllCategories, fetchCategoriesByProductType } from "@/api/user/categoryAPI";
-import { ProductType, fetchAllProductTypes } from "@/api/user/productTypeAPI";
+import { Category, fetchAllCategories } from "@/api/user/categoryAPI";
 
 const ProductListPage: React.FC = () => {
   const { useBreakpoint } = Grid;
@@ -19,17 +19,14 @@ const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState("all");
+  const [sortOrder, setSortOrder] = useState<string | null>(null);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [searchParams] = useSearchParams();
-
-  const [expandedProductType, setExpandedProductType] = useState<string | null>(null);
-  const [productTypeCategories, setProductTypeCategories] = useState<Record<string, Category[]>>({});
 
   const navigate = useNavigate();
   const itemsPerPage = 16;
@@ -44,25 +41,16 @@ const ProductListPage: React.FC = () => {
   const formatCurrency = (amount: number): string =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
 
-  // Load danh mục, thương hiệu, loại sản phẩm
+  // Load danh mục, thương hiệu
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [brandData, categoryData, productTypeData] = await Promise.all([
+        const [brandData, categoryData] = await Promise.all([
           fetchAllBrands(),
           fetchAllCategories(),
-          fetchAllProductTypes(),
         ]);
         setBrands(brandData);
         setCategories(categoryData);
-        setProductTypes(productTypeData);
-
-        const categoriesByProductType: Record<string, Category[]> = {};
-        for (const productType of productTypeData) {
-          const categories = await fetchCategoriesByProductType(productType._id);
-          categoriesByProductType[productType._id] = categories;
-        }
-        setProductTypeCategories(categoriesByProductType);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -89,14 +77,7 @@ const ProductListPage: React.FC = () => {
     setFiltersInitialized(true);
   }, [searchParams]);
 
-const getImageUrl = (url?: string): string => {
-  if (!url) return '/images/no-image.png';
-  if (url.startsWith('http')) return url;
-  if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
-  return `http://localhost:5000/uploads/products/${url}`;
-};
-
-  // Lọc sản phẩm theo bộ lọc
+  // Lọc và sắp xếp sản phẩm theo bộ lọc
   useEffect(() => {
     if (!filtersInitialized) return;
 
@@ -113,7 +94,13 @@ const getImageUrl = (url?: string): string => {
         }
 
         const productData = await fetchFilteredProducts(filters);
-        setProducts(productData);
+        let sortedProducts = [...productData];
+        if (sortOrder === "high-to-low") {
+          sortedProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
+        } else if (sortOrder === "low-to-high") {
+          sortedProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
+        }
+        setProducts(sortedProducts);
         setCurrentPage(1);
       } catch (error) {
         console.error("Lỗi khi tải sản phẩm:", error);
@@ -121,11 +108,7 @@ const getImageUrl = (url?: string): string => {
     };
 
     fetchProducts();
-  }, [selectedCategory, selectedBrand, selectedPrice, filtersInitialized]);
-
-  const toggleProductType = (productTypeId: string) => {
-    setExpandedProductType(expandedProductType === productTypeId ? null : productTypeId);
-  };
+  }, [selectedCategory, selectedBrand, selectedPrice, sortOrder, filtersInitialized]);
 
   const handleFavoriteClick = async (product: Product) => {
     if (!user) {
@@ -168,10 +151,16 @@ const getImageUrl = (url?: string): string => {
     }
   };
 
+  const sortMenu = (
+    <Menu onClick={(e) => setSortOrder(e.key as string)}>
+      <Menu.Item key="high-to-low">Giá cao - thấp</Menu.Item>
+      <Menu.Item key="low-to-high">Giá thấp - cao</Menu.Item>
+    </Menu>
+  );
+
   return (
     <div className="product-page-container">
       <div className="product-layout">
-        {/* Sidebar */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={24} md={6} lg={5} className="sidebar">
             <div className="sidebar-section">
@@ -182,34 +171,18 @@ const getImageUrl = (url?: string): string => {
                 <li onClick={() => setSelectedCategory("all")} className={selectedCategory === "all" ? "active" : ""}>
                   TẤT CẢ SẢN PHẨM
                 </li>
-                {productTypes.map((productType) => (
-                  <React.Fragment key={productType._id}>
-                    <li
-                      className={`product-type-item ${expandedProductType === productType._id ? "expanded" : ""}`}
-                      onClick={() => toggleProductType(productType._id)}
-                    >
-                      {productType.name.toUpperCase()}
-                      <span className="dropdown-icon">{expandedProductType === productType._id ? "▼" : "▶"}</span>
-                    </li>
-                    {expandedProductType === productType._id && (
-                      <div className="sub-categories">
-                        {productTypeCategories[productType._id]?.map((category) => (
-                          <li
-                            key={category._id}
-                            onClick={() => setSelectedCategory(category._id)}
-                            className={selectedCategory === category._id ? "active" : ""}
-                          >
-                            {category.name}
-                          </li>
-                        ))}
-                      </div>
-                    )}
-                  </React.Fragment>
+                {categories.map((category) => (
+                  <li
+                    key={category._id}
+                    onClick={() => setSelectedCategory(category._id)}
+                    className={selectedCategory === category._id ? "active" : ""}
+                  >
+                    {category.name}
+                  </li>
                 ))}
               </ul>
             </div>
 
-            {/* Lọc giá */}
             <div className="sidebar-section">
               <h3>LỌC GIÁ</h3>
               <div className="price-radio-group">
@@ -236,14 +209,12 @@ const getImageUrl = (url?: string): string => {
               </div>
             </div>
 
-            {/* Banner */}
             <div className="sidebar-banner">
               <img src="/public/assets/about_vertical_sale_banner.png" alt="Giảm giá sốc" />
               <img src="/public/assets/about_vertical_sale2_banner.png" alt="Giảm giá sốc" />
             </div>
           </Col>
 
-          {/* Main content */}
           <Col xs={24} sm={24} md={18} lg={19} className="product-content">
             <div className="brand-bar">
               <h3>THƯƠNG HIỆU</h3>
@@ -277,6 +248,11 @@ const getImageUrl = (url?: string): string => {
                   ? "Sản phẩm"
                   : categories.find((c) => c._id === selectedCategory)?.name || "Sản phẩm"}
               </h2>
+              <Dropdown overlay={sortMenu} trigger={['click']}>
+                <a className="sort-button" onClick={(e) => e.preventDefault()}>
+                  Sắp xếp <DownOutlined />
+                </a>
+              </Dropdown>
             </div>
 
             <Row gutter={[16, 16]} className="product-grid">
@@ -316,7 +292,6 @@ const getImageUrl = (url?: string): string => {
                           {typeof product.brand_id === "object" ? product.brand_id.name : product.brand_id}
                         </p>
                         <h4 className="product-name">{product.name}</h4>
-
 
                         <div className="price-block">
                           <div className="price-left">
