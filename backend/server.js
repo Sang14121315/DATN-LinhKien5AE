@@ -5,6 +5,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 const path = require("path");
+const fs = require("fs");
 const { Server } = require("socket.io");
 const cookieParser = require("cookie-parser");
 dotenv.config();
