@@ -1,6 +1,9 @@
 const ContactService = require("../services/ContactService");
 const Joi = require("joi");
 const UserService = require("../services/userService");
+const {
+  sendAdminNotificationEmail,
+} = require("../utils/adminNotificationEmailService");
 
 const contactSchema = Joi.object({
   title: Joi.string().min(2).required().label("Tiêu đề"),
@@ -24,6 +27,34 @@ exports.createContact = async (req, res) => {
     if (!req.body.user_id) delete req.body.user_id;
 
     const contact = await ContactService.create(req.body);
+
+    // Gửi email thông báo cho admin cụ thể
+    try {
+      console.log("🔧 Starting admin notification process...");
+
+      // Gửi email cho admin cụ thể: ngtien.2610@gmail.com
+      const targetAdminEmail = "ngtien.2610@gmail.com";
+      console.log(`📧 Target admin email: ${targetAdminEmail}`);
+
+      console.log("🔧 Sending admin notification email...");
+      const emailResult = await sendAdminNotificationEmail(
+        req.body,
+        targetAdminEmail
+      );
+
+      if (emailResult.success) {
+        console.log(
+          "✅ Admin notification email sent successfully:",
+          emailResult.messageId
+        );
+      } else {
+        console.log("⚠️ Failed to send admin notification email");
+      }
+    } catch (emailError) {
+      console.error("❌ Error sending admin notification email:", emailError);
+      console.error("❌ Error stack:", emailError.stack);
+      // Không throw error để không ảnh hưởng đến việc tạo contact
+    }
 
     const io = req.app.get("io");
     if (io) {
@@ -111,11 +142,9 @@ exports.updateContactStatus = async (req, res) => {
     }
     res.json(contact);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: error.message || "Lỗi khi cập nhật trạng thái liên hệ",
-      });
+    res.status(500).json({
+      message: error.message || "Lỗi khi cập nhật trạng thái liên hệ",
+    });
   }
 };
 

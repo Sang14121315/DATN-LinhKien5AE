@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema(
     address: String,
     role: { type: String, enum: ["user", "admin"], default: "user" },
     isBlocked: { type: Boolean, default: false },
+    googleId: { type: String, unique: true, sparse: true },
+    avatar: String,
+    isVerified: { type: Boolean, default: false },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

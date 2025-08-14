@@ -4,6 +4,7 @@ import "@/styles/pages/user/login.scss";
 import { loginUser } from "@/api/user/userAPI";
 import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff, Gift, X } from "lucide-react";
+import GoogleLoginButton from "@/components/user/GoogleLoginButton";
 
 // Types for auth/login response and router state
 interface LoginResponseUser {
@@ -176,6 +177,19 @@ const LoginPage: React.FC = () => {
         <button type="submit" className="login-button" disabled={isLoggingIn}>
           {isLoggingIn ? "ĐANG ĐĂNG NHẬP..." : "Đăng nhập"}
         </button>
+
+        <div className="login-divider">
+          <span>hoặc</span>
+        </div>
+
+        <GoogleLoginButton
+          onSuccess={(user) => {
+            console.log("Google login successful:", user);
+          }}
+          onError={(error) => {
+            setErrorMsg(`Google login failed: ${error}`);
+          }}
+        />
 
         <div className="login-links">
           <Link to="/forgot-password" className="forgot-password">
