@@ -1,23 +1,26 @@
-.container {
+.containe {
   border-radius: 12px;
-  padding: 0px;
+  padding: 20px;
   max-width: 1200px;
   margin: 30px auto;
   display: flex;
   gap: 40px;
   flex-wrap: wrap;
-  
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 h2 {
   width: 100%;
-  font-size: 24px;
+  font-size: 26px;
   margin-bottom: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.5px;
 }
 
-.left, .right {
+.left,
+.right {
   flex: 1;
   min-width: 320px;
 }
@@ -27,7 +30,7 @@ label {
   margin-bottom: 6px;
   font-size: 15px;
   font-weight: 500;
-  color: #333;
+  color: #444;
 }
 
 input,
@@ -50,6 +53,7 @@ select:focus {
   outline: none;
   border-color: #00a693;
   background-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 166, 147, 0.2);
 }
 
 textarea {
@@ -60,36 +64,42 @@ textarea {
 .two-columns {
   display: flex;
   gap: 20px;
-}
 
-.two-columns > div {
-  flex: 1;
+  > div {
+    flex: 1;
+  }
 }
 
 .upload-box {
-  border: 2px dashed #ccc;
+  border: 2px dashed #bbb;
   border-radius: 12px;
   padding: 32px;
   text-align: center;
   color: #777;
   background-color: #fafafa;
-}
+  transition: all 0.3s ease;
 
-.upload-box button {
-  margin-top: 14px;
-  padding: 8px 14px;
-  background-color: #e0f7f3;
-  color: #00a693;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.3s;
-}
+  &:hover {
+    border-color: #00a693;
+    background-color: #f0fdfa;
+  }
 
-.upload-box button:hover {
-  background-color: #c8f1ec;
+  button {
+    margin-top: 14px;
+    padding: 8px 14px;
+    background-color: #00a693;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s;
+
+    &:hover {
+      background-color: #008e7c;
+    }
+  }
 }
 
 .upload-preview {
@@ -103,17 +113,19 @@ textarea {
   display: flex;
   align-items: center;
   gap: 14px;
-  background-color: #f0f0f0;
+  background-color: #f7f7f7;
   border-radius: 10px;
   padding: 10px;
+  border: 1px solid #e6e6e6;
 }
 
 .upload-thumb {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #e0e0e0;
+
   img {
     width: 100%;
     height: 100%;
@@ -121,52 +133,45 @@ textarea {
   }
 }
 
-.progress-bar {
-  flex: 1;
-  height: 6px;
-  background-color: #e6e6e6;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-bar > div {
-  height: 100%;
-  background-color: #3f51b5;
-  width: 100%;
-}
-
-.checkmark {
-  color: #00a693;
-  font-size: 18px;
-  font-weight: bold;
-}
-
 .buttons {
   display: flex;
   gap: 14px;
   margin-top: 24px;
-}
 
-.buttons button {
-  padding: 10px 20px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-}
+  button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
 
-.buttons .update {
-  background-color: #1f1f1f;
-  color: white;
-}
+  .update {
+    background-color: #00a693;
+    color: white;
 
-.buttons .delete {
-  background-color: #003366;
-  color: white;
-}
+    &:hover {
+      background-color: #008e7c;
+    }
+  }
 
-.buttons .back {
-  background-color: #f5f5f5;
-  color: #333;
+  .delete {
+    background-color: #e53935;
+    color: white;
+
+    &:hover {
+      background-color: #c62828;
+    }
+  }
+
+  .back {
+    background-color: #f5f5f5;
+    color: #333;
+
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  }
 }

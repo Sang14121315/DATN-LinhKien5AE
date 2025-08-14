@@ -89,6 +89,13 @@ const ProductListPage: React.FC = () => {
     setFiltersInitialized(true);
   }, [searchParams]);
 
+const getImageUrl = (url?: string): string => {
+  if (!url) return '/images/no-image.png';
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+  return `http://localhost:5000/uploads/products/${url}`;
+};
+
   // Lọc sản phẩm theo bộ lọc
   useEffect(() => {
     if (!filtersInitialized) return;
@@ -202,6 +209,25 @@ const ProductListPage: React.FC = () => {
               </ul>
             </div>
 
+            <ul className="dropdown-content">
+  <li
+    onClick={() => setSelectedCategory("all")}
+    className={selectedCategory === "all" ? "active" : ""}
+  >
+    TẤT CẢ SẢN PHẨM
+  </li>
+  {categories.map((category) => (
+    <li
+      key={category._id}
+      onClick={() => setSelectedCategory(category._id)}
+      className={selectedCategory === category._id ? "active" : ""}
+    >
+      {category.name}
+    </li>
+  ))}
+</ul>
+          </div>
+
             {/* Lọc giá */}
             <div className="sidebar-section">
               <h3>LỌC GIÁ</h3>
@@ -310,6 +336,7 @@ const ProductListPage: React.FC = () => {
                         </p>
                         <h4 className="product-name">{product.name}</h4>
 
+
                         <div className="price-block">
                           <div className="price-left">
                             {product.sale ? (
@@ -323,6 +350,43 @@ const ProductListPage: React.FC = () => {
                           </div>
                           {product.sale && <div className="discount-percent">-34%</div>}
                         </div>
+
+          <div className="product-grid">
+            {products.length > 0 ? (
+              paginatedProducts.map((product) => {
+                const isFavorite = favorites.some((f) => f._id === product._id);
+                return (
+                  <div className="product-card" key={product._id}>
+                    <img
+  src={getImageUrl(product.img_url)}
+  alt={product.name}
+  style={{ cursor: "pointer" }}
+  onClick={() => {
+    sessionStorage.setItem(
+      "productFilters",
+      JSON.stringify({
+        category: selectedCategory,
+        brand: selectedBrand,
+        price: selectedPrice,
+        scroll: window.scrollY,
+      })
+    );
+    navigate(`/product/${product._id}`);
+  }}
+/>
+                    <button
+                      className="favorite-icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFavoriteClick(product);
+                      }}
+                    >
+                      {isFavorite ? <FaHeart /> : <FaRegHeart />}
+                    </button>
+                    <p className="product-brand">
+                      {typeof product.brand_id === "object" ? product.brand_id.name : product.brand_id}
+                    </p>
+                    <h4 className="product-name">{product.name}</h4>
 
                         <button
                           className="add-to-cart"
