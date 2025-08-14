@@ -596,56 +596,59 @@ body {
           align-items: center;
 
           .add-to-cart-btn {
-            flex: none;
-            background: #fafafb;
-            color: white;
-            border: 1px solid #39b6ff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease !important;
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-            padding: 0;
-            gap: 0;
-
-            .btn-text {
-              opacity: 0;
-              margin-left: 6px;
-              transition: opacity 0.3s ease !important;
-              pointer-events: none;
-            }
-
-            .cart-icon {
-              color: #010101;
-              font-size: 18px;
-            }
-
-            &:hover {
-              border-radius: 8px;
-              width: 160px;
-              padding: 0 10px;
-              justify-content: flex-start;
-              gap: 6px;
-              background: #2a8fcc !important;
-              box-shadow: 0 4px 12px rgba(57, 182, 255, 0.3) !important;
-
-              .btn-text {
-                opacity: 1 !important;
-              }
-            }
-
-            &:active {
-              transform: translateY(0) !important;
-            }
-          }
+  /* Style cơ bản */
+  background: #39b6ff;
+  color: white;
+  border: 1px solid #39b6ff;
+  border-radius: 50px; /* Sử dụng giá trị lớn để luôn tròn khi nhỏ */
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  white-space: nowrap;
+  
+  /* Style cho icon */
+  .cart-icon {
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s ease;
+  }
+  
+  /* Style cho text - ẩn ban đầu */
+  .btn-text {
+    opacity: 0;
+    width: 0;
+    transition: all 0.3s ease;
+    margin-left: 0;
+  }
+  
+  /* Khi hover */
+  &:hover {
+    width: 160px;
+    justify-content: flex-start;
+    padding-left: 40px; /* Để icon không bị che */
+    
+    .cart-icon {
+      left: 12px;
+      transform: translateX(0);
+    }
+    
+    .btn-text {
+      opacity: 1;
+      width: auto;
+      margin-left: 8px;
+    }
+  }
+}
 
           .favorite-iconm {
             position: absolute;
@@ -796,6 +799,29 @@ body {
           }
         }
       }
+.favorite-iconm {
+            position: absolute;
+            top: 8px;
+            right: 9px;
+            margin-top: 270px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 34px;
+            color: #666666;
+            transition: color 0.2s;
+            z-index: 10;
+
+            &:hover {
+              color: red;
+              transform: scale(1.1);
+            }
+
+            svg {
+              fill: currentColor;
+            }
+          }
+     
 
       .product-info {
         flex: 1;
@@ -875,56 +901,59 @@ body {
           align-items: center;
 
           .add-to-cart-btn {
-            flex: none;
-            background: #fafafb;
-            color: white;
-            border: 1px solid #39b6ff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease !important;
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-            padding: 0;
-            gap: 0;
-
-            .btn-text {
-              opacity: 0;
-              margin-left: 6px;
-              transition: opacity 0.3s ease !important;
-              pointer-events: none;
-            }
-
-            .cart-icon {
-              color: #010101;
-              font-size: 18px;
-            }
-
-            &:hover {
-              border-radius: 8px;
-              width: 180px;
-              padding: 0 10px;
-              justify-content: flex-start;
-              gap: 6px;
-              background: #2a8fcc !important;
-              box-shadow: 0 4px 12px rgba(57, 182, 255, 0.3) !important;
-
-              .btn-text {
-                opacity: 1 !important;
-              }
-            }
-
-            &:active {
-              transform: translateY(0) !important;
-            }
-          }
+  /* Style cơ bản */
+  background: #39b6ff;
+  color: white;
+  border: 1px solid #39b6ff;
+  border-radius: 50px; /* Sử dụng giá trị lớn để luôn tròn khi nhỏ */
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  white-space: nowrap;
+  
+  /* Style cho icon */
+  .cart-icon {
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s ease;
+  }
+  
+  /* Style cho text - ẩn ban đầu */
+  .btn-text {
+    opacity: 0;
+    width: 0;
+    transition: all 0.3s ease;
+    margin-left: 0;
+  }
+  
+  /* Khi hover */
+  &:hover {
+    width: 160px;
+    justify-content: flex-start;
+    padding-left: 40px; /* Để icon không bị che */
+    
+    .cart-icon {
+      left: 12px;
+      transform: translateX(0);
+    }
+    
+    .btn-text {
+      opacity: 1;
+      width: auto;
+      margin-left: 8px;
+    }
+  }
+}
         }
       }
     }
