@@ -190,7 +190,12 @@ const ProductDetail: React.FC = () => {
       }
     }
   };
-
+const getImageUrl = (url?: string): string => {
+  if (!url) return '/images/no-image.png';
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+  return `http://localhost:5000/uploads/products/${url}`;
+};
   const handleViewMore = () => {
     setVisibleReviews(reviews.length);
   };
@@ -220,11 +225,7 @@ const ProductDetail: React.FC = () => {
           {product.sale && (
             <span className="discount-badge">-{discountPercent}% OFF</span>
           )}
-          <img
-            className="product-image"
-            src={product.img_url}
-            alt={product.name}
-          />
+          <img src={getImageUrl(product.img_url)} alt={product.name}  />
         </div>
 
         <div className="info-section">

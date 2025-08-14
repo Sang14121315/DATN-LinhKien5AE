@@ -86,6 +86,13 @@ const ProductListPage: React.FC = () => {
     setFiltersInitialized(true);
   }, [searchParams]);
 
+const getImageUrl = (url?: string): string => {
+  if (!url) return '/images/no-image.png';
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+  return `http://localhost:5000/uploads/products/${url}`;
+};
+
   // Lọc sản phẩm theo bộ lọc
   useEffect(() => {
     if (!filtersInitialized) return;
@@ -169,34 +176,22 @@ const ProductListPage: React.FC = () => {
               <span>DANH MỤC SẢN PHẨM</span>
             </div>
             <ul className="dropdown-content">
-              <li onClick={() => setSelectedCategory("all")} className={selectedCategory === "all" ? "active" : ""}>
-                TẤT CẢ SẢN PHẨM
-              </li>
-              {productTypes.map((productType) => (
-                <React.Fragment key={productType._id}>
-                  <li
-                    className={`product-type-item ${expandedProductType === productType._id ? "expanded" : ""}`}
-                    onClick={() => toggleProductType(productType._id)}
-                  >
-                    {productType.name.toUpperCase()}
-                    <span className="dropdown-icon">{expandedProductType === productType._id ? "▼" : "▶"}</span>
-                  </li>
-                  {expandedProductType === productType._id && (
-                    <div className="sub-categories">
-                      {productTypeCategories[productType._id]?.map((category) => (
-                        <li
-                          key={category._id}
-                          onClick={() => setSelectedCategory(category._id)}
-                          className={selectedCategory === category._id ? "active" : ""}
-                        >
-                          {category.name}
-                        </li>
-                      ))}
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
-            </ul>
+  <li
+    onClick={() => setSelectedCategory("all")}
+    className={selectedCategory === "all" ? "active" : ""}
+  >
+    TẤT CẢ SẢN PHẨM
+  </li>
+  {categories.map((category) => (
+    <li
+      key={category._id}
+      onClick={() => setSelectedCategory(category._id)}
+      className={selectedCategory === category._id ? "active" : ""}
+    >
+      {category.name}
+    </li>
+  ))}
+</ul>
           </div>
 
           {/* Lọc giá */}
@@ -276,22 +271,22 @@ const ProductListPage: React.FC = () => {
                 return (
                   <div className="product-card" key={product._id}>
                     <img
-                      src={product.img_url}
-                      alt={product.name}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => {
-                        sessionStorage.setItem(
-                          "productFilters",
-                          JSON.stringify({
-                            category: selectedCategory,
-                            brand: selectedBrand,
-                            price: selectedPrice,
-                            scroll: window.scrollY,
-                          })
-                        );
-                        navigate(`/product/${product._id}`);
-                      }}
-                    />
+  src={getImageUrl(product.img_url)}
+  alt={product.name}
+  style={{ cursor: "pointer" }}
+  onClick={() => {
+    sessionStorage.setItem(
+      "productFilters",
+      JSON.stringify({
+        category: selectedCategory,
+        brand: selectedBrand,
+        price: selectedPrice,
+        scroll: window.scrollY,
+      })
+    );
+    navigate(`/product/${product._id}`);
+  }}
+/>
                     <button
                       className="favorite-icon"
                       onClick={(e) => {

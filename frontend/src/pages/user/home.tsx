@@ -268,59 +268,29 @@ const HomePage: React.FC = () => {
     <div className="dropdown-header">Danh mục sản phẩm</div>
     <ul className="dropdown-content">
       <li
-  className={selectedCategory === 'all' ? 'active' : ''}
-  onClick={() => {
-    setSelectedCategory("all"); // lọc ngay nếu đang ở product-list
-    navigate('/product-list');
-    setIsSidebarOpen(false);
-  }}
->
-  Tất cả sản phẩm
-</li>
-
-{productTypes.map((productType) => (
-  <React.Fragment key={productType._id}>
-    <li className={`product-type-item ${expandedProductType === productType._id ? 'expanded' : ''}`}>
-      <span
-        style={{ cursor: 'pointer', flex: 1 }}
+        className={selectedCategory === 'all' ? 'active' : ''}
         onClick={() => {
           setSelectedCategory("all");
-          navigate(`/product-list?productType=${productType._id}`);
+          navigate('/product-list');
           setIsSidebarOpen(false);
         }}
       >
-        {productType.name.toUpperCase()}
-      </span>
-      <span
-        className="dropdown-icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          toggleProductType(productType._id);
-        }}
-      >
-        {expandedProductType === productType._id ? '▼' : '▶'}
-      </span>
-    </li>
+        Tất cả sản phẩm
+      </li>
 
-    {expandedProductType === productType._id && (
-      <div className="sub-categories">
-        {productTypeCategories[productType._id]?.map((category) => (
-          <li
-            key={category._id}
-            className={selectedCategory === category._id ? 'active' : ''}
-            onClick={() => {
-              setSelectedCategory(category._id);
-              navigate(`/product-list?category=${category._id}`);
-              setIsSidebarOpen(false);
-            }}
-          >
-            {category.name}
-          </li>
-        ))}
-      </div>
-    )}
-  </React.Fragment>
-))}
+      {categories.map((category) => (
+        <li
+          key={category._id}
+          className={selectedCategory === category._id ? 'active' : ''}
+          onClick={() => {
+            setSelectedCategory(category._id);
+            navigate(`/product-list?category=${category._id}`);
+            setIsSidebarOpen(false);
+          }}
+        >
+          {category.name}
+        </li>
+      ))}
     </ul>
   </div>
 </aside>
@@ -511,15 +481,7 @@ const HomePage: React.FC = () => {
                       alt={product.name}
                       onClick={() => navigate(`/product/${product._id}`)}
                     />
-                    <button
-                      className="favorite-icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteClick(product);
-                      }}
-                    >
-                      {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                    </button>
+                    
                   </div>
                   <div className="product-info">
                     <h4 className="product-name">{product.name}</h4>
@@ -543,23 +505,31 @@ const HomePage: React.FC = () => {
                       Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng 3-6 tháng
                     </div>
                     <div className="action-buttons">
-                      <button
-                        className="add-to-cart-btn"
-                        onClick={() =>
-                          addToCart({
-                            _id: product._id,
-                            name: product.name,
-                            price: product.price,
-                            img_url: product.img_url,
-                            quantity: 1,
-                          })
-                        }
-                        onMouseEnter={(e) => e.currentTarget.classList.add('expanded')}
-                        onMouseLeave={(e) => e.currentTarget.classList.remove('expanded')}
-                      >
-                        <span className="btn-text">Thêm vào giỏ</span>
-                      </button>
-                    </div>
+ <button
+  className="add-to-cart-btn"
+  onClick={() =>
+    addToCart({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      img_url: product.img_url,
+      quantity: 1,
+    })
+  }
+>
+  <FaShoppingCart className="cart-icon" />
+  <span className="btn-text">Thêm vào giỏ</span>
+</button>
+  <button
+    className="favorite-iconm"
+    onClick={(e) => {
+      e.stopPropagation();
+      handleFavoriteClick(product);
+    }}
+  >
+    {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+  </button>
+</div>
                   </div>
                 </div>
               ))
@@ -632,19 +602,20 @@ const HomePage: React.FC = () => {
                           {product.sale && <div className="discount-percent">-34%</div>}
                         </div>
                         <button
-                          className="add-to-cart"
-                          onClick={() =>
-                            addToCart({
-                              _id: product._id,
-                              name: product.name,
-                              price: product.price,
-                              quantity: 1,
-                              img_url: getImageUrl(product.img_url),
-                            })
-                          }
-                        >
-                          <FaShoppingCart /> Thêm vào giỏ
-                        </button>
+  className="add-to-cart"
+  onClick={() =>
+    addToCart({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      img_url: getImageUrl(product.img_url),
+    })
+  }
+>
+  <FaShoppingCart className="cart-icon" />
+  <span className="btn-text">Thêm vào giỏ</span>
+</button>
                       </div>
                     ))
                   ) : (
