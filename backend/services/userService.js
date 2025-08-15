@@ -143,6 +143,34 @@ class UserService {
     }
   }
 
+  static async changePassword(userId, currentPassword, newPassword) {
+    try {
+      // Lấy user với password để verify
+      const user = await User.findById(userId);
+      if (!user) throw new Error("Người dùng không tồn tại");
+
+      // Verify mật khẩu hiện tại
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) throw new Error("Mật khẩu hiện tại không đúng");
+
+      // Hash mật khẩu mới
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      // Cập nhật mật khẩu
+      user.password = hashedPassword;
+      await user.save();
+
+      return {
+        success: true,
+        message: "Mật khẩu đã được thay đổi thành công.",
+      };
+    } catch (error) {
+      console.error("Error in changePassword:", error);
+      throw error;
+    }
+  }
+
   static async blockUser(id, block) {
     const user = await User.findByIdAndUpdate(
       id,
