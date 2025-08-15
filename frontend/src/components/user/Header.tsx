@@ -84,19 +84,19 @@ const Header: React.FC = () => {
           <div className="marquee-content">
             <span>🔌 Linh kiện xịn - Giá tốt - Bảo hành dài</span>
             <span className="separator">•</span>
-            <span>🚛 Giao nhanh 2h - Free ship 500K</span>
+            <span>🚛 Giao nhanh 2h - Free ship 200K</span>
             <span className="separator">•</span>
             <span>🔄 Thu cũ - Đổi mới - Giá cao</span>
             <span className="separator">•</span>
-            <span>📞 Tư vấn kỹ thuật: 1900.6868</span>
+            <span>📞 Tư vấn kỹ thuật: 123456789</span>
             <span className="separator">•</span>
             <span>🔌 Linh kiện xịn - Giá tốt - Bảo hành dài</span>
             <span className="separator">•</span>
-            <span>🚛 Giao nhanh 2h - Free ship 500K</span>
+            <span>🚛 Giao nhanh 2h - Free ship 200K</span>
             <span className="separator">•</span>
             <span>🔄 Thu cũ - Đổi mới - Giá cao</span>
             <span className="separator">•</span>
-            <span>📞 Tư vấn kỹ thuật: 1900.6868</span>
+            <span>📞 Tư vấn kỹ thuật: 123456789</span>
           </div>
         </div>
       </div>
@@ -214,7 +214,7 @@ const Header: React.FC = () => {
                 </div>
               </Col>
 
-              {/* Hamburger menu (mobile only) */}
+              {/* Hamburger menu (của mobie) */}
               <Col xs={4} sm={0} md={0} className="header__mobile-menu-btn">
                 <button
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -224,7 +224,7 @@ const Header: React.FC = () => {
                 </button>
               </Col>
             </Row>
-            {/* Dropdown menu for mobile */}
+            {/* Dropdown menu của mobile */}
             {showMobileMenu && (
               <>
                 <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)} />
