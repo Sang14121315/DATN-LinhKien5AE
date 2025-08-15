@@ -281,6 +281,8 @@ const getImageUrl = (url?: string): string => {
         brand: selectedBrand,
         price: selectedPrice,
         scroll: window.scrollY,
+      })
+    );
     navigate(`/product/${product._id}`);
   }}
 />
