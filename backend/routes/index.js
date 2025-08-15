@@ -182,6 +182,6 @@ router.put('/review/update/:review_id', auth, reviewController.updateReview);
 
 
 // Review (admin)
-router.post("/review/admin-reply/:review_id", auth, reviewController.adminReply);
+router.post("/review/admin-reply", auth, reviewController.adminReply);
 
 module.exports = router;
