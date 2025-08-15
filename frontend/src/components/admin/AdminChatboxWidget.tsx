@@ -1,18 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import { sendMessage, Message, fetchConversation } from "@/api/user/messageAPI";
+import { sendMessage, Message, fetchConversation, fetchAllMessages } from "@/api/user/messageAPI";
 import { io, Socket } from 'socket.io-client';
 import "@/styles/components/user/ChatbotWidget.scss";
-import { fetchUserById } from '@/api/userAPI';
+import { fetchUserById } from '@/api/user/userAPI';
 import Logo from '@/assets/Logo.png';
 import { Product, fetchAllProducts } from "@/api/user/productAPI";
 
 const SOCKET_URL = 'http://localhost:5000';
 const getCurrentUser = () => {
-  const userStr = localStorage.getItem("currentUser");
+  const userStr = localStorage.getItem("user");
   return userStr ? JSON.parse(userStr) : null;
 };
-const currentUser = getCurrentUser();
-const adminId = currentUser?._id;
 
 // Thêm hàm formatTimeAgo
 function formatTimeAgo(dateString: string) {
@@ -28,6 +26,14 @@ function formatTimeAgo(dateString: string) {
 }
 
 const AdminChatboxWidget: React.FC = () => {
+  const currentUser = getCurrentUser();
+  const adminId = currentUser?._id;
+  
+  console.log('AdminChatboxWidget - currentUser:', currentUser);
+  console.log('AdminChatboxWidget - adminId:', adminId);
+  console.log('AdminChatboxWidget - role:', currentUser?.role);
+  console.log('AdminChatboxWidget - isAdmin:', currentUser?.role === 'admin');
+  
   const [conversations, setConversations] = useState<Record<string, Message[]>>({});
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [input, setInput] = useState("");
@@ -53,9 +59,37 @@ const AdminChatboxWidget: React.FC = () => {
     }
   }, [open, selectedUser]);
 
+  // Fetch tất cả conversations khi mở chat lần đầu
+  useEffect(() => {
+    if (open && adminId) {
+      fetchAllMessages().then((messages) => {
+        // Nhóm tin nhắn theo user
+        const conversationsByUser: Record<string, Message[]> = {};
+        messages.forEach(msg => {
+          const senderId = typeof msg.sender_id === 'string' ? msg.sender_id : msg.sender_id?._id;
+          const receiverId = typeof msg.receiver_id === 'string' ? msg.receiver_id : msg.receiver_id?._id;
+          
+          // Chỉ lấy tin nhắn liên quan đến admin
+          if (senderId === adminId || receiverId === adminId) {
+            const otherUserId = senderId === adminId ? receiverId : senderId;
+            if (!conversationsByUser[otherUserId]) {
+              conversationsByUser[otherUserId] = [];
+            }
+            conversationsByUser[otherUserId].push(msg);
+          }
+        });
+        
+        setConversations(conversationsByUser);
+        console.log('AdminChatboxWidget - Loaded conversations:', conversationsByUser);
+      }).catch(error => {
+        console.error('AdminChatboxWidget - Error fetching conversations:', error);
+      });
+    }
+  }, [open, adminId]);
+
   // Kết nối socket - chỉ tạo 1 lần khi open, cleanup đúng cách
   useEffect(() => {
-    if (open) {
+    if (open && adminId) {
       if (!socketRef.current) {
         const socket = io(SOCKET_URL, { transports: ['websocket'] });
         socket.emit('join', adminId);
@@ -110,9 +144,14 @@ const AdminChatboxWidget: React.FC = () => {
   }, [conversations, open, selectedUser]);
 
   // Sắp xếp tin nhắn theo thời gian
-  Object.keys(conversations).forEach(key => {
-    conversations[key].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  });
+  useEffect(() => {
+    Object.keys(conversations).forEach(key => {
+      setConversations(prev => ({
+        ...prev,
+        [key]: [...prev[key]].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      }));
+    });
+  }, [conversations]);
 
   // Fetch tên user cho tất cả senderId trong mọi hội thoại
   useEffect(() => {
@@ -145,7 +184,7 @@ const AdminChatboxWidget: React.FC = () => {
 
   // Lọc đúng hội thoại giữa admin và user đang chọn (so sánh _id trong object hoặc string)
   const filteredMessages = (msgs: Message[]) => {
-    if (!selectedUser) return [];
+    if (!selectedUser || !adminId) return [];
     return msgs.filter(m => {
       const senderId = typeof m.sender_id === 'string' ? m.sender_id : m.sender_id?._id;
       const receiverId = typeof m.receiver_id === 'string' ? m.receiver_id : m.receiver_id?._id;
@@ -163,7 +202,7 @@ const AdminChatboxWidget: React.FC = () => {
   // Trả lại logic hiển thị badge và danh sách user/chat như mặc định ban đầu (có thể là đếm tổng số tin nhắn hoặc logic cũ của bạn)
   // Gửi tin nhắn
   const handleSend = async () => {
-    if (!input.trim() || !selectedUser) return;
+    if (!input.trim() || !selectedUser || !adminId) return;
     setLoading(true);
     try {
       await sendMessage(selectedUser, input);
@@ -185,6 +224,7 @@ const AdminChatboxWidget: React.FC = () => {
   // Xoá hàm handleOpenProductModal
   // Gửi sản phẩm vào chat
   const handleSendProduct = async (product: Product) => {
+    if (!adminId) return;
     setShowProductModal(false);
     setLoading(true);
     try {
@@ -214,6 +254,17 @@ const AdminChatboxWidget: React.FC = () => {
     }
   };
 
+  // Hàm chọn user để chat
+  const handleSelectUser = (userId: string) => {
+    setSelectedUser(userId);
+    localStorage.setItem('admin_selected_user', userId);
+    // Reset unread count khi chọn user
+    setUnreadCounts(prev => ({
+      ...prev,
+      [userId]: 0
+    }));
+  };
+
   // Render nội dung tin nhắn
   const renderMessageContent = (m: Message) => {
     try {
@@ -239,6 +290,14 @@ const AdminChatboxWidget: React.FC = () => {
     return m.content;
   };
 
+  // Nếu không có adminId hoặc không phải admin, không render component
+  if (!adminId || currentUser?.role !== 'admin') {
+    console.log('AdminChatboxWidget - Not admin or no adminId:', { adminId, role: currentUser?.role });
+    return null;
+  }
+
+  console.log('AdminChatboxWidget - Rendering component');
+  
   return (
     <div className="chatbot-widget admin" style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999 }}>
       {!open && (
@@ -336,6 +395,13 @@ const AdminChatboxWidget: React.FC = () => {
                       />
                       <button onClick={handleSend} disabled={loading || !input.trim()}>
                         Gửi
+                      </button>
+                      <button 
+                        onClick={handleOpenProductModal} 
+                        disabled={loading}
+                        style={{ marginLeft: 8, padding: '8px 12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+                      >
+                        📦
                       </button>
                     </div>
                   </div>

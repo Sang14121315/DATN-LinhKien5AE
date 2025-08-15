@@ -5,6 +5,14 @@
   z-index: 9999;
   font-family: 'Segoe UI', Arial, sans-serif;
 
+  &.admin {
+    .chat-container {
+      width: 800px;
+      min-width: 600px;
+      height: 600px;
+    }
+  }
+
   .chat-button {
     width: 44px;
     height: 44px;
@@ -419,4 +427,33 @@
 }
 .chatbot-widget.user .chat-input .input-group button:hover:not(:disabled) {
   background: #1565C0 !important;
+}
+
+// Admin chatbox styles
+.chatbot-widget.admin {
+  .chat-container {
+    border: 1.5px solid #ff6b35;
+  }
+  
+  .chat-header {
+    background: linear-gradient(90deg, #ff6b35 0%, #f7931e 100%);
+  }
+  
+  .chat-input .input-group button {
+    background: #ff6b35;
+    color: #fff;
+  }
+  
+  .chat-input .input-group button:hover:not(:disabled) {
+    background: #e55a2b;
+  }
+  
+  .conversation-item.active {
+    background: rgba(255, 107, 53, 0.1);
+    border-left: 3px solid #ff6b35;
+  }
+  
+  .conversation-item:hover {
+    background: rgba(255, 107, 53, 0.05);
+  }
 }
