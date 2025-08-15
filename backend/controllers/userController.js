@@ -252,3 +252,50 @@ exports.updateProfile = async (req, res) => {
       .json({ message: error.message || "Error updating profile" });
   }
 };
+
+// Đổi mật khẩu user hiện tại
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validation schema cho change password
+    const changePasswordSchema = Joi.object({
+      currentPassword: Joi.string().required().messages({
+        "any.required": "Mật khẩu hiện tại là bắt buộc",
+        "string.empty": "Mật khẩu hiện tại không được để trống",
+      }),
+      newPassword: Joi.string()
+        .min(6)
+        .max(50)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+        .required()
+        .messages({
+          "string.min": "Mật khẩu mới phải có ít nhất 6 ký tự",
+          "string.max": "Mật khẩu mới không được quá 50 ký tự",
+          "string.pattern.base":
+            "Mật khẩu mới phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số",
+          "any.required": "Mật khẩu mới là bắt buộc",
+          "string.empty": "Mật khẩu mới không được để trống",
+        }),
+    });
+
+    const { error } = changePasswordSchema.validate(req.body);
+    if (error)
+      return res.status(400).json({ message: error.details[0].message });
+
+    const result = await UserService.changePassword(
+      req.user.id,
+      currentPassword,
+      newPassword
+    );
+
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Error changing password" });
+  }
+};

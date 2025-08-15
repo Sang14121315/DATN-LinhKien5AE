@@ -30,6 +30,20 @@ export const updateProfile = async (data: UpdateProfileData): Promise<User> => {
   return response.data;
 };
 
+// Interface cho đổi mật khẩu
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+// Đổi mật khẩu
+export const changePassword = async (
+  data: ChangePasswordData
+): Promise<{ success: boolean; message: string }> => {
+  const response = await axios.put("/profile/change-password", data);
+  return response.data;
+};
+
 // Đăng ký
 export const registerUser = async (data: {
   name: string;

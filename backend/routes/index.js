@@ -13,8 +13,8 @@ const homeController = require("../controllers/homeController");
 const contactController = require("../controllers/contactController");
 const productTypeController = require("../controllers/productTypeController");
 const cartController = require("../controllers/cartController");
-const favoriteController = require('../controllers/favoriteController');
-const reviewController = require('../controllers/reviewController');
+const favoriteController = require("../controllers/favoriteController");
+const reviewController = require("../controllers/reviewController");
 const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
@@ -79,12 +79,15 @@ router.delete(
 );
 
 // Categories
-router.get('/categories', categoryController.getCategories);
-router.get('/categories/by-product-type/:productTypeId', categoryController.getCategoriesByProductType);
-router.get('/categories/:id', categoryController.getCategoryById);
-router.post('/categories', categoryController.createCategory);
-router.put('/categories/:id', categoryController.updateCategory);
-router.delete('/categories/:id', categoryController.deleteCategory);
+router.get("/categories", categoryController.getCategories);
+router.get(
+  "/categories/by-product-type/:productTypeId",
+  categoryController.getCategoriesByProductType
+);
+router.get("/categories/:id", categoryController.getCategoryById);
+router.post("/categories", categoryController.createCategory);
+router.put("/categories/:id", categoryController.updateCategory);
+router.delete("/categories/:id", categoryController.deleteCategory);
 
 // Brands
 router.get("/brands", brandController.getBrands);
@@ -154,6 +157,7 @@ router.patch("/users/:id/block", userController.blockUser);
 // User profile (user)
 router.get("/profile", auth, userController.getCurrentUser);
 router.put("/profile", auth, userController.updateProfile);
+router.put("/profile/change-password", auth, userController.changePassword);
 
 // Contact management (admin)
 router.get("/contacts", contactController.getContacts);
@@ -164,9 +168,9 @@ router.get("/contacts/:id", contactController.getContactById);
 router.post("/contacts/:id/reply", contactController.replyContact);
 
 // Favorite (user)
-router.post('/favorite/add', auth, favoriteController.addFavorite);
-router.post('/favorite/remove', auth, favoriteController.removeFavorite);
-router.get('/favorite/my', auth, favoriteController.getUserFavorites);
+router.post("/favorite/add", auth, favoriteController.addFavorite);
+router.post("/favorite/remove", auth, favoriteController.removeFavorite);
+router.get("/favorite/my", auth, favoriteController.getUserFavorites);
 
 // Review (user)
 router.post('/review/add', auth, reviewController.addReview);
@@ -176,7 +180,8 @@ router.get('/review/user/:product_id', auth, reviewController.getUserReviewsForP
 router.get('/review/unreviewed-orders/:product_id', auth, reviewController.getUnreviewedOrderDetails);
 router.put('/review/update/:review_id', auth, reviewController.updateReview);
 
+
 // Review (admin)
-router.post('/review/admin-reply', auth, reviewController.adminReply);
+router.post("/review/admin-reply/:review_id", auth, reviewController.adminReply);
 
 module.exports = router;

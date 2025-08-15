@@ -51,6 +51,15 @@ const ProductListPage: React.FC = () => {
         ]);
         setBrands(brandData);
         setCategories(categoryData);
+
+        setProductTypes(productTypeData);
+
+        const categoriesByProductType: Record<string, Category[]> = {};
+        for (const productType of productTypeData) {
+          const categories = await fetchCategoriesByProductType(productType._id);
+          categoriesByProductType[productType._id] = categories;
+        }setProductTypeCategories(categoriesByProductType);
+
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -140,8 +149,7 @@ const ProductListPage: React.FC = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         addToFavorite({
-          _id: product._id,
-          name: product.name,
+          _id: product._id,name: product.name,
           price: product.price,
           img_url: product.img_url,
         });
@@ -190,6 +198,8 @@ const getImageUrl = (url?: string): string => {
               </ul>
             </div>
 
+            {/* Lọc giá */}
+
             <div className="sidebar-section">
               <h3>LỌC GIÁ</h3>
               <div className="price-radio-group">
@@ -207,8 +217,7 @@ const getImageUrl = (url?: string): string => {
                       type="radio"
                       name="price"
                       value={value}
-                      checked={selectedPrice === value}
-                      onChange={() => setSelectedPrice(value)}
+                      checked={selectedPrice === value}onChange={() => setSelectedPrice(value)}
                     />
                     <span>{label}</span>
                   </label>
@@ -270,6 +279,7 @@ const getImageUrl = (url?: string): string => {
                     <Col xs={12} sm={8} md={6} lg={6} key={product._id}>
                       <div className="product-card">
                         <img
+
   src={getImageUrl(product.img_url)}
   alt={product.name}
   style={{ cursor: "pointer" }}
@@ -286,6 +296,23 @@ const getImageUrl = (url?: string): string => {
     navigate(`/product/${product._id}`);
   }}
 />
+
+                          src={product.img_url}
+                          alt={product.name}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            sessionStorage.setItem(
+                              "productFilters",
+                              JSON.stringify({
+                                category: selectedCategory,
+                                brand: selectedBrand,
+                                price: selectedPrice,
+                                scroll: window.scrollY,
+                              })
+                            );
+                            navigate(`/product/${product._id}`);}}
+                        />
+
                         <button
                           className="favorite-icon"
                           onClick={(e) => {
@@ -351,8 +378,7 @@ const getImageUrl = (url?: string): string => {
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}disabled={currentPage === totalPages}
                 >
                   Sau &raquo;
                 </button>
