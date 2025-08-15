@@ -270,6 +270,7 @@ const getImageUrl = (url?: string): string => {
                     <Col xs={12} sm={8} md={6} lg={6} key={product._id}>
                       <div className="product-card">
                         <img
+
   src={getImageUrl(product.img_url)}
   alt={product.name}
   style={{ cursor: "pointer" }}
@@ -286,6 +287,23 @@ const getImageUrl = (url?: string): string => {
     navigate(`/product/${product._id}`);
   }}
 />
+
+                          src={product.img_url}
+                          alt={product.name}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            sessionStorage.setItem(
+                              "productFilters",
+                              JSON.stringify({
+                                category: selectedCategory,
+                                brand: selectedBrand,
+                                price: selectedPrice,
+                                scroll: window.scrollY,
+                              })
+                            );
+                            navigate(`/product/${product._id}`);}}
+                        />
+
                         <button
                           className="favorite-icon"
                           onClick={(e) => {
