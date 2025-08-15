@@ -396,17 +396,8 @@ const HomePage: React.FC = () => {
                   <div className="product-info">
                     <h4 className="product-name">{product.name}</h4>
                     <div className="rating-section">
-                      <div className="stars">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span
-                            key={star}
-                            className={`star ${star <= 4 ? 'filled' : ''}`}
-                          >
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                      <span className="rating-text">(4.0)</span>
+
+                      
                     </div>
                     <div className="price-section">
                       <span className="current-price">
@@ -416,9 +407,7 @@ const HomePage: React.FC = () => {
                         <span className="original-price">{formatCurrency(product.price * 1.15)}</span>
                       )}
                     </div>
-                    <div className="installment-info">
-                      Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6 tháng
-                    </div>
+                    
                     <div className="action-buttons">
                       <button
                         className="add-to-cart-btn"
@@ -485,14 +474,6 @@ const HomePage: React.FC = () => {
                   </div>
                   <div className="product-info">
                     <h4 className="product-name">{product.name}</h4>
-                    <div className="rating-section">
-                      <div className="stars">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span key={star} className={`star ${star <= 4 ? 'filled' : ''}`}>★</span>
-                        ))}
-                      </div>
-                      <span className="rating-text">(4.0)</span>
-                    </div>
                     <div className="price-section">
                       <span className="current-price">
                         {product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}
@@ -501,35 +482,32 @@ const HomePage: React.FC = () => {
                         <span className="original-price">{formatCurrency(product.price * 1.25)}</span>
                       )}
                     </div>
-                    <div className="installment-info">
-                      Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng 3-6 tháng
-                    </div>
                     <div className="action-buttons">
- <button
-  className="add-to-cart-btn"
-  onClick={() =>
-    addToCart({
-      _id: product._id,
-      name: product.name,
-      price: product.price,
-      img_url: product.img_url,
-      quantity: 1,
-    })
-  }
->
-  <FaShoppingCart className="cart-icon" />
-  <span className="btn-text">Thêm vào giỏ</span>
-</button>
-  <button
-    className="favorite-iconm"
-    onClick={(e) => {
-      e.stopPropagation();
-      handleFavoriteClick(product);
-    }}
-  >
-    {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-  </button>
-</div>
+                      <button
+                        className="add-to-cart-btn"
+                        onClick={() =>
+                          addToCart({
+                            _id: product._id,
+                            name: product.name,
+                            price: product.price,
+                            img_url: product.img_url,
+                            quantity: 1,
+                          })
+                        }
+                      >
+                        <FaShoppingCart className="cart-icon" />
+                        <span className="btn-text">Thêm vào giỏ</span>
+                      </button>
+                        <button
+                          className="favorite-iconm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFavoriteClick(product);
+                          }}
+                        >
+                          {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                        </button>
+                      </div>
                   </div>
                 </div>
               ))
@@ -567,15 +545,6 @@ const HomePage: React.FC = () => {
                             navigate(`/product/${product._id}`);
                           }}
                         />
-                        <button
-                          className="favorite-icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFavoriteClick(product);
-                          }}
-                        >
-                          {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                        </button>
                         <p className="product-brand">
                           {typeof product.brand_id === "object"
                             ? product.brand_id.name
@@ -601,37 +570,48 @@ const HomePage: React.FC = () => {
                           </div>
                           {product.sale && <div className="discount-percent">-34%</div>}
                         </div>
+                        <div className="action-buttons">
+                      <button
+                        className="add-to-cart-btn"
+                        onClick={() =>
+                          addToCart({
+                            _id: product._id,
+                            name: product.name,
+                            price: product.price,
+                            img_url: product.img_url,
+                            quantity: 1,
+                          })
+                        }
+                      >
+                        <FaShoppingCart className="cart-icon" />
+                        <span className="btn-text">Thêm vào giỏ</span>
+                      </button>
                         <button
-  className="add-to-cart"
-  onClick={() =>
-    addToCart({
-      _id: product._id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      img_url: getImageUrl(product.img_url),
-    })
-  }
->
-  <FaShoppingCart className="cart-icon" />
-  <span className="btn-text">Thêm vào giỏ</span>
-</button>
+                          className="favorite-iconm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFavoriteClick(product);
+                          }}
+                        >
+                          {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                        </button>
                       </div>
-                    ))
-                  ) : (
-                    <p>Không có sản phẩm trong danh mục này.</p>
-                  )}
-                </div>
-                <div className="load-more">
-                  <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
-                    Xem thêm
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      ))}
+                                                </div>
+                                              ))
+                                            ) : (
+                                              <p>Không có sản phẩm trong danh mục này.</p>
+                                            )}
+                                          </div>
+                                          <div className="load-more">
+                                            <button onClick={() => navigate(`/product-list?category=${category._id}`)}>
+                                              Xem thêm
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </section>
+                                ))}
     </div>
   );
 };
