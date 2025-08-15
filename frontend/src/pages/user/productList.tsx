@@ -61,8 +61,7 @@ const ProductListPage: React.FC = () => {
         for (const productType of productTypeData) {
           const categories = await fetchCategoriesByProductType(productType._id);
           categoriesByProductType[productType._id] = categories;
-        }
-        setProductTypeCategories(categoriesByProductType);
+        }setProductTypeCategories(categoriesByProductType);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -157,8 +156,7 @@ const getImageUrl = (url?: string): string => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         addToFavorite({
-          _id: product._id,
-          name: product.name,
+          _id: product._id,name: product.name,
           price: product.price,
           img_url: product.img_url,
         });
@@ -209,25 +207,6 @@ const getImageUrl = (url?: string): string => {
               </ul>
             </div>
 
-            <ul className="dropdown-content">
-  <li
-    onClick={() => setSelectedCategory("all")}
-    className={selectedCategory === "all" ? "active" : ""}
-  >
-    TẤT CẢ SẢN PHẨM
-  </li>
-  {categories.map((category) => (
-    <li
-      key={category._id}
-      onClick={() => setSelectedCategory(category._id)}
-      className={selectedCategory === category._id ? "active" : ""}
-    >
-      {category.name}
-    </li>
-  ))}
-</ul>
-          </div>
-
             {/* Lọc giá */}
             <div className="sidebar-section">
               <h3>LỌC GIÁ</h3>
@@ -246,8 +225,7 @@ const getImageUrl = (url?: string): string => {
                       type="radio"
                       name="price"
                       value={value}
-                      checked={selectedPrice === value}
-                      onChange={() => setSelectedPrice(value)}
+                      checked={selectedPrice === value}onChange={() => setSelectedPrice(value)}
                     />
                     <span>{label}</span>
                   </label>
@@ -319,8 +297,7 @@ const getImageUrl = (url?: string): string => {
                                 scroll: window.scrollY,
                               })
                             );
-                            navigate(`/product/${product._id}`);
-                          }}
+                            navigate(`/product/${product._id}`);}}
                         />
                         <button
                           className="favorite-icon"
@@ -350,44 +327,6 @@ const getImageUrl = (url?: string): string => {
                           </div>
                           {product.sale && <div className="discount-percent">-34%</div>}
                         </div>
-
-          <div className="product-grid">
-            {products.length > 0 ? (
-              paginatedProducts.map((product) => {
-                const isFavorite = favorites.some((f) => f._id === product._id);
-                return (
-                  <div className="product-card" key={product._id}>
-                    <img
-  src={getImageUrl(product.img_url)}
-  alt={product.name}
-  style={{ cursor: "pointer" }}
-  onClick={() => {
-    sessionStorage.setItem(
-      "productFilters",
-      JSON.stringify({
-        category: selectedCategory,
-        brand: selectedBrand,
-        price: selectedPrice,
-        scroll: window.scrollY,
-      })
-    );
-    navigate(`/product/${product._id}`);
-  }}
-/>
-                    <button
-                      className="favorite-icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteClick(product);
-                      }}
-                    >
-                      {isFavorite ? <FaHeart /> : <FaRegHeart />}
-                    </button>
-                    <p className="product-brand">
-                      {typeof product.brand_id === "object" ? product.brand_id.name : product.brand_id}
-                    </p>
-                    <h4 className="product-name">{product.name}</h4>
-
                         <button
                           className="add-to-cart"
                           onClick={() =>
@@ -426,8 +365,7 @@ const getImageUrl = (url?: string): string => {
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}disabled={currentPage === totalPages}
                 >
                   Sau &raquo;
                 </button>
