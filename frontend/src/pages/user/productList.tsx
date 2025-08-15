@@ -51,6 +51,15 @@ const ProductListPage: React.FC = () => {
         ]);
         setBrands(brandData);
         setCategories(categoryData);
+
+        setProductTypes(productTypeData);
+
+        const categoriesByProductType: Record<string, Category[]> = {};
+        for (const productType of productTypeData) {
+          const categories = await fetchCategoriesByProductType(productType._id);
+          categoriesByProductType[productType._id] = categories;
+        }setProductTypeCategories(categoriesByProductType);
+
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -140,8 +149,7 @@ const ProductListPage: React.FC = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         addToFavorite({
-          _id: product._id,
-          name: product.name,
+          _id: product._id,name: product.name,
           price: product.price,
           img_url: product.img_url,
         });
@@ -183,6 +191,8 @@ const ProductListPage: React.FC = () => {
               </ul>
             </div>
 
+            {/* Lọc giá */}
+
             <div className="sidebar-section">
               <h3>LỌC GIÁ</h3>
               <div className="price-radio-group">
@@ -200,8 +210,7 @@ const ProductListPage: React.FC = () => {
                       type="radio"
                       name="price"
                       value={value}
-                      checked={selectedPrice === value}
-                      onChange={() => setSelectedPrice(value)}
+                      checked={selectedPrice === value}onChange={() => setSelectedPrice(value)}
                     />
                     <span>{label}</span>
                   </label>
@@ -276,8 +285,7 @@ const ProductListPage: React.FC = () => {
                                 scroll: window.scrollY,
                               })
                             );
-                            navigate(`/product/${product._id}`);
-                          }}
+                            navigate(`/product/${product._id}`);}}
                         />
                         <button
                           className="favorite-icon"
@@ -344,8 +352,7 @@ const ProductListPage: React.FC = () => {
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}disabled={currentPage === totalPages}
                 >
                   Sau &raquo;
                 </button>

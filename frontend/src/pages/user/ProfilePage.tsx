@@ -1,6 +1,38 @@
 import React, { useState, useEffect } from "react";
-import { getCurrentUser, updateProfile, User } from "@/api/user/userAPI";
+import {
+  getCurrentUser,
+  updateProfile,
+  changePassword,
+  User,
+  ChangePasswordData,
+} from "@/api/user/userAPI";
 import "@/styles/pages/user/profile.scss";
+
+// Icon con mắt để ẩn/hiện mật khẩu
+const EyeIcon = ({ isVisible }: { isVisible: boolean }) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {isVisible ? (
+      <>
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ) : (
+      <>
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+        <line x1="1" y1="1" x2="23" y2="23" />
+      </>
+    )}
+  </svg>
+);
 
 const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -9,8 +41,21 @@ const ProfilePage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    address: ""
+    address: "",
   });
+
+  // State cho đổi mật khẩu
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState<ChangePasswordData>({
+    currentPassword: "",
+    newPassword: "",
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // State cho ẩn/hiện mật khẩu
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -24,7 +69,7 @@ const ProfilePage: React.FC = () => {
       setFormData({
         name: userData.name || "",
         phone: userData.phone || "",
-        address: userData.address || ""
+        address: userData.address || "",
       });
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -34,9 +79,9 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -51,6 +96,80 @@ const ProfilePage: React.FC = () => {
       alert("Có lỗi xảy ra khi cập nhật thông tin!");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Xử lý đổi mật khẩu
+  const handlePasswordChange = (
+    field: keyof ChangePasswordData,
+    value: string
+  ) => {
+    setPasswordData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleChangePassword = async () => {
+    // Validation
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !confirmPassword
+    ) {
+      alert("Vui lòng điền đầy đủ thông tin!");
+      return;
+    }
+
+    if (passwordData.newPassword !== confirmPassword) {
+      alert("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      alert("Mật khẩu mới phải có ít nhất 6 ký tự!");
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      const result = await changePassword(passwordData);
+
+      if (result.success) {
+        alert(result.message);
+        // Reset form
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+        });
+        setConfirmPassword("");
+      } else {
+        alert(result.message || "Có lỗi xảy ra khi đổi mật khẩu!");
+      }
+    } catch (error: unknown) {
+      console.error("Error changing password:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Có lỗi xảy ra khi đổi mật khẩu!";
+      alert(errorMessage);
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  // Toggle ẩn/hiện mật khẩu
+  const togglePasswordVisibility = (field: string) => {
+    switch (field) {
+      case "current":
+        setShowCurrentPassword(!showCurrentPassword);
+        break;
+      case "new":
+        setShowNewPassword(!showNewPassword);
+        break;
+      case "confirm":
+        setShowConfirmPassword(!showConfirmPassword);
+        break;
     }
   };
 
@@ -81,7 +200,7 @@ const ProfilePage: React.FC = () => {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Nhập tên của bạn"
                 />
               </div>
@@ -91,7 +210,7 @@ const ProfilePage: React.FC = () => {
                 <input
                   type="text"
                   value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
                   placeholder="Nhập số điện thoại"
                 />
               </div>
@@ -100,14 +219,14 @@ const ProfilePage: React.FC = () => {
                 <label>Địa chỉ</label>
                 <textarea
                   value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
                   placeholder="Nhập địa chỉ của bạn"
                   rows={3}
                 />
               </div>
 
-              <button 
-                className="save-btn" 
+              <button
+                className="save-btn"
                 onClick={handleSave}
                 disabled={saving}
               >
@@ -117,8 +236,98 @@ const ProfilePage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Phần đổi mật khẩu */}
+      <div className="change-password-section">
+        <div className="section-header">
+          <h2>Đổi Mật Khẩu</h2>
+        </div>
+
+        <div className="password-form">
+          <div className="form-group">
+            <label>Mật khẩu hiện tại</label>
+            <div className="password-input-container">
+              <input
+                type={showCurrentPassword ? "text" : "password"}
+                value={passwordData.currentPassword}
+                onChange={(e) =>
+                  handlePasswordChange("currentPassword", e.target.value)
+                }
+                placeholder="Nhập mật khẩu hiện tại"
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => togglePasswordVisibility("current")}
+              >
+                <EyeIcon isVisible={showCurrentPassword} />
+              </button>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Mật khẩu mới</label>
+            <div className="password-input-container">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                value={passwordData.newPassword}
+                onChange={(e) =>
+                  handlePasswordChange("newPassword", e.target.value)
+                }
+                placeholder="Nhập mật khẩu mới"
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => togglePasswordVisibility("new")}
+              >
+                <EyeIcon isVisible={showNewPassword} />
+              </button>
+            </div>
+            <small>
+              Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và
+              số
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label>Xác nhận mật khẩu mới</label>
+            <div className="password-input-container">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu mới"
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => togglePasswordVisibility("confirm")}
+              >
+                <EyeIcon isVisible={showConfirmPassword} />
+              </button>
+            </div>
+          </div>
+
+          <button
+            className="change-password-btn"
+            onClick={handleChangePassword}
+            disabled={changingPassword}
+          >
+            {changingPassword ? "Đang đổi mật khẩu..." : "Đổi mật khẩu"}
+          </button>
+
+          {/* Phần quên mật khẩu nằm bên trong form đổi mật khẩu */}
+          <div className="forgot-password-link">
+            <span>Quên mật khẩu? </span>
+            <a href="/forgot-password" className="forgot-password-link-text">
+              Đặt lại mật khẩu
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default ProfilePage; 
+export default ProfilePage;

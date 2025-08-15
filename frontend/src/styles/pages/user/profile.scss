@@ -27,7 +27,7 @@
 .profile-form-container {
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   padding: 32px 40px 24px 40px;
   width: 100%;
   max-width: 700px;
@@ -56,7 +56,9 @@
     text-align: left;
   }
 
-  input[type="text"], textarea, select {
+  input[type="text"],
+  textarea,
+  select {
     flex: 1;
     padding: 10px 12px;
     border: 1px solid #e0e0e0;
@@ -97,7 +99,7 @@
 
 .save-btn {
   margin-top: 32px;
-  background: #007BFF;
+  background: #007bff;
   color: #fff;
   border: none;
   padding: 13px 40px;
@@ -106,7 +108,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(255,107,53,0.08);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.08);
   align-self: flex-start;
   &:hover:not(:disabled) {
     background: #0061c9;
@@ -122,6 +124,159 @@
   color: #888;
   font-size: 16px;
   padding: 40px 0;
+}
+
+// Phần đổi mật khẩu
+.change-password-section {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  padding: 32px 40px 24px 40px;
+  width: 100%;
+  max-width: 700px;
+  margin-top: 24px;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #222;
+      margin: 0;
+    }
+  }
+
+  .password-form {
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 18px 0 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 0;
+
+      label {
+        flex: none;
+        font-weight: 500;
+        color: #222;
+        font-size: 15px;
+        margin-bottom: 8px;
+        text-align: left;
+      }
+
+      .password-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        input[type="password"],
+        input[type="text"] {
+          flex: 1;
+          padding: 10px 12px;
+          padding-right: 50px;
+          border: 1px solid #e0e0e0;
+          border-radius: 4px;
+          font-size: 15px;
+          background: #fafbfc;
+          transition: border-color 0.2s;
+          font-family: inherit;
+          color: #222;
+          box-sizing: border-box;
+
+          &:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: #fff;
+          }
+        }
+
+        .password-toggle-btn {
+          position: absolute;
+          right: 8px;
+          top: 35%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: #666;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          // &:hover {
+          //   background: #f0f0f0;
+          //   color: #333;
+          // }
+
+          svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+
+      small {
+        color: #999;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+    }
+
+    .change-password-btn {
+      margin-top: 24px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 13px 40px;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+      align-self: flex-start;
+
+      &:hover:not(:disabled) {
+        background: #0061c9;
+      }
+
+      &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+    }
+
+    .forgot-password-link {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+
+      span {
+        color: #666;
+      }
+
+      .forgot-password-link-text {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        margin-left: 4px;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #0056b3;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
 }
 
 .chat-button {
@@ -146,7 +301,9 @@
 }
 
 @media (max-width: 900px) {
-  .profile-form-container, .content-header {
+  .profile-form-container,
+  .content-header,
+  .change-password-section {
     max-width: 98vw;
     padding-left: 10px;
     padding-right: 10px;
@@ -158,7 +315,8 @@
 }
 
 @media (max-width: 600px) {
-  .profile-form-container {
+  .profile-form-container,
+  .change-password-section {
     padding: 10px 2px 8px 2px;
   }
   .content-header {
@@ -173,9 +331,21 @@
     flex-basis: 80px;
     font-size: 13px;
   }
-  .save-btn {
+  .save-btn,
+  .change-password-btn {
     width: 100%;
     padding: 13px 0;
     font-size: 15px;
   }
-} 
+  .change-password-section {
+    .section-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+
+      h2 {
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
