@@ -173,6 +173,7 @@ router.post("/favorite/remove", auth, favoriteController.removeFavorite);
 router.get("/favorite/my", auth, favoriteController.getUserFavorites);
 
 // Review (user)
+
 router.post("/review/add", auth, reviewController.addOrUpdateReview);
 router.post("/review/remove", auth, reviewController.removeReview);
 router.get("/review/product/:product_id", reviewController.getProductReviews);
@@ -186,6 +187,14 @@ router.get(
   auth,
   reviewController.getValidOrderCount
 );
+=======
+router.post('/review/add', auth, reviewController.addReview);
+router.post('/review/remove', auth, reviewController.removeReview);
+router.get('/review/product/:product_id', reviewController.getProductReviews);
+router.get('/review/user/:product_id', auth, reviewController.getUserReviewsForProduct);
+router.get('/review/unreviewed-orders/:product_id', auth, reviewController.getUnreviewedOrderDetails);
+router.put('/review/update/:review_id', auth, reviewController.updateReview);
+
 
 // Review (admin)
 router.post("/review/admin-reply", auth, reviewController.adminReply);

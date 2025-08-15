@@ -489,14 +489,14 @@ const getImageUrl = (url?: string): string => {
                   <p className="review-date">
                     {new Date(review.created_at).toLocaleDateString("vi-VN")}
                   </p>
-                  {user && review.user_id._id === user._id && (
+                  {/* {user && review.user_id._id === user._id && (
                     <button
                       className="delete-review"
                       onClick={() => handleDeleteReview(review._id)}
                     >
                       <FaTrash /> Xóa
                     </button>
-                  )}
+                  )} */}
                 </div>
               ))}
               {reviews.length > 5 && visibleReviews < reviews.length && (

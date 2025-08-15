@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getAllReviews, adminReplyToReview, deleteReview } from '@/api/dashboardAPI';
-import { FaStar, FaReply, FaTrash, FaUser, FaBox } from 'react-icons/fa';
+import { FaStar, FaReply, FaTrash, FaUser, FaBox, FaSearch, FaFilter, FaSpinner } from 'react-icons/fa';
+import { message, Card, Button, Input, Select, Modal, Space, Tag, Avatar, Divider } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+
+const { TextArea } = Input;
+const { Option } = Select;
 
 interface Review {
   _id: string;
@@ -16,7 +21,7 @@ interface Review {
   };
   rating: number;
   comment: string;
-  reply: string;
+  reply?: string;
   created_at: string;
 }
 
@@ -25,261 +30,13 @@ const ReviewManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [replyText, setReplyText] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [filterRating, setFilterRating] = useState<number | 0>(0);
+  const [filterRating, setFilterRating] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // CSS styles
-  const styles = {
-    container: {
-      padding: '20px',
-      maxWidth: '1200px',
-      margin: '0 auto',
-      fontFamily: 'Arial, sans-serif'
-    },
-    header: {
-      marginBottom: '30px',
-      textAlign: 'center' as const
-    },
-    title: {
-      color: '#2c3e50',
-      fontSize: '2.5rem',
-      marginBottom: '10px',
-      fontWeight: '600'
-    },
-    subtitle: {
-      color: '#7f8c8d',
-      fontSize: '1.1rem',
-      margin: '0'
-    },
-    filters: {
-      display: 'flex',
-      gap: '20px',
-      marginBottom: '30px',
-      background: '#f8f9fa',
-      padding: '20px',
-      borderRadius: '10px',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-      flexWrap: 'wrap' as const
-    },
-    searchBox: {
-      flex: '1',
-      minWidth: '300px'
-    },
-    searchInput: {
-      width: '100%',
-      padding: '12px 16px',
-      border: '2px solid #e9ecef',
-      borderRadius: '8px',
-      fontSize: '1rem',
-      outline: 'none'
-    },
-    ratingFilter: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px'
-    },
-    filterLabel: {
-      fontWeight: '600',
-      color: '#495057',
-      whiteSpace: 'nowrap' as const
-    },
-    filterSelect: {
-      padding: '10px 16px',
-      border: '2px solid #e9ecef',
-      borderRadius: '8px',
-      fontSize: '1rem',
-      background: 'white'
-    },
-    reviewsContainer: {
-      display: 'grid',
-      gap: '20px'
-    },
-    reviewCard: {
-      background: 'white',
-      borderRadius: '15px',
-      padding: '25px',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-      border: '1px solid #e9ecef'
-    },
-    reviewHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: '20px',
-      paddingBottom: '15px',
-      borderBottom: '2px solid #f8f9fa'
-    },
-    userInfo: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px'
-    },
-    userIcon: {
-      color: '#3498db',
-      fontSize: '1.5rem',
-      background: '#ebf3fd',
-      padding: '10px',
-      borderRadius: '50%'
-    },
-    userName: {
-      margin: '0 0 5px 0',
-      color: '#2c3e50',
-      fontSize: '1.1rem',
-      fontWeight: '600'
-    },
-    userEmail: {
-      margin: '0',
-      color: '#7f8c8d',
-      fontSize: '0.9rem'
-    },
-    rating: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px'
-    },
-    star: {
-      color: '#ddd',
-      fontSize: '1.2rem'
-    },
-    starFilled: {
-      color: '#f39c12'
-    },
-    ratingNumber: {
-      fontWeight: '600',
-      color: '#2c3e50',
-      fontSize: '1rem'
-    },
-    productInfo: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '15px',
-      marginBottom: '20px',
-      padding: '15px',
-      background: '#f8f9fa',
-      borderRadius: '10px'
-    },
-    productIcon: {
-      color: '#27ae60',
-      fontSize: '1.3rem'
-    },
-    productName: {
-      margin: '0 0 8px 0',
-      color: '#2c3e50',
-      fontSize: '1rem',
-      fontWeight: '600'
-    },
-    productImage: {
-      width: '60px',
-      height: '60px',
-      objectFit: 'cover' as const,
-      borderRadius: '8px',
-      border: '2px solid #e9ecef'
-    },
-    reviewContent: {
-      marginBottom: '20px'
-    },
-    comment: {
-      color: '#495057',
-      fontSize: '1rem',
-      lineHeight: '1.6',
-      margin: '0 0 10px 0',
-      padding: '15px',
-      background: '#f8f9fa',
-      borderRadius: '8px',
-      borderLeft: '4px solid #3498db'
-    },
-    date: {
-      color: '#7f8c8d',
-      fontSize: '0.9rem',
-      fontStyle: 'italic'
-    },
-    adminReply: {
-      background: '#e8f5e8',
-      border: '1px solid #c3e6c3',
-      borderRadius: '8px',
-      padding: '15px',
-      marginBottom: '20px'
-    },
-    replyTitle: {
-      margin: '0 0 8px 0',
-      color: '#27ae60',
-      fontSize: '0.9rem',
-      fontWeight: '600',
-      textTransform: 'uppercase' as const
-    },
-    replyText: {
-      margin: '0',
-      color: '#2c3e50',
-      fontSize: '0.95rem',
-      lineHeight: '1.5'
-    },
-    reviewActions: {
-      display: 'flex',
-      gap: '12px',
-      marginBottom: '20px'
-    },
-    button: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      padding: '10px 16px',
-      border: 'none',
-      borderRadius: '8px',
-      fontSize: '0.9rem',
-      fontWeight: '500',
-      cursor: 'pointer'
-    },
-    replyBtn: {
-      background: '#3498db',
-      color: 'white'
-    },
-    deleteBtn: {
-      background: '#e74c3c',
-      color: 'white'
-    },
-    replyForm: {
-      background: '#f8f9fa',
-      borderRadius: '10px',
-      padding: '20px',
-      border: '2px solid #e9ecef'
-    },
-    textarea: {
-      width: '100%',
-      padding: '12px',
-      border: '2px solid #e9ecef',
-      borderRadius: '8px',
-      fontSize: '1rem',
-      fontFamily: 'inherit',
-      resize: 'vertical' as const,
-      minHeight: '80px',
-      outline: 'none'
-    },
-    replyActions: {
-      display: 'flex',
-      gap: '12px',
-      marginTop: '15px'
-    },
-    submitBtn: {
-      background: '#27ae60',
-      color: 'white'
-    },
-    cancelBtn: {
-      background: '#95a5a6',
-      color: 'white'
-    },
-    loading: {
-      textAlign: 'center' as const,
-      padding: '60px 20px',
-      color: '#7f8c8d',
-      fontSize: '1.2rem'
-    },
-    noReviews: {
-      textAlign: 'center' as const,
-      padding: '60px 20px',
-      color: '#7f8c8d',
-      fontSize: '1.2rem'
-    }
-  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [replyModalVisible, setReplyModalVisible] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const itemsPerPage = 8;
 
   useEffect(() => {
     fetchReviews();
@@ -289,57 +46,99 @@ const ReviewManagement: React.FC = () => {
     try {
       setLoading(true);
       const data = await getAllReviews();
-      console.log('Reviews data:', data); // Debug log
+      console.log('Reviews data:', data);
       
-      // Kiểm tra xem data có phải là array không
       if (Array.isArray(data)) {
         setReviews(data);
+        setTotalPages(Math.ceil(data.length / itemsPerPage));
       } else {
         console.error('Data không phải array:', data);
         setReviews([]);
+        setTotalPages(1);
       }
     } catch (error) {
       console.error('Lỗi khi lấy danh sách đánh giá:', error);
+      message.error('Không thể tải danh sách đánh giá');
       setReviews([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReply = async (reviewId: string) => {
-    if (!replyText.trim()) return;
+  const handleReply = async () => {
+    if (!replyText.trim() || !selectedReview) {
+      message.warning('Vui lòng nhập nội dung phản hồi');
+      return;
+    }
     
     try {
-      await adminReplyToReview(reviewId, replyText);
+      await adminReplyToReview(selectedReview._id, replyText);
+      message.success('Đã gửi phản hồi thành công');
       setReplyText('');
-      setReplyingTo(null);
-      await fetchReviews(); // Refresh data
+      setReplyModalVisible(false);
+      setSelectedReview(null);
+      await fetchReviews();
     } catch (error) {
       console.error('Lỗi khi trả lời đánh giá:', error);
+      message.error('Không thể gửi phản hồi');
     }
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
-      try {
-        await deleteReview(reviewId);
-        await fetchReviews(); // Refresh data
-      } catch (error) {
-        console.error('Lỗi khi xóa đánh giá:', error);
-      }
-    }
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa đánh giá này?',
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await deleteReview(reviewId);
+          message.success('Đã xóa đánh giá thành công');
+          await fetchReviews();
+        } catch (error) {
+          console.error('Lỗi khi xóa đánh giá:', error);
+          message.error('Không thể xóa đánh giá');
+        }
+      },
+    });
+  };
+
+  const openReplyModal = (review: Review) => {
+    setSelectedReview(review);
+    setReplyText('');
+    setReplyModalVisible(true);
   };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, index) => (
       <FaStar
         key={index}
-        style={index < rating ? {...styles.star, ...styles.starFilled} : styles.star}
+        style={{
+          color: index < rating ? '#f39c12' : '#ddd',
+          fontSize: '16px',
+          marginRight: '2px'
+        }}
       />
     ));
   };
 
-  const filteredReviews = Array.isArray(reviews) ? reviews.filter(review => {
+  const getRatingColor = (rating: number) => {
+    if (rating >= 4) return 'green';
+    if (rating >= 3) return 'orange';
+    return 'red';
+  };
+
+  const getRatingText = (rating: number) => {
+    if (rating === 5) return 'Tuyệt vời';
+    if (rating === 4) return 'Tốt';
+    if (rating === 3) return 'Bình thường';
+    if (rating === 2) return 'Không tốt';
+    return 'Rất tệ';
+  };
+
+  const filteredReviews = reviews.filter(review => {
     const matchesRating = filterRating === 0 || review.rating === filterRating;
     const matchesSearch = 
       review.user_id.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -347,152 +146,311 @@ const ReviewManagement: React.FC = () => {
       review.comment.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesRating && matchesSearch;
-  }) : [];
+  });
+
+  const paginatedReviews = filteredReviews.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.loading}>Đang tải...</div>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '400px',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <LoadingOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+        <div style={{ fontSize: '18px', color: '#666' }}>Đang tải danh sách đánh giá...</div>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Quản lý đánh giá</h1>
-        <p style={styles.subtitle}>Tổng số đánh giá: {reviews.length}</p>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ 
+        textAlign: 'center', 
+        marginBottom: '32px',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: '12px',
+        color: 'white'
+      }}>
+        <h1 style={{ fontSize: '2.5rem', margin: '0 0 8px 0', fontWeight: '600' }}>
+          Quản lý đánh giá
+        </h1>
+        <p style={{ fontSize: '1.1rem', margin: 0, opacity: 0.9 }}>
+          Tổng số đánh giá: {reviews.length}
+        </p>
       </div>
 
-      <div style={styles.filters}>
-        <div style={styles.searchBox}>
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo tên người dùng, sản phẩm hoặc nội dung..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={styles.searchInput}
-          />
-        </div>
-        
-        <div style={styles.ratingFilter}>
-          <label style={styles.filterLabel}>Lọc theo đánh giá:</label>
-          <select 
-            value={filterRating} 
-            onChange={(e) => setFilterRating(Number(e.target.value))}
-            style={styles.filterSelect}
-          >
-            <option value={0}>Tất cả</option>
-            <option value={5}>5 sao</option>
-            <option value={4}>4 sao</option>
-            <option value={3}>3 sao</option>
-            <option value={2}>2 sao</option>
-            <option value={1}>1 sao</option>
-          </select>
-        </div>
-      </div>
-
-      <div style={styles.reviewsContainer}>
-        {filteredReviews.length === 0 ? (
-          <div style={styles.noReviews}>
-            <p>Không có đánh giá nào</p>
+      {/* Filters */}
+      <Card style={{ marginBottom: '24px', borderRadius: '12px' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: '300px' }}>
+            <Input
+              placeholder="Tìm kiếm theo tên người dùng, sản phẩm hoặc nội dung..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              prefix={<FaSearch style={{ color: '#bfbfbf' }} />}
+              size="large"
+              style={{ borderRadius: '8px' }}
+            />
           </div>
+          
+          <Select
+            value={filterRating}
+            onChange={setFilterRating}
+            placeholder="Lọc theo đánh giá"
+            style={{ minWidth: '150px' }}
+            size="large"
+          >
+            <Option value={0}>Tất cả</Option>
+            <Option value={5}>5 sao</Option>
+            <Option value={4}>4 sao</Option>
+            <Option value={3}>3 sao</Option>
+            <Option value={2}>2 sao</Option>
+            <Option value={1}>1 sao</Option>
+          </Select>
+        </div>
+      </Card>
+
+      {/* Reviews List */}
+      <div style={{ display: 'grid', gap: '16px' }}>
+        {paginatedReviews.length === 0 ? (
+          <Card style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: '18px', color: '#666' }}>
+              {searchTerm || filterRating !== 0 ? 'Không có đánh giá phù hợp với bộ lọc' : 'Không có đánh giá nào'}
+            </div>
+          </Card>
         ) : (
-          filteredReviews.map((review) => (
-            <div key={review._id} style={styles.reviewCard}>
-              <div style={styles.reviewHeader}>
-                <div style={styles.userInfo}>
-                  <FaUser style={styles.userIcon} />
+          paginatedReviews.map((review) => (
+            <Card 
+              key={review._id} 
+              style={{ 
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease'
+              }}
+              hoverable
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Avatar 
+                    icon={<FaUser />} 
+                    style={{ backgroundColor: '#1890ff' }}
+                    size={48}
+                  />
                   <div>
-                    <h4 style={styles.userName}>{review.user_id.name}</h4>
-                    <p style={styles.userEmail}>{review.user_id.email}</p>
+                    <div style={{ fontWeight: '600', fontSize: '16px', color: '#262626' }}>
+                      {review.user_id.name}
+                    </div>
+                    <div style={{ color: '#8c8c8c', fontSize: '14px' }}>
+                      {review.user_id.email}
+                    </div>
                   </div>
                 </div>
                 
-                <div style={styles.rating}>
-                  {renderStars(review.rating)}
-                  <span style={styles.ratingNumber}>{review.rating}/5</span>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    {renderStars(review.rating)}
+                    <Tag color={getRatingColor(review.rating)} style={{ margin: 0 }}>
+                      {review.rating}/5
+                    </Tag>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#8c8c8c' }}>
+                    {getRatingText(review.rating)}
+                  </div>
                 </div>
               </div>
 
-              <div style={styles.productInfo}>
-                <FaBox style={styles.productIcon} />
+              <div style={{ 
+                background: '#f5f5f5', 
+                padding: '12px', 
+                borderRadius: '8px', 
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <FaBox style={{ color: '#52c41a', fontSize: '20px' }} />
                 <div>
-                  <h5 style={styles.productName}>{review.product_id.name}</h5>
+                  <div style={{ fontWeight: '600', color: '#262626' }}>
+                    {review.product_id.name}
+                  </div>
                   {review.product_id.img_url && (
                     <img 
                       src={review.product_id.img_url} 
                       alt={review.product_id.name}
-                      style={styles.productImage}
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        objectFit: 'cover',
+                        borderRadius: '6px',
+                        marginTop: '4px'
+                      }}
                     />
                   )}
                 </div>
               </div>
 
-              <div style={styles.reviewContent}>
-                <p style={styles.comment}>{review.comment}</p>
-                <span style={styles.date}>
-                  {new Date(review.created_at).toLocaleDateString('vi-VN')}
-                </span>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ 
+                  background: '#f0f8ff', 
+                  padding: '16px', 
+                  borderRadius: '8px',
+                  borderLeft: '4px solid #1890ff',
+                  marginBottom: '8px'
+                }}>
+                  {review.comment}
+                </div>
+                <div style={{ fontSize: '12px', color: '#8c8c8c', fontStyle: 'italic' }}>
+                  {formatDate(review.created_at)}
+                </div>
               </div>
 
               {review.reply && (
-                <div style={styles.adminReply}>
-                  <h6 style={styles.replyTitle}>Phản hồi của admin:</h6>
-                  <p style={styles.replyText}>{review.reply}</p>
-                </div>
-              )}
-
-              <div style={styles.reviewActions}>
-                {!review.reply && (
-                  <button
-                    style={{...styles.button, ...styles.replyBtn}}
-                    onClick={() => setReplyingTo(review._id)}
-                  >
-                    <FaReply /> Trả lời
-                  </button>
-                )}
-                
-                <button
-                  style={{...styles.button, ...styles.deleteBtn}}
-                  onClick={() => handleDeleteReview(review._id)}
-                >
-                  <FaTrash /> Xóa
-                </button>
-              </div>
-
-              {replyingTo === review._id && (
-                <div style={styles.replyForm}>
-                  <textarea
-                    placeholder="Nhập phản hồi của bạn..."
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    rows={3}
-                    style={styles.textarea}
-                  />
-                  <div style={styles.replyActions}>
-                    <button
-                      style={{...styles.button, ...styles.submitBtn}}
-                      onClick={() => handleReply(review._id)}
-                    >
-                      Gửi phản hồi
-                    </button>
-                    <button
-                      style={{...styles.button, ...styles.cancelBtn}}
-                      onClick={() => {
-                        setReplyingTo(null);
-                        setReplyText('');
-                      }}
-                    >
-                      Hủy
-                    </button>
+                <div style={{ 
+                  background: '#f6ffed', 
+                  border: '1px solid #b7eb8f',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{ fontWeight: '600', color: '#52c41a', fontSize: '14px', marginBottom: '8px' }}>
+                    Phản hồi của admin:
+                  </div>
+                  <div style={{ color: '#262626' }}>
+                    {review.reply}
                   </div>
                 </div>
               )}
-            </div>
+
+              <Divider style={{ margin: '16px 0' }} />
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                {!review.reply && (
+                  <Button
+                    type="primary"
+                    icon={<FaReply />}
+                    onClick={() => openReplyModal(review)}
+                    style={{ borderRadius: '6px' }}
+                  >
+                    Trả lời
+                  </Button>
+                )}
+                
+                <Button
+                  danger
+                  icon={<FaTrash />}
+                  onClick={() => handleDeleteReview(review._id)}
+                  style={{ borderRadius: '6px' }}
+                >
+                  Xóa
+                </Button>
+              </div>
+            </Card>
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          marginTop: '32px',
+          gap: '8px'
+        }}>
+          <Button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            style={{ borderRadius: '6px' }}
+          >
+            Trước
+          </Button>
+          
+          {Array.from({ length: totalPages }, (_, i) => (
+            <Button
+              key={i}
+              type={currentPage === i + 1 ? 'primary' : 'default'}
+              onClick={() => setCurrentPage(i + 1)}
+              style={{ borderRadius: '6px' }}
+            >
+              {i + 1}
+            </Button>
+          ))}
+          
+          <Button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            style={{ borderRadius: '6px' }}
+          >
+            Sau
+          </Button>
+        </div>
+      )}
+
+      {/* Reply Modal */}
+      <Modal
+        title="Trả lời đánh giá"
+        open={replyModalVisible}
+        onOk={handleReply}
+        onCancel={() => {
+          setReplyModalVisible(false);
+          setSelectedReview(null);
+          setReplyText('');
+        }}
+        okText="Gửi phản hồi"
+        cancelText="Hủy"
+        width={600}
+      >
+        {selectedReview && (
+          <div>
+            <div style={{ marginBottom: '16px' }}>
+              <strong>Người dùng:</strong> {selectedReview.user_id.name}
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <strong>Sản phẩm:</strong> {selectedReview.product_id.name}
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <strong>Đánh giá:</strong>
+              <div style={{ 
+                background: '#f5f5f5', 
+                padding: '12px', 
+                borderRadius: '6px',
+                marginTop: '8px'
+              }}>
+                {selectedReview.comment}
+              </div>
+            </div>
+            <div>
+              <strong>Phản hồi của bạn:</strong>
+              <TextArea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Nhập phản hồi của bạn..."
+                rows={4}
+                style={{ marginTop: '8px' }}
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
