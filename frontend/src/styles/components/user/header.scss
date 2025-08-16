@@ -75,9 +75,11 @@
     min-width: 0;
     margin: 0 8px;
     max-width: 100%;
+    position: relative;
     .search-input-wrapper {
       width: 100%;
       min-width: 0;
+      position: relative;
     }
   }
   .header__mobile-menu-btn {
@@ -409,12 +411,16 @@
 .search-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  left: 0; /* Đặt lại left về 0 để căn theo .header__search */
+  width: 100%; /* Đảm bảo dropdown chiếm toàn bộ chiều rộng của .search-input-wrapper */
   background: #fff;
   border-radius: 0 0 6px 6px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   z-index: 100;
+  transform: translateX(120px); /* Điều chỉnh vị trí sang trái bằng với margin-left của .search-input-wrapper */
+  @media (max-width: 767px) {
+    transform: translateX(0); /* Trên mobile, không cần điều chỉnh vì margin-left đã là 0 */
+  }
 
   .dropdown-item {
     display: flex;
@@ -456,6 +462,7 @@
     }
   }
 }
+
 .mobile-menu-overlay {
   position: fixed;
   top: 0;
