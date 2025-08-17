@@ -31,6 +31,17 @@ interface Review {
   reply?: string;
 }
 
+interface UnreviewedOrder {
+  _id: string;
+  order_id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+  name: string;
+  img_url: string;
+  order_created_at: string;
+}
+
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,8 +57,11 @@ const ProductDetail: React.FC = () => {
   const [hoverRating, setHoverRating] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [visibleReviews, setVisibleReviews] = useState(5);
-  const [isErrorPopupOpen, setIsErrorPopupOpen] = useState(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [unreviewedOrders, setUnreviewedOrders] = useState<UnreviewedOrder[]>([]);
+  const [userLatestReview, setUserLatestReview] = useState<Review | null>(null);
+  const [canUserReview, setCanUserReview] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [showAlreadyReviewedPopup, setShowAlreadyReviewedPopup] = useState(false);
 
   const formatCurrency = (amount: number): string =>
     new Intl.NumberFormat("vi-VN", {
@@ -89,37 +103,89 @@ const ProductDetail: React.FC = () => {
           setRelatedProducts(related);
         }
 
+        // Fetch reviews
         const reviewResponse = await axios.get(`/api/review/product/${id}`);
         console.log("Fetched reviews:", reviewResponse.data);
         setReviews(reviewResponse.data);
+
+        // Fetch user-specific data if authenticated
+        if (isAuthenticated) {
+          try {
+            // Check if user can review this product
+            const canReviewResponse = await axios.get(`/api/review/can-review/${id}`);
+            setCanUserReview(canReviewResponse.data.canReview);
+
+            // Get user's latest review for this product
+            const userReviewResponse = await axios.get(`/api/review/user-latest/${id}`);
+            setUserLatestReview(userReviewResponse.data);
+
+            // Get unreviewed orders if user can review
+            if (canReviewResponse.data.canReview) {
+              const unreviewedResponse = await axios.get(`/api/review/unreviewed-orders/${id}`);
+              setUnreviewedOrders(unreviewedResponse.data);
+            }
+          } catch (error) {
+            console.log("User review data fetch failed:", error);
+          }
+        }
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, isAuthenticated]);
 
-  const handleSubmitReview = async (isUpdate = false) => {
+  const handleOpenReviewModal = () => {
     if (!isAuthenticated) {
       alert("Vui lòng đăng nhập để gửi đánh giá!");
       navigate("/login");
       return;
     }
+
+    if (!canUserReview) {
+      alert("Bạn cần mua sản phẩm này để có thể đánh giá!");
+      return;
+    }
+
+    setIsModalOpen(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!isAuthenticated) {
+      alert("Vui lòng đăng nhập để gửi đánh giá!");
+      navigate("/login");
+      return;
+    }
+
     if (!rating || !comment) {
       alert("Vui lòng chọn số sao và nhập bình luận!");
       return;
     }
 
+    // Tự động chọn đơn hàng chưa review đầu tiên
+    const orderDetailToReview = unreviewedOrders.length > 0 ? unreviewedOrders[0]._id : null;
+    
+    if (!orderDetailToReview) {
+      setShowAlreadyReviewedPopup(true);
+      return;
+    }
+
     try {
-      console.log("Sending review for product_id:", id, "user:", user?._id, "rating:", rating, "comment:", comment, "isUpdate:", isUpdate);
+      console.log("Sending review:", {
+        product_id: id,
+        order_detail_id: orderDetailToReview,
+        rating,
+        comment
+      });
+
       const response = await axios.post("/api/review/add", {
         product_id: id,
+        order_detail_id: orderDetailToReview,
         rating,
         comment,
-        isUpdate,
       });
-      console.log("API Response:", response);
+
       if (response.status === 200 || response.status === 201) {
         const newReview: Review = {
           ...response.data,
@@ -129,37 +195,46 @@ const ProductDetail: React.FC = () => {
           },
           created_at: new Date().toISOString(),
         };
-        setReviews((prevReviews) => [
-          newReview,
-          ...prevReviews.filter((r) => r._id !== newReview._id),
-        ]);
+
+        // Update reviews list - remove old review and add new one
+        setReviews((prevReviews) => {
+          const filteredReviews = prevReviews.filter(r => r.user_id._id !== user?._id);
+          return [newReview, ...filteredReviews];
+        });
+        
+        // Reset form
         setRating(0);
         setComment("");
         setIsModalOpen(false);
-        setIsConfirmModalOpen(false);
         setVisibleReviews(5);
-        alert("Đánh giá đã được gửi thành công!");
-      } else {
-        throw new Error(`Phản hồi từ server không hợp lệ: ${response.status}`);
+
+        // Refresh user review data
+        const canReviewResponse = await axios.get(`/api/review/can-review/${id}`);
+        setCanUserReview(canReviewResponse.data.canReview);
+        
+        const userReviewResponse = await axios.get(`/api/review/user-latest/${id}`);
+        setUserLatestReview(userReviewResponse.data);
+
+        if (canReviewResponse.data.canReview) {
+          const unreviewedResponse = await axios.get(`/api/review/unreviewed-orders/${id}`);
+          setUnreviewedOrders(unreviewedResponse.data);
+        } else {
+          setUnreviewedOrders([]);
+        }
+
+        setShowSuccessPopup(true);
+        setTimeout(() => setShowSuccessPopup(false), 3000);
       }
     } catch (error: any) {
       console.error("Lỗi khi gửi đánh giá:", error.response?.data || error.message);
-      if (error.response?.data.message === 'Bạn chưa mua sản phẩm này hoặc đơn hàng chưa ở trạng thái "Đã giao".') {
-        alert("Bạn chưa mua sản phẩm này hoặc đơn hàng chưa được giao!");
-      } else if (
-        error.response?.data.message === 'Bạn đã đánh giá sản phẩm này rồi. Bạn có muốn đánh giá lại?' ||
-        error.response?.data.message?.includes('E11000 duplicate key error')
-      ) {
-        setIsConfirmModalOpen(true);
-      } else if (error.response?.data.message === 'Bạn đã đánh giá sản phẩm này rồi.') {
-        setIsErrorPopupOpen(true);
-      } else if (error.response?.status === 404) {
-        alert("Không tìm thấy endpoint đánh giá. Vui lòng kiểm tra server!");
-      } else if (error.response?.status === 401) {
+      
+      if (error.response?.status === 401) {
         alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
         navigate("/login");
+      } else if (error.response?.data?.message === 'ALREADY_REVIEWED') {
+        setShowAlreadyReviewedPopup(true);
       } else {
-        alert("Không thể gửi đánh giá, vui lòng thử lại!");
+        alert(error.response?.data?.message || "Không thể gửi đánh giá, vui lòng thử lại!");
       }
     }
   };
@@ -173,9 +248,30 @@ const ProductDetail: React.FC = () => {
 
     if (window.confirm("Bạn có chắc muốn xóa đánh giá này?")) {
       try {
-        await axios.post("/api/review/remove", { product_id: id });
+        // Find the review to get the order_detail_id
+        const reviewToDelete = reviews.find(r => r._id === reviewId);
+        if (!reviewToDelete) {
+          alert("Không tìm thấy đánh giá để xóa!");
+          return;
+        }
+
+        await axios.post("/api/review/remove", { 
+          order_detail_id: userLatestReview?.order_detail_id
+        });
+        
         setReviews(reviews.filter((review) => review._id !== reviewId));
+        setUserLatestReview(null);
         setVisibleReviews(5);
+        
+        // Refresh user review data
+        const canReviewResponse = await axios.get(`/api/review/can-review/${id}`);
+        setCanUserReview(canReviewResponse.data.canReview);
+        
+        if (canReviewResponse.data.canReview) {
+          const unreviewedResponse = await axios.get(`/api/review/unreviewed-orders/${id}`);
+          setUnreviewedOrders(unreviewedResponse.data);
+        }
+        
         alert("Đã xóa đánh giá!");
       } catch (error: any) {
         console.error("Lỗi khi xóa đánh giá:", error);
@@ -190,27 +286,16 @@ const ProductDetail: React.FC = () => {
       }
     }
   };
-const getImageUrl = (url?: string): string => {
-  if (!url) return '/images/no-image.png';
-  if (url.startsWith('http')) return url;
-  if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
-  return `http://localhost:5000/uploads/products/${url}`;
-};
+
+  const getImageUrl = (url?: string): string => {
+    if (!url) return '/images/no-image.png';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+    return `http://localhost:5000/uploads/products/${url}`;
+  };
+
   const handleViewMore = () => {
     setVisibleReviews(reviews.length);
-  };
-
-  const handleCloseErrorPopup = () => {
-    setIsErrorPopupOpen(false);
-  };
-
-  const handleConfirmReReview = () => {
-    setIsConfirmModalOpen(false);
-    handleSubmitReview(true);
-  };
-
-  const handleCancelReReview = () => {
-    setIsConfirmModalOpen(false);
   };
 
   if (!product) return <div>Đang tải sản phẩm...</div>;
@@ -461,14 +546,59 @@ const getImageUrl = (url?: string): string => {
             </span>
           </div>
         </div>
-        <button className="write-review-btn" onClick={() => setIsModalOpen(true)}>
-          Viết đánh giá
+
+        {/* User's review status */}
+        {isAuthenticated && (
+          <div className="user-review-status">
+            {userLatestReview && (
+              <div className="current-user-review">
+                <h4>Đánh giá đã có của bạn:</h4>
+                <div className="review-item user-own-review">
+                  <div className="review-header">
+                    <span className="review-user">{userLatestReview.user_id.name}</span>
+                    <div className="review-stars">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          className={star <= userLatestReview.rating ? "star active" : "star"}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="review-comment">{userLatestReview.comment}</p>
+                  {userLatestReview.reply && (
+                    <p className="review-reply">
+                      <strong>Phản hồi từ quản trị viên:</strong> {userLatestReview.reply}
+                    </p>
+                  )}
+                  <p className="review-date">
+                    {new Date(userLatestReview.created_at).toLocaleDateString("vi-VN")}
+                  </p>
+                  {/* <button
+                    className="delete-review"
+                    onClick={() => handleDeleteReview(userLatestReview._id)}
+                  >
+                    <FaTrash /> Xóa đánh giá
+                  </button> */}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <button 
+          className={`write-review-btn ${!canUserReview ? 'disabled' : ''}`}
+          onClick={handleOpenReviewModal}
+          disabled={!canUserReview}
+        >
+          {canUserReview ? 'Viết đánh giá' : 'Vui lòng mua hàng để được đánh giá'}
         </button>
+
         <div className="review-list">
           {reviews.length > 0 ? (
             <>
               {reviews.slice(0, visibleReviews).map((review) => (
-                <div key={review._id} className="review-item">
+                <div key={review._id} className={`review-item ${userLatestReview?._id === review._id ? 'user-own-review' : ''}`}>
                   <div className="review-header">
                     <span className="review-user">{review.user_id.name}</span>
                     <div className="review-stars">
@@ -489,14 +619,6 @@ const getImageUrl = (url?: string): string => {
                   <p className="review-date">
                     {new Date(review.created_at).toLocaleDateString("vi-VN")}
                   </p>
-                  {/* {user && review.user_id._id === user._id && (
-                    <button
-                      className="delete-review"
-                      onClick={() => handleDeleteReview(review._id)}
-                    >
-                      <FaTrash /> Xóa
-                    </button>
-                  )} */}
                 </div>
               ))}
               {reviews.length > 5 && visibleReviews < reviews.length && (
@@ -517,6 +639,7 @@ const getImageUrl = (url?: string): string => {
                 <FaTimes />
               </button>
               <h3>Viết đánh giá</h3>
+              
               <div className="star-rating">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <FaStar
@@ -534,37 +657,30 @@ const getImageUrl = (url?: string): string => {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
-              <button className="submit-review" onClick={() => handleSubmitReview()}>
+              <button className="submit-review" onClick={handleSubmitReview}>
                 Gửi đánh giá
               </button>
             </div>
           </div>
         )}
 
-        {isErrorPopupOpen && (
-          <div className="error-popup-overlay" onClick={handleCloseErrorPopup}>
-            <div className="error-popup-content" onClick={(e) => e.stopPropagation()}>
-              <p>Bạn đã đánh giá sản phẩm này, hãy mua thêm để tiếp tục đánh giá.</p>
-              <button className="error-popup-close" onClick={handleCloseErrorPopup}>
-                Đóng
-              </button>
+        {/* Success Popup */}
+        {showSuccessPopup && (
+          <div className="success-popup-overlay">
+            <div className="success-popup-content">
+              <p>✅ Bạn đã đánh giá thành công!</p>
             </div>
           </div>
         )}
 
-        {isConfirmModalOpen && (
-          <div className="confirm-modal-overlay" onClick={handleCancelReReview}>
-            <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>
-              <h3>Xác nhận đánh giá lại</h3>
-              <p>Bạn đã đánh giá sản phẩm này. Bạn có muốn đánh giá lại không?</p>
-              <div className="confirm-modal-buttons">
-                <button className="confirm-modal-cancel" onClick={handleCancelReReview}>
-                  Hủy
-                </button>
-                <button className="confirm-modal-confirm" onClick={handleConfirmReReview}>
-                  Đồng ý
-                </button>
-              </div>
+        {/* Already Reviewed Popup */}
+        {showAlreadyReviewedPopup && (
+          <div className="error-popup-overlay" onClick={() => setShowAlreadyReviewedPopup(false)}>
+            <div className="error-popup-content" onClick={(e) => e.stopPropagation()}>
+              <p>Bạn đã đánh giá sản phẩm này rồi, hãy mua thêm để đánh giá lại.</p>
+              <button className="error-popup-close" onClick={() => setShowAlreadyReviewedPopup(false)}>
+                Đóng
+              </button>
             </div>
           </div>
         )}
