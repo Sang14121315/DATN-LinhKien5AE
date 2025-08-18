@@ -3,6 +3,8 @@ import AdminLayout from "@/layouts/admin.layout";
 import DashboardPage from "@/pages/admin/Dashboard";
 import CategoryTablePage from "@/pages/admin/CategoryTable";
 import CategoryFormPage from "@/pages/admin/CategoryForm";
+import ChildCategoryTable from "@/pages/admin/ChildCategoryTable";
+import ChildCategoryForm from "@/pages/admin/ChildCategoryForm";
 import BrandTablePage from "@/pages/admin/BrandTable";
 import BrandFormPage from "@/pages/admin/BrandForm";
 import Orderfrom from "@/pages/admin/OrderPage";
@@ -59,6 +61,9 @@ const MainRouter = () => {
         <Route path="category" element={<CategoryTablePage />} />
         <Route path="category/create" element={<CategoryFormPage />} />
         <Route path="category/:id/form" element={<CategoryFormPage />} />
+        <Route path="child-category" element={<ChildCategoryTable />} />
+        <Route path="child-category/create" element={<ChildCategoryForm />} />
+        <Route path="child-category/:id/form" element={<ChildCategoryForm />} />
         <Route path="brand" element={<BrandTablePage />} />
         <Route path="brand/create" element={<BrandFormPage />} />
         <Route path="brand/:id/form" element={<BrandFormPage />} />

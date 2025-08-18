@@ -11,7 +11,7 @@ import { useFavorite } from "@/context/FavoriteContext";
 import { useAuth } from "@/context/AuthContext";
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
-import { Category, fetchAllCategories } from "@/api/user/categoryAPI";
+import { Category, fetchCategoriesHierarchy } from "@/api/user/categoryAPI";
 
 const ProductListPage: React.FC = () => {
   const { useBreakpoint } = Grid;
@@ -25,6 +25,7 @@ const ProductListPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<string | null>(null);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null); // Track open dropdown
 
   const [searchParams] = useSearchParams();
 
@@ -41,25 +42,16 @@ const ProductListPage: React.FC = () => {
   const formatCurrency = (amount: number): string =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
 
-  // Load danh mục, thương hiệu
+  // Load danh mục và thương hiệu
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [brandData, categoryData] = await Promise.all([
+        const [brandData, hierarchyData] = await Promise.all([
           fetchAllBrands(),
-          fetchAllCategories(),
+          fetchCategoriesHierarchy(),
         ]);
         setBrands(brandData);
-        setCategories(categoryData);
-
-        setProductTypes(productTypeData);
-
-        const categoriesByProductType: Record<string, Category[]> = {};
-        for (const productType of productTypeData) {
-          const categories = await fetchCategoriesByProductType(productType._id);
-          categoriesByProductType[productType._id] = categories;
-        }setProductTypeCategories(categoriesByProductType);
-
+        setCategories(hierarchyData);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -149,7 +141,8 @@ const ProductListPage: React.FC = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         addToFavorite({
-          _id: product._id,name: product.name,
+          _id: product._id,
+          name: product.name,
           price: product.price,
           img_url: product.img_url,
         });
@@ -159,7 +152,7 @@ const ProductListPage: React.FC = () => {
     }
   };
 
-const getImageUrl = (url?: string): string => {
+  const getImageUrl = (url?: string): string => {
     if (!url) return '/images/no-image.png';
     if (url.startsWith('http')) return url;
     if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
@@ -173,6 +166,10 @@ const getImageUrl = (url?: string): string => {
     </Menu>
   );
 
+  const toggleDropdown = (categoryId: string) => {
+    setOpenDropdown(openDropdown === categoryId ? null : categoryId);
+  };
+
   return (
     <div className="product-page-container">
       <div className="product-layout">
@@ -183,26 +180,49 @@ const getImageUrl = (url?: string): string => {
                 <span>DANH MỤC SẢN PHẨM</span>
               </div>
               <ul className="dropdown-content">
-                <li onClick={() => setSelectedCategory("all")} className={selectedCategory === "all" ? "active" : ""}>
+                <li
+                  onClick={() => {
+                    setSelectedCategory("all");
+                    setOpenDropdown(null);
+                  }}
+                  className={selectedCategory === "all" ? "active" : ""}
+                >
                   TẤT CẢ SẢN PHẨM
                 </li>
                 {categories.map((category) => (
-                  <li
-                    key={category._id}
-                    onClick={() => setSelectedCategory(category._id)}
-                    className={selectedCategory === category._id ? "active" : ""}
-                  >
-                    {category.name}
+                  <li key={category._id} className={selectedCategory === category._id ? "active" : ""}>
+                    <div
+                      className="category-item"
+                      onClick={() => {
+                        setSelectedCategory(category._id || "all");
+                        toggleDropdown(category._id || "");
+                      }}
+                    >
+                      {category.name}
+                      {category.children && category.children.length > 0 && (
+                        <span className="dropdown-icon">
+                          {openDropdown === category._id ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </div>
+                    {category.children && category.children.length > 0 && openDropdown === category._id && (
+                      <ul className="child-category-list">
+                        {category.children.map((child) => (
+                          <li
+                            key={child._id}
+                            onClick={() => setSelectedCategory(child._id || "all")}
+                            className={selectedCategory === child._id ? "active" : ""}
+                          >
+                            {child.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 ))}
               </ul>
-            </div>
-
-            {/* Lọc giá */}
-
-            <div className="sidebar-section">
-              <h3>LỌC GIÁ</h3>
-              <div className="price-radio-group">
+              <div className="price-filter">
+                <h3>KHOẢNG GIÁ</h3>
                 {[
                   ["all", "Tất cả"],
                   ["0-10000", "Dưới 10.000đ"],
@@ -217,7 +237,8 @@ const getImageUrl = (url?: string): string => {
                       type="radio"
                       name="price"
                       value={value}
-                      checked={selectedPrice === value}onChange={() => setSelectedPrice(value)}
+                      checked={selectedPrice === value}
+                      onChange={() => setSelectedPrice(value)}
                     />
                     <span>{label}</span>
                   </label>
@@ -262,7 +283,9 @@ const getImageUrl = (url?: string): string => {
               <h2>
                 {selectedCategory === "all"
                   ? "Sản phẩm"
-                  : categories.find((c) => c._id === selectedCategory)?.name || "Sản phẩm"}
+                  : categories
+                      .flatMap((c) => [c, ...(c.children || [])])
+                      .find((c) => c._id === selectedCategory)?.name || "Sản phẩm"}
               </h2>
               <Dropdown overlay={sortMenu} trigger={['click']}>
                 <a className="sort-button" onClick={(e) => e.preventDefault()}>
@@ -361,7 +384,8 @@ const getImageUrl = (url?: string): string => {
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
                 >
                   Sau &raquo;
                 </button>

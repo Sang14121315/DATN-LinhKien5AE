@@ -2,25 +2,49 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getCategoryById,
-  updateParentCategory,
+  updateChildCategory,
   deleteCategory,
-  createParentCategory,
+  createChildCategory,
+  fetchParentCategories,
 } from "@/api/categoryAPI";
 import "@/styles/pages/admin/categoryForm.scss";
 
-const CategoryForm: React.FC = () => {
+interface ParentCategory {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+const ChildCategoryForm: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [parentCategories, setParentCategories] = useState<ParentCategory[]>([]);
 
   const [category, setCategory] = useState({
     name: "",
     slug: "",
     description: "",
+    parent: "", // Parent Category ID (bắt buộc cho child category)
     created_at: "",
   });
+
+  // Load parent categories for dropdown
+  useEffect(() => {
+    const loadParentCategories = async () => {
+      try {
+        const data = await fetchParentCategories();
+        setParentCategories(data);
+        console.log('Loaded parent categories:', data);
+      } catch (error) {
+        console.error('Lỗi khi tải danh mục cha:', error);
+      }
+    };
+
+    loadParentCategories();
+  }, []);
 
   useEffect(() => {
     if (isEditMode && id) {
@@ -29,6 +53,7 @@ const CategoryForm: React.FC = () => {
           name: res.name || "",
           slug: res.slug || "",
           description: res.description || "",
+          parent: typeof res.parent === 'object' && res.parent ? res.parent._id : (res.parent || ""),
           created_at: res.created_at || "",
         });
       });
@@ -44,26 +69,32 @@ const CategoryForm: React.FC = () => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setCategory({ ...category, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async () => {
+    if (!category.parent) {
+      alert("Vui lòng chọn danh mục cha!");
+      return;
+    }
+
     const payload = {
       name: category.name,
       slug: category.slug || category.name.toLowerCase().replace(/\s+/g, "-"),
       description: category.description || "",
+      parent: category.parent,
     };
 
     try {
       if (isEditMode) {
-        await updateParentCategory(id!, payload);
+        await updateChildCategory(id!, payload);
         alert("Cập nhật thành công!");
       } else {
-        await createParentCategory(payload);
-        alert("Thêm danh mục mới thành công!");
-        navigate("/admin/category");
+        await createChildCategory(payload);
+        alert("Thêm danh mục con mới thành công!");
+        navigate("/admin/child-category");
       }
     } catch (error: any) {
       console.error("Lỗi:", error?.response?.data?.message || error.message);
@@ -77,7 +108,7 @@ const CategoryForm: React.FC = () => {
     if (confirmDelete) {
       try {
         await deleteCategory(id);
-        navigate("/admin/category");
+        navigate("/admin/child-category");
       } catch (error: any) {
         console.error("Lỗi xóa:", error);
         alert(error?.response?.data?.message || "Xóa thất bại!");
@@ -87,7 +118,7 @@ const CategoryForm: React.FC = () => {
 
   return (
     <div className="category-detail-page">
-      <h2>{isEditMode ? "Chi tiết danh mục cha" : "Thêm danh mục cha mới"}</h2>
+      <h2>{isEditMode ? "Chi tiết danh mục con" : "Thêm danh mục con mới"}</h2>
 
       <div className="detail-wrapper">
         {/* Upload ảnh (layout thôi, không lưu) */}
@@ -115,7 +146,7 @@ const CategoryForm: React.FC = () => {
         <div className="info-box">
           <div className="row-flex">
             <label className="half-width">
-              Tên danh mục
+              Tên danh mục con
               <input
                 type="text"
                 name="name"
@@ -138,16 +169,35 @@ const CategoryForm: React.FC = () => {
             </label>
           </div>
 
-          <label>
-            Slug (URL)
-            <input
-              type="text"
-              name="slug"
-              value={category.slug}
-              onChange={handleInputChange}
-              placeholder="auto-generated"
-            />
-          </label>
+          <div className="row-flex">
+            <label className="half-width">
+              Danh mục cha *
+              <select
+                name="parent"
+                value={category.parent}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">-- Chọn danh mục cha --</option>
+                {parentCategories.map(parent => (
+                  <option key={parent._id} value={parent._id}>
+                    {parent.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="half-width">
+              Slug (URL)
+              <input
+                type="text"
+                name="slug"
+                value={category.slug}
+                onChange={handleInputChange}
+                placeholder="auto-generated"
+              />
+            </label>
+          </div>
 
           <label>
             Mô tả
@@ -178,4 +228,4 @@ const CategoryForm: React.FC = () => {
   );
 };
 
-export default CategoryForm;
+export default ChildCategoryForm;

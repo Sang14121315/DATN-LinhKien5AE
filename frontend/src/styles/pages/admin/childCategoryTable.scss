@@ -123,26 +123,18 @@
         gap: 8px;
         
         svg {
-          color: #1f9c66;
+          color: #f57c00; // Màu cam cho child category
         }
       }
 
-      .category-type {
+      .parent-category {
         display: inline-block;
         padding: 4px 10px;
         border-radius: 12px;
         font-weight: 500;
         font-size: 12px;
-        
-        &.parent {
-          background-color: #e3f2fd;
-          color: #1976d2;
-        }
-        
-        &.child {
-          background-color: #fff3e0;
-          color: #f57c00;
-        }
+        background-color: #e3f2fd;
+        color: #1976d2;
       }
 
       .status {

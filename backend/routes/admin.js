@@ -14,6 +14,7 @@ const messageController = require("../controllers/messageController");
 const couponController = require("../controllers/couponController");
 const contactController = require("../controllers/contactController");
 const categoryController = require("../controllers/categoryController");
+
 // EmailService đã được chuyển sang frontend (EmailJS)
 console.log("🧪 categoryController =", categoryController);
 
@@ -104,29 +105,89 @@ router.get(
   adminController.getTop5BestSellerProducts
 );
 
-// Categories
-router.get("/categories", auth, adminAuth, categoryController.getCategories);
+// // Categories
+// router.get("/categories", auth, adminAuth, categoryController.getCategories);
+// router.get(
+//   "/categories/names",
+//   auth,
+//   adminAuth,
+//   categoryController.getCategoryNames
+// );
+// router.get(
+//   "/categories/:id",
+//   auth,
+//   adminAuth,
+//   categoryController.getCategoryById
+// );
+// router.post("/categories", auth, adminAuth, categoryController.createCategory);
+// router.put(
+//   "/categories/:id",
+//   auth,
+//   adminAuth,
+//   categoryController.updateCategory
+// );
+// router.delete(
+//   "/categories/:id",
+//   auth,
+//   adminAuth,
+//   categoryController.deleteCategory
+// );
+
+// Parent Categories
+router.get("/parent-categories", auth, adminAuth, categoryController.getParentCategories);
 router.get(
-  "/categories/names",
-  auth,
-  adminAuth,
-  categoryController.getCategoryNames
-);
-router.get(
-  "/categories/:id",
+  "/parent-categories/:id",
   auth,
   adminAuth,
   categoryController.getCategoryById
 );
-router.post("/categories", auth, adminAuth, categoryController.createCategory);
-router.put(
-  "/categories/:id",
+router.post(
+  "/parent-categories",
   auth,
   adminAuth,
-  categoryController.updateCategory
+  categoryController.createParentCategory
+);
+router.put(
+  "/parent-categories/:id",
+  auth,
+  adminAuth,
+  categoryController.updateParentCategory
 );
 router.delete(
-  "/categories/:id",
+  "/parent-categories/:id",
+  auth,
+  adminAuth,
+  categoryController.deleteCategory
+);
+
+// Child Categories
+router.get("/child-categories", auth, adminAuth, categoryController.getChildCategories);
+router.get(
+  "/child-categories/parent/:parentId",
+  auth,
+  adminAuth,
+  categoryController.getChildCategoriesByParentId
+);
+router.get(
+  "/child-categories/:id",
+  auth,
+  adminAuth,
+  categoryController.getCategoryById
+);
+router.post(
+  "/child-categories",
+  auth,
+  adminAuth,
+  categoryController.createChildCategory
+);  
+router.put(
+  "/child-categories/:id",
+  auth,
+  adminAuth,
+  categoryController.updateChildCategory
+);  
+router.delete(
+  "/child-categories/:id",
   auth,
   adminAuth,
   categoryController.deleteCategory
