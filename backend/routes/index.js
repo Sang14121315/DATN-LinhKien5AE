@@ -63,31 +63,36 @@ router.put(
 );
 router.delete("/products/:id", auth, productController.deleteProduct);
 
-// Product Types
-router.get("/product-types", productTypeController.getProductTypes);
-router.get(
-  "/product-types-with-categories",
-  productTypeController.getProductTypesWithCategories
-);
-router.get("/product-types/:id", productTypeController.getProductTypeById);
-router.post("/product-types", auth, productTypeController.createProductType);
-router.put("/product-types/:id", auth, productTypeController.updateProductType);
-router.delete(
-  "/product-types/:id",
-  auth,
-  productTypeController.deleteProductType
-);
+// // Product Types
+// router.get("/product-types", productTypeController.getProductTypes);
+// router.get(
+//   "/product-types-with-categories",
+//   productTypeController.getProductTypesWithCategories
+// );
+// router.get("/product-types/:id", productTypeController.getProductTypeById);
+// router.post("/product-types", auth, productTypeController.createProductType);
+// router.put("/product-types/:id", auth, productTypeController.updateProductType);
+// router.delete(
+//   "/product-types/:id",
+//   auth,
+//   productTypeController.deleteProductType
+// );
 
-// Categories
-router.get("/categories", categoryController.getCategories);
-router.get(
-  "/categories/by-product-type/:productTypeId",
-  categoryController.getCategoriesByProductType
-);
+// Categories (Parent Categories - Danh mục cha)
+router.get("/categories", categoryController.getParentCategories);
+router.get("/categories/hierarchy", categoryController.getCategoriesHierarchy);
 router.get("/categories/:id", categoryController.getCategoryById);
-router.post("/categories", categoryController.createCategory);
-router.put("/categories/:id", categoryController.updateCategory);
+router.post("/categories", categoryController.createParentCategory);
+router.put("/categories/:id", categoryController.updateParentCategory);
 router.delete("/categories/:id", categoryController.deleteCategory);
+
+// Child Categories (Danh mục con)
+router.get("/child-categories", categoryController.getChildCategories);
+router.get("/child-categories/parent/:parentId", categoryController.getChildCategoriesByParentId);
+router.get("/child-categories/:id", categoryController.getCategoryById);
+router.post("/child-categories", categoryController.createChildCategory);
+router.put("/child-categories/:id", categoryController.updateChildCategory);
+router.delete("/child-categories/:id", categoryController.deleteCategory);
 
 // Brands
 router.get("/brands", brandController.getBrands);

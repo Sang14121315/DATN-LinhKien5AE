@@ -189,6 +189,7 @@ const Header: React.FC = () => {
                           <div className="dropdown-menu">
                             <div className="dropdown-item" onClick={() => navigate("/profile")}>Hồ sơ</div>
                             <div className="dropdown-item" onClick={() => navigate("/favorite")}>Yêu thích</div>
+                            <div className="dropdown-item" onClick={() => navigate("/purchase")}>Đơn mua</div>
                             <div className="dropdown-item" onClick={handleLogout}>Đăng xuất</div>
                           </div>
                         )}
