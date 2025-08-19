@@ -93,32 +93,26 @@ const BrandTable: React.FC = () => {
     setCurrentPage(1); // Reset trang về đầu
   };
 
+  const getLogoUrl = (brand: Brand) => {
+    return brand.logo_url || '';
+  };
+
   const paginated = brands.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
   const totalPages = Math.ceil(brands.length / itemsPerPage);
 
-  const getLogoUrl = (brand: Brand): string => {
-    // Ưu tiên hiển thị logo_data (base64) nếu có
-    if (brand.logo_data) {
-      return brand.logo_data;
-    }
-    
-    // Fallback về logo_url nếu không có logo_data
-    if (!brand.logo_url) return '';
-    if (brand.logo_url.startsWith('http')) return brand.logo_url;
-    if (brand.logo_url.startsWith('/uploads/brands/')) {
-      return `http://localhost:5000${brand.logo_url}`;
-    }
-    return `http://localhost:5000/uploads/brands/${brand.logo_url}`;
-  };
-
   return (
-    <div className="category-page-container">
-      <h2 className="page-title">Thương hiệu</h2>
+    <div className="brand-page-container">
+      <h2 className="page-title">Quản lý thương hiệu</h2>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
 
       <div className="top-controls">
         <div className="left-filters">
@@ -126,9 +120,9 @@ const BrandTable: React.FC = () => {
             name="parent"
             value={filters.parent}
             onChange={handleFilterChange}
-            className="filter-button"
+            className="filter-select"
           >
-            <option value="">Tất cả thương hiệu</option>
+            <option value="">Tất cả</option>
             {parentBrands.map(brand => (
               <option key={brand._id} value={brand._id}>
                 {brand.name}
@@ -140,14 +134,14 @@ const BrandTable: React.FC = () => {
             name="startDate"
             value={filters.startDate}
             onChange={handleFilterChange}
-            className="filter-button"
+            className="filter-input"
           />
           <input
             type="date"
             name="endDate"
             value={filters.endDate}
             onChange={handleFilterChange}
-            className="filter-button"
+            className="filter-input"
           />
         </div>
 
@@ -158,6 +152,7 @@ const BrandTable: React.FC = () => {
             value={filters.name}
             onChange={handleFilterChange}
             placeholder="Tìm kiếm thương hiệu..."
+            className="filter-input"
           />
           <button
             className="add-button"
@@ -168,7 +163,7 @@ const BrandTable: React.FC = () => {
         </div>
       </div>
 
-      <table className="category-table">
+      <table className="brand-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -198,7 +193,7 @@ const BrandTable: React.FC = () => {
                     <img
                       src={getLogoUrl(brand)}
                       alt={brand.name}
-                      style={{ width: 80, height: 40, objectFit: 'contain' }}
+                      className="brand-logo"
                     />
                   ) : (
                     <span>Không có</span>

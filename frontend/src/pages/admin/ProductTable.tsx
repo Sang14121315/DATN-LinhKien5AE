@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import '@/styles/pages/admin/products.scss';
 
 import { Product, fetchAllProducts, ProductQueryParams, formatCurrency } from '@/api/productAPI';
-import { fetchAllCategories } from '@/api/categoryAPI';
+import { fetchCategories } from '@/api/categoryAPI';
 import { fetchAllBrands } from '@/api/brandAPI';
 import { fetchAllProductTypes } from '@/api/productTypeAPI';
 
@@ -68,7 +68,7 @@ const ProductTable: React.FC = () => {
   const loadFilters = async () => {
     try {
       const [cats, brs, tys] = await Promise.all([
-        fetchAllCategories({}),
+        fetchCategories({}),
         fetchAllBrands({}),
         fetchAllProductTypes({})
       ]);
