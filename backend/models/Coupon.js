@@ -10,6 +10,7 @@ const couponSchema = new mongoose.Schema({
   max_uses: { type: Number, default: Infinity },
   used_count: { type: Number, default: 0 },
   is_active: { type: Boolean, default: true },
+  pointsRequired: { type: Number, required: true }, // Số điểm cần để đổi coupon
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
 });

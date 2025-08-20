@@ -19,6 +19,7 @@ const orderSchema = new mongoose.Schema({
   items: [itemSchema], // Thêm trường items để lưu sản phẩm trong đơn hàng
   payment_method: { type: String, enum: ['cod', 'bank'], default: 'cod' },
   total: Number,
+  orderNumber: { type: String, unique: true },
   // Trạng thái đơn hàng: chuẩn hóa và giới hạn các giá trị hợp lệ
   status: { 
     type: String, 

@@ -107,6 +107,7 @@ router.get("/coupons/:id", couponController.getCouponById);
 router.post("/coupons", couponController.createCoupon);
 router.put("/coupons/:id", couponController.updateCoupon);
 router.delete("/coupons/:id", couponController.deleteCoupon);
+router.post("/coupons/redeem", auth, couponController.redeemCoupon);
 
 // Orders
 router.get("/orders", auth, orderController.getOrders);
@@ -163,6 +164,15 @@ router.patch("/users/:id/block", userController.blockUser);
 router.get("/profile", auth, userController.getCurrentUser);
 router.put("/profile", auth, userController.updateProfile);
 router.put("/profile/change-password", auth, userController.changePassword);
+
+// Loyalty (Khách hàng thân thiết)
+router.get('/loyalty/info', auth, userController.getLoyaltyInfo);
+router.get('/loyalty/history', auth, userController.getLoyaltyHistory);
+router.post('/loyalty/redeem', auth, userController.redeemLoyaltyPoints);
+
+// Rewards (Ưu đãi/quà tặng)
+router.get('/rewards', userController.getRewardList);
+router.post('/rewards/redeem', auth, userController.redeemReward);
 
 // Contact management (admin)
 router.get("/contacts", contactController.getContacts);
