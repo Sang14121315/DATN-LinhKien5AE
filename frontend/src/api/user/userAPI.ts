@@ -132,3 +132,88 @@ export const blockUser = async (
   const response = await axios.patch(`/users/${userId}/block`, { block });
   return response.data;
 };
+
+// Loyalty (Khách hàng thân thiết)
+export interface LoyaltyInfo {
+  loyaltyPoints: number;
+  totalSpent: number;
+  memberLevel: string;
+}
+
+export interface LoyaltyTransaction {
+  _id: string;
+  user_id: string;
+  type: 'earn' | 'redeem';
+  points: number;
+  description: string;
+  created_at: string;
+}
+
+export const getLoyaltyInfo = async (): Promise<LoyaltyInfo> => {
+  const response = await axios.get('/loyalty/info');
+  return response.data;
+};
+
+export const getLoyaltyHistory = async (): Promise<LoyaltyTransaction[]> => {
+  const response = await axios.get('/loyalty/history');
+  return response.data;
+};
+
+export const redeemLoyaltyPoints = async (points: number, description?: string): Promise<{ success: boolean; message: string; currentPoints: number }> => {
+  const response = await axios.post('/loyalty/redeem', { points, description });
+  return response.data;
+};
+
+// Reward (Ưu đãi/quà tặng)
+export interface Reward {
+  _id: string;
+  name: string;
+  pointsRequired: number;
+  description?: string;
+  type: string;
+  quantity: number;
+  image?: string;
+  isActive: boolean;
+}
+
+export const getRewardList = async (): Promise<Reward[]> => {
+  const response = await axios.get('/rewards');
+  return response.data;
+};
+
+export const redeemReward = async (rewardId: string): Promise<{ success: boolean; message: string; currentPoints: number }> => {
+  const response = await axios.post('/rewards/redeem', { rewardId });
+  return response.data;
+};
+
+export interface Coupon {
+  _id: string;
+  code: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  min_order_value: number;
+  start_date: string;
+  end_date: string;
+  max_uses: number;
+  used_count: number;
+  is_active: boolean;
+  pointsRequired: number;
+  description?: string;
+  image?: string;
+}
+
+export const getCouponList = async (): Promise<Coupon[]> => {
+  const response = await axios.get('/coupons?is_active=true');
+  return response.data;
+};
+
+export const redeemCoupon = async (couponId: string): Promise<{ success: boolean; message: string; currentPoints: number }> => {
+  const response = await axios.post('/coupons/redeem', { couponId });
+  return response.data;
+};
+
+// Lấy danh sách voucher user đã đổi (chưa dùng)
+export const getMyCoupons = async (): Promise<Coupon[]> => {
+  const response = await axios.get('/my-coupons');
+  return response.data;
+};

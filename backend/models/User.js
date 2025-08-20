@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema(
     googleId: { type: String, unique: true, sparse: true },
     avatar: String,
     isVerified: { type: Boolean, default: false },
+    // Loyalty program fields
+    loyaltyPoints: { type: Number, default: 0 },
+    totalSpent: { type: Number, default: 0 },
+    memberLevel: { type: String, enum: ["Bạc", "Vàng", "Kim cương"], default: "Bạc" },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

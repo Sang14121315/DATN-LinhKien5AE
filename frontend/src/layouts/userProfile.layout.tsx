@@ -41,6 +41,12 @@ const UserProfileLayout: React.FC = () => {
       label: "Đơn Mua",
       icon: FaFileAlt,
       path: "/purchase"
+    },
+    {
+      id: "loyalty",
+      label: "Khách hàng thân thiết",
+      icon: FaUser,
+      path: "/loyalty"
     }
   ];
 
@@ -62,7 +68,6 @@ const UserProfileLayout: React.FC = () => {
               <div className="user-name">{user?.name || "Loading..."}</div>
             </div>
           </div>
-
           {/* Navigation */}
           <div className="navigation-section">
             {navigationItems.map((item) => (

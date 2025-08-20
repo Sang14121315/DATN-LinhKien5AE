@@ -256,6 +256,32 @@ module.exports = {
       // Email sẽ được gửi từ frontend thay vì backend
       console.log('📧 Order status updated. Email will be sent from frontend.');
 
+      // Kiểm tra nếu trạng thái mới là 'completed' (đơn hàng hoàn thành) thì cộng điểm
+      if (requestedStatus === 'completed' && order.user_id) {
+        const User = require('../models/User');
+        const LoyaltyTransaction = require('../models/LoyaltyTransaction');
+        const user = await User.findById(order.user_id);
+        if (user) {
+          // Tính điểm: ví dụ 1 điểm cho mỗi 10.000đ
+          const earnPoints = Math.floor(order.total / 10000);
+          user.loyaltyPoints = (user.loyaltyPoints || 0) + earnPoints;
+          user.totalSpent = (user.totalSpent || 0) + (order.total || 0);
+          // Xét cấp bậc thành viên
+          let newLevel = 'Bạc';
+          if (user.totalSpent >= 20000000) newLevel = 'Kim cương';
+          else if (user.totalSpent >= 5000000) newLevel = 'Vàng';
+          user.memberLevel = newLevel;
+          await user.save();
+          // Ghi lịch sử giao dịch điểm
+          await LoyaltyTransaction.create({
+            user_id: user._id,
+            type: 'earn',
+            points: earnPoints,
+            description: `Tích điểm từ đơn hàng #${order._id}`
+          });
+        }
+      }
+
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: error.message || 'Lỗi cập nhật đơn hàng' });

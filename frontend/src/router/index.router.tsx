@@ -42,6 +42,7 @@ import UserProfileLayout from "@/layouts/userProfile.layout";
 import ProductTablePage from "@/pages/admin/ProductTable";
 import ProductFormPage from "@/pages/admin/ProductForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import LoyaltyPage from "@/pages/user/LoyaltyPage";
 
 const MainRouter = () => {
   return (
@@ -151,6 +152,7 @@ const MainRouter = () => {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="purchase" element={<PurchasePage />} />
           <Route path="favorite" element={<FavoritePage />} />
+          <Route path="loyalty" element={<LoyaltyPage />} />
         </Route>
       </Route>
     </Routes>
