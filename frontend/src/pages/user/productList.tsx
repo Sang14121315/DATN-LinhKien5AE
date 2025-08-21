@@ -51,16 +51,7 @@ const ProductListPage: React.FC = () => {
           fetchCategoriesHierarchy(),
         ]);
         setBrands(brandData);
-        setCategories(categoryData);
-
-        setProductTypes(productTypeData);
-
-        const categoriesByProductType: Record<string, Category[]> = {};
-        for (const productType of productTypeData) {
-          const categories = await fetchCategoriesByProductType(productType._id);
-          categoriesByProductType[productType._id] = categories;
-        }setProductTypeCategories(categoriesByProductType);
-
+        setCategories(hierarchyData);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -201,27 +192,52 @@ const ProductListPage: React.FC = () => {
               <div className="dropdown-header">
                 <span>DANH MỤC SẢN PHẨM</span>
               </div>
-              <ul className="dropdown-content">
-                <li onClick={() => setSelectedCategory("all")} className={selectedCategory === "all" ? "active" : ""}>
-                  TẤT CẢ SẢN PHẨM
-                </li>
-                {categories.map((category) => (
+              <div className="dropdown-content-wrapper">
+                <ul className="dropdown-content">
                   <li
-                    key={category._id}
-                    onClick={() => setSelectedCategory(category._id)}
-                    className={selectedCategory === category._id ? "active" : ""}
+                    onClick={() => {
+                      setSelectedCategory("all");
+                      setOpenDropdown(null);
+                    }}
+                    className={selectedCategory === "all" ? "active" : ""}
                   >
-                    {category.name}
+                    TẤT CẢ SẢN PHẨM
                   </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Lọc giá */}
-
-            <div className="sidebar-section">
-              <h3>LỌC GIÁ</h3>
-              <div className="price-radio-group">
+                  {categories.map((category) => (
+                    <li key={category._id} className={selectedCategory === category._id ? "active" : ""}>
+                      <div
+                        className="category-item"
+                        onClick={() => {
+                          setSelectedCategory(category._id || "all");
+                          toggleDropdown(category._id || "");
+                        }}
+                      >
+                        {category.name}
+                        {category.children && category.children.length > 0 && (
+                          <span className="dropdown-icon">
+                            {openDropdown === category._id ? "▲" : "▼"}
+                          </span>
+                        )}
+                      </div>
+                      {category.children && category.children.length > 0 && openDropdown === category._id && (
+                        <ul className="child-category-list">
+                          {category.children.map((child) => (
+                            <li
+                              key={child._id}
+                              onClick={() => setSelectedCategory(child._id || "all")}
+                              className={selectedCategory === child._id ? "active" : ""}
+                            >
+                              {child.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="price-filter">
+                <h3>KHOẢNG GIÁ</h3>
                 {[
                   ["all", "Tất cả"],
                   ["0-10000", "Dưới 10.000đ"],
@@ -303,22 +319,23 @@ const ProductListPage: React.FC = () => {
                     <Col xs={12} sm={8} md={6} lg={6} key={product._id}>
                       <div className="product-card">
                         <img
-  src={getImageUrl(product.img_url)}
-  alt={product.name}
-  style={{ cursor: "pointer" }}
-  onClick={() => {
-    sessionStorage.setItem(
-      "productFilters",
-      JSON.stringify({
-        category: selectedCategory,
-        brand: selectedBrand,
-        price: selectedPrice,
-        scroll: window.scrollY,
-      })
-    );
-    navigate(`/product/${product._id}`);
-  }}
-/>
+                          src={getImageUrl(product.img_url)}
+                          alt={product.name}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            sessionStorage.setItem(
+                              "productFilters",
+                              JSON.stringify({
+                                category: selectedCategory,
+                                brand: selectedBrand,
+                                price: selectedPrice,
+                                scroll: window.scrollY,
+                              })
+                            );
+                            navigate(`/product/${product._id}`);
+                          }}
+                        />
+
                         <button
                           className="favorite-icon"
                           onClick={(e) => {
