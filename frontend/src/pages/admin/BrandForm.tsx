@@ -24,6 +24,7 @@ const BrandForm: React.FC = () => {
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null); // Thêm state cho lỗi
 
   useEffect(() => {
     if (isEditMode) {
@@ -55,6 +56,7 @@ const BrandForm: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     setBrand((prev) => ({ ...prev, [name]: value }));
+    setError(null); // Xóa lỗi khi người dùng nhập
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,24 +69,36 @@ const BrandForm: React.FC = () => {
   };
 
   const handleSave = async () => {
-    const payload: any = {
-      name: brand.name,
-      slug: brand.slug || brand.name.toLowerCase().replace(/\s+/g, "-"),
-      logoFile: logoFile || undefined,
-    };
+    // Kiểm tra name không rỗng
+    const trimmedName = brand.name.trim();
+    if (!trimmedName) {
+      setError("Tên thương hiệu là bắt buộc!");
+      return;
+    }
+
+    // Create FormData object for file upload
+    const formData = new FormData();
+    formData.append("name", trimmedName);
+    formData.append(
+      "slug",
+      brand.slug.trim() || trimmedName.toLowerCase().replace(/\s+/g, "-")
+    );
+    if (logoFile) {
+      formData.append("logoFile", logoFile);
+    }
 
     try {
       if (isEditMode) {
-        await updateBrand(id as string, payload);
+        await updateBrand(id as string, formData);
         alert("Cập nhật thành công!");
       } else {
-        await createBrand(payload);
+        await createBrand(formData);
         alert("Thêm mới thành công!");
         navigate("/admin/brand");
       }
     } catch (error: any) {
       console.error("Lỗi xử lý:", error?.response?.data?.message || error.message);
-      alert("Thao tác thất bại!");
+      setError(error?.response?.data?.message || "Thao tác thất bại!");
     }
   };
 
@@ -96,7 +110,7 @@ const BrandForm: React.FC = () => {
         navigate("/admin/brand");
       } catch (error) {
         console.error("Lỗi xóa:", error);
-        alert("Xóa thất bại!");
+        setError("Xóa thất bại!");
       }
     }
   };
@@ -104,6 +118,8 @@ const BrandForm: React.FC = () => {
   return (
     <div className="category-detail-page">
       <h2>{isEditMode ? "Chi tiết thương hiệu" : "Thêm thương hiệu mới"}</h2>
+
+      {error && <div className="error-message" style={{ color: 'red' }}>{error}</div>}
 
       <div className="detail-wrapper">
         {/* Upload logo */}
@@ -131,6 +147,7 @@ const BrandForm: React.FC = () => {
               name="name"
               value={brand.name}
               onChange={handleInputChange}
+              required
             />
           </label>
 
@@ -148,7 +165,7 @@ const BrandForm: React.FC = () => {
             <label>
               Ngày tạo
               <input
-                type="date"
+                type="text"
                 name="created_at"
                 value={brand.created_at}
                 disabled

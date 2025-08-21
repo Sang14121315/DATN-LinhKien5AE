@@ -2,7 +2,7 @@ const BrandService = require('../services/brandService');
 const Joi = require('joi');
 
 const brandSchema = Joi.object({
-  slug: Joi.string().required(),
+  slug: Joi.string().allow(''), // Cho phép slug rỗng, sẽ xử lý trong logic
   name: Joi.string().required(),
   logo_data: Joi.string().allow(''),
   logo_url: Joi.string().allow(''),
@@ -31,6 +31,7 @@ exports.getBrands = async (req, res) => {
   }
 };
 
+// ✅ Lấy brand theo ID
 exports.getBrandById = async (req, res) => {
   try {
     const brand = await BrandService.getById(req.params.id);
@@ -40,57 +41,66 @@ exports.getBrandById = async (req, res) => {
   }
 };
 
+// ✅ Tạo mới thương hiệu
 exports.createBrand = async (req, res) => {
   try {
     const { error } = brandSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
-    let logoData = '';
-    
-    // Nếu có file upload, chuyển đổi thành base64
+    // Tạo slug từ name nếu slug rỗng
+    const slug = req.body.slug || req.body.name.toLowerCase().replace(/\s+/g, '-');
+
+    // Xử lý logo
+    let logoUrl = '';
     if (req.file) {
-      const buffer = req.file.buffer;
-      const base64 = buffer.toString('base64');
-      const mimeType = req.file.mimetype;
-      logoData = `data:${mimeType};base64,${base64}`;
+      logoUrl = `/uploads/${req.file.filename}`;
     }
 
     const brand = await BrandService.create({
       ...req.body,
-      logo_data: logoData,
-      logo_url: req.body.logo_url || ''
+      slug,
+      logo_url: logoUrl,
+      logo_data: '',
     });
     res.status(201).json(brand);
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Error creating brand' });
+    console.error('Lỗi tạo thương hiệu:', error);
+    res.status(500).json({ message: error.message || 'Lỗi server khi tạo thương hiệu' });
   }
 };
 
+// ✅ Cập nhật thương hiệu
 exports.updateBrand = async (req, res) => {
   try {
     const { error } = brandSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
-    let logoData = req.body.logo_data || '';
-    
-    // Nếu có file upload mới, chuyển đổi thành base64
+    // Tạo slug từ name nếu slug rỗng
+    const slug = req.body.slug || req.body.name.toLowerCase().replace(/\s+/g, '-');
+
+    // Xử lý logo
+    let logoUrl = req.body.logo_url || '';
     if (req.file) {
-      const buffer = req.file.buffer;
-      const base64 = buffer.toString('base64');
-      const mimeType = req.file.mimetype;
-      logoData = `data:${mimeType};base64,${base64}`;
+      logoUrl = `/uploads/${req.file.filename}`;
     }
 
     const brand = await BrandService.update(req.params.id, {
       ...req.body,
-      logo_data: logoData
+      slug,
+      logo_url: logoUrl,
+      logo_data: '',
     });
+    if (!brand) {
+      return res.status(404).json({ message: 'Không tìm thấy thương hiệu' });
+    }
     res.json(brand);
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Error updating brand' });
+    console.error('Lỗi cập nhật thương hiệu:', error);
+    res.status(500).json({ message: error.message || 'Lỗi server khi cập nhật thương hiệu' });
   }
 };
 
+// ✅ Xóa thương hiệu
 exports.deleteBrand = async (req, res) => {
   try {
     await BrandService.delete(req.params.id);
