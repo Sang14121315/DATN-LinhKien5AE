@@ -14,10 +14,6 @@ const messageController = require("../controllers/messageController");
 const couponController = require("../controllers/couponController");
 const contactController = require("../controllers/contactController");
 const categoryController = require("../controllers/categoryController");
-// EmailService đã được chuyển sang frontend (EmailJS)
-console.log("🧪 categoryController =", categoryController);
-
-// ✅ THÊM DÒNG NÀY
 
 // Admin routes
 router.get("/users", adminAuth, userController.getUsers);
@@ -104,33 +100,14 @@ router.get(
   adminController.getTop5BestSellerProducts
 );
 
-// Categories
+// Categories (Gộp thành 1 trang quản lý)
 router.get("/categories", auth, adminAuth, categoryController.getCategories);
-router.get(
-  "/categories/names",
-  auth,
-  adminAuth,
-  categoryController.getCategoryNames
-);
-router.get(
-  "/categories/:id",
-  auth,
-  adminAuth,
-  categoryController.getCategoryById
-);
+router.get("/categories/hierarchy", auth, adminAuth, categoryController.getCategoriesHierarchy);
+router.get("/categories/parent-dropdown", auth, adminAuth, categoryController.getParentCategoriesForDropdown);
+router.get("/categories/:id", auth, adminAuth, categoryController.getCategoryById);
 router.post("/categories", auth, adminAuth, categoryController.createCategory);
-router.put(
-  "/categories/:id",
-  auth,
-  adminAuth,
-  categoryController.updateCategory
-);
-router.delete(
-  "/categories/:id",
-  auth,
-  adminAuth,
-  categoryController.deleteCategory
-);
+router.put("/categories/:id", auth, adminAuth, categoryController.updateCategory);
+router.delete("/categories/:id", auth, adminAuth, categoryController.deleteCategory);
 
 // Brands
 router.get("/brands", auth, adminAuth, brandController.getBrands);

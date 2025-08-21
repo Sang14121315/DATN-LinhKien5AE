@@ -5,6 +5,14 @@ import {
   changePassword,
   User,
   ChangePasswordData,
+  getLoyaltyInfo,
+  getLoyaltyHistory,
+  redeemLoyaltyPoints,
+  LoyaltyInfo,
+  LoyaltyTransaction,
+  getRewardList,
+  redeemReward,
+  Reward,
 } from "@/api/user/userAPI";
 import "@/styles/pages/user/profile.scss";
 
@@ -57,8 +65,21 @@ const ProfilePage: React.FC = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // State cho thông tin khách hàng thân thiết
+  const [loyaltyInfo, setLoyaltyInfo] = useState<LoyaltyInfo | null>(null);
+  const [loyaltyHistory, setLoyaltyHistory] = useState<LoyaltyTransaction[]>([]);
+  const [redeemPoints, setRedeemPoints] = useState('');
+  const [redeemDesc, setRedeemDesc] = useState('');
+  const [redeeming, setRedeeming] = useState(false);
+
+  // State cho ưu đãi/quà tặng
+  const [rewardList, setRewardList] = useState<Reward[]>([]);
+  const [redeemingRewardId, setRedeemingRewardId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchUserData();
+    fetchLoyalty();
+    fetchRewards();
   }, []);
 
   const fetchUserData = async () => {
@@ -75,6 +96,40 @@ const ProfilePage: React.FC = () => {
       console.error("Error fetching user data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLoyalty = async () => {
+    try {
+      const info = await getLoyaltyInfo();
+      setLoyaltyInfo(info);
+      const history = await getLoyaltyHistory();
+      setLoyaltyHistory(history);
+    } catch (e) {
+      console.error('Lỗi lấy thông tin khách hàng thân thiết:', e);
+    }
+  };
+
+  const fetchRewards = async () => {
+    try {
+      const rewards = await getRewardList();
+      setRewardList(rewards);
+    } catch (e) {
+      console.error('Lỗi lấy danh sách ưu đãi/quà tặng:', e);
+    }
+  };
+
+  const handleRedeemReward = async (rewardId: string) => {
+    setRedeemingRewardId(rewardId);
+    try {
+      const res = await redeemReward(rewardId);
+      alert(res.message);
+      fetchLoyalty();
+      fetchRewards();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || 'Lỗi đổi điểm lấy ưu đãi!');
+    } finally {
+      setRedeemingRewardId(null);
     }
   };
 
@@ -155,6 +210,26 @@ const ProfilePage: React.FC = () => {
       alert(errorMessage);
     } finally {
       setChangingPassword(false);
+    }
+  };
+
+  // Xử lý quy đổi điểm
+  const handleRedeem = async () => {
+    if (!redeemPoints || isNaN(Number(redeemPoints)) || Number(redeemPoints) <= 0) {
+      alert('Vui lòng nhập số điểm hợp lệ!');
+      return;
+    }
+    setRedeeming(true);
+    try {
+      const res = await redeemLoyaltyPoints(Number(redeemPoints), redeemDesc);
+      alert(res.message);
+      setRedeemPoints('');
+      setRedeemDesc('');
+      fetchLoyalty();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || 'Lỗi quy đổi điểm!');
+    } finally {
+      setRedeeming(false);
     }
   };
 
@@ -326,6 +401,74 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Thông tin khách hàng thân thiết */}
+      {loyaltyInfo && (
+        <div className="loyalty-info-box">
+          <h2>Khách hàng thân thiết</h2>
+          <p><b>Điểm hiện tại:</b> {loyaltyInfo.loyaltyPoints}</p>
+          <p><b>Cấp bậc:</b> {loyaltyInfo.memberLevel}</p>
+          <p><b>Tổng chi tiêu:</b> {loyaltyInfo.totalSpent.toLocaleString()}đ</p>
+          <div className="loyalty-redeem-form">
+            <h3>Quy đổi điểm</h3>
+            <input type="number" min="1" placeholder="Số điểm muốn đổi" value={redeemPoints} onChange={e => setRedeemPoints(e.target.value)} />
+            <input type="text" placeholder="Mô tả (tùy chọn)" value={redeemDesc} onChange={e => setRedeemDesc(e.target.value)} />
+            <button onClick={handleRedeem} disabled={redeeming}>{redeeming ? 'Đang xử lý...' : 'Đổi điểm'}</button>
+          </div>
+        </div>
+      )}
+      {/* Danh sách ưu đãi/quà tặng */}
+      {rewardList.length > 0 && (
+        <div className="reward-list-box">
+          <h2>Ưu đãi/Quà tặng có thể đổi</h2>
+          <div className="reward-list">
+            {rewardList.map(reward => (
+              <div className="reward-item" key={reward._id}>
+                {reward.image && <img src={reward.image} alt={reward.name} className="reward-img" />}
+                <div className="reward-info">
+                  <h4>{reward.name}</h4>
+                  <p>{reward.description}</p>
+                  <p><b>Loại:</b> {reward.type === 'voucher' ? 'Voucher' : reward.type === 'gift' ? 'Quà tặng' : 'Khác'}</p>
+                  <p><b>Điểm cần:</b> {reward.pointsRequired}</p>
+                  {reward.quantity > 0 && <p><b>Còn lại:</b> {reward.quantity}</p>}
+                  <button
+                    disabled={!!redeemingRewardId || (loyaltyInfo && loyaltyInfo.loyaltyPoints < reward.pointsRequired)}
+                    onClick={() => handleRedeemReward(reward._id)}
+                  >
+                    {redeemingRewardId === reward._id ? 'Đang đổi...' : 'Đổi điểm'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* Lịch sử giao dịch điểm */}
+      {loyaltyHistory.length > 0 && (
+        <div className="loyalty-history-box">
+          <h3>Lịch sử giao dịch điểm</h3>
+          <table className="loyalty-history-table">
+            <thead>
+              <tr>
+                <th>Ngày</th>
+                <th>Loại</th>
+                <th>Điểm</th>
+                <th>Mô tả</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loyaltyHistory.map(tx => (
+                <tr key={tx._id}>
+                  <td>{new Date(tx.created_at).toLocaleString()}</td>
+                  <td>{tx.type === 'earn' ? 'Tích điểm' : 'Quy đổi'}</td>
+                  <td style={{ color: tx.type === 'earn' ? 'green' : 'red' }}>{tx.type === 'earn' ? '+' : '-'}{tx.points}</td>
+                  <td>{tx.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

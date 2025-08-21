@@ -6,7 +6,7 @@ import { fetchCoupons } from "@/api/couponAPI";
 import "@/styles/pages/user/checkoutPage.scss";
 import { useNavigate } from "react-router-dom";
 import { createMomoOrder } from '@/api/momoAPI';
-import { getCurrentUser } from '@/api/user/userAPI';
+import { getCurrentUser, getMyCoupons } from '@/api/user/userAPI';
 import { sendOrderConfirmationEmail } from '@/services/emailService';
 import { Row, Col, Card, Form, Input, Select, Radio, Button, Divider, Space, Typography, Alert, Modal } from 'antd';
 import { UserOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, ShoppingCartOutlined, CreditCardOutlined, BankOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
@@ -21,6 +21,7 @@ const CheckoutPage: React.FC = () => {
   const [coupon, setCoupon] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [redeemedCoupons, setRedeemedCoupons] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -90,7 +91,7 @@ const CheckoutPage: React.FC = () => {
       try {
         const coupons = await fetchCoupons();
         setAvailableCoupons(coupons);
-        console.log('📋 Available coupons:', coupons);
+        console.log('📋 My coupons:', coupons);
         
         // Debug: Kiểm tra từng voucher
         const currentSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -121,6 +122,18 @@ const CheckoutPage: React.FC = () => {
     };
     loadCoupons();
   }, [cartItems]);
+
+  useEffect(() => {
+    const fetchRedeemedCoupons = async () => {
+      try {
+        const myCoupons = await getMyCoupons();
+        setRedeemedCoupons(myCoupons);
+      } catch (e) {
+        setRedeemedCoupons([]);
+      }
+    };
+    fetchRedeemedCoupons();
+  }, []);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const total = subtotal - discount;
@@ -637,7 +650,7 @@ const CheckoutPage: React.FC = () => {
                           value={couponCode}
                           onChange={(value) => {
                             setCouponCode(value);
-                            const selectedCoupon = availableCoupons.find(c => c.code === value);
+                            const selectedCoupon = [...availableCoupons, ...redeemedCoupons].find(c => c.code === value);
                             handleApplyCoupon(selectedCoupon);
                           }}
                           style={{ borderRadius: '8px', width: '100%' }}
@@ -649,14 +662,13 @@ const CheckoutPage: React.FC = () => {
                             </div>
                           }
                         >
+                          {/* Mã giảm giá thông thường */}
                           {availableCoupons
                             .filter(c => {
                               const now = new Date();
                               const startDate = new Date(c.start_date);
                               const endDate = new Date(c.end_date);
-                              const isActive = c.is_active !== false; // Mặc định là true nếu không có trường này
-                              
-                              // Chỉ hiển thị mã đang kích hoạt và trong thời gian hiệu lực
+                              const isActive = c.is_active !== false;
                               return isActive && startDate <= now && endDate >= now;
                             })
                             .filter(c => !c.min_order_value || subtotal >= c.min_order_value)
@@ -670,13 +682,32 @@ const CheckoutPage: React.FC = () => {
                                 </div>
                               </Select.Option>
                             ))}
+                          {/* Mã đã đổi điểm (user-coupon) */}
+                          {redeemedCoupons
+                            .filter(c => {
+                              const now = new Date();
+                              const startDate = new Date(c.start_date);
+                              const endDate = new Date(c.end_date);
+                              const isActive = c.is_active !== false;
+                              return isActive && startDate <= now && endDate >= now;
+                            })
+                            .map(c => (
+                              <Select.Option key={c.code + '-redeemed'} value={c.code}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span>{c.code} <span style={{ color: '#1976d2', fontWeight: 600 }}>[Đã đổi điểm]</span></span>
+                                  <span style={{ fontSize: '12px', color: '#1976d2' }}>
+                                    Đổi bằng {c.pointsRequired} điểm
+                                  </span>
+                                </div>
+                              </Select.Option>
+                            ))}
                         </Select>
                       </Col>
                       <Col xs={10} sm={8} md={6}>
                         <Button 
                           type="primary" 
                           onClick={() => {
-                            const selectedCoupon = availableCoupons.find(c => c.code === couponCode);
+                            const selectedCoupon = [...availableCoupons, ...redeemedCoupons].find(c => c.code === couponCode);
                             handleApplyCoupon(selectedCoupon);
                           }}
                           size="large"

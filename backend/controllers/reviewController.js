@@ -4,6 +4,11 @@ exports.addReview = async (req, res) => {
   try {
     const { product_id, order_detail_id, rating, comment, images } = req.body;
     const userId = req.user.id;
+    
+    if (!order_detail_id) {
+      return res.status(400).json({ message: 'Vui lòng chọn đơn hàng để đánh giá.' });
+    }
+    
     const review = await ReviewService.add(userId, product_id, order_detail_id, rating, comment, images);
     res.json(review);
   } catch (error) {
@@ -91,6 +96,30 @@ exports.getUnreviewedOrderDetails = async (req, res) => {
     const userId = req.user.id;
     const unreviewedOrders = await ReviewService.getUnreviewedOrderDetails(userId, product_id);
     res.json(unreviewedOrders);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Controller mới: Lấy review mới nhất của user cho sản phẩm
+exports.getUserLatestReviewForProduct = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    const userId = req.user.id;
+    const review = await ReviewService.getUserLatestReviewForProduct(userId, product_id);
+    res.json(review);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Controller mới: Kiểm tra user có thể đánh giá không
+exports.canUserReviewProduct = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    const userId = req.user.id;
+    const canReview = await ReviewService.canUserReviewProduct(userId, product_id);
+    res.json({ canReview });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

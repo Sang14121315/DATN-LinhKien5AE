@@ -60,9 +60,37 @@
         margin-bottom: 10px;
       }
 
+      // Thêm wrapper cho dropdown content với khả năng scroll
+      .dropdown-content-wrapper {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        
+        // Custom scrollbar styling
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 3px;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 3px;
+          
+          &:hover {
+            background: #a1a1a1;
+          }
+        }
+      }
+
       .dropdown-content {
         padding-left: 0;
         list-style: none;
+        margin: 0;
 
         li {
           padding: 10px 15px;
@@ -82,6 +110,53 @@
             color: #007BFF;
             font-weight: 600;
           }
+
+          .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .dropdown-icon {
+            font-size: 12px;
+            color: #666666;
+          }
+
+          .child-category-list {
+            list-style: none;
+            padding-left: 20px;
+            margin-top: 5px;
+
+            li {
+              padding: 8px 15px;
+              font-size: 14px;
+              color: #555555;
+              border-bottom: none;
+
+              &:hover {
+                background-color: #E8ECEF;
+              }
+
+              &.active {
+                color: #007BFF;
+                font-weight: 500;
+              }
+            }
+          }
+        }
+      }
+
+      .price-filter {
+        margin-top: 20px;
+
+        h3 {
+          color: #444444;
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 10px;
+          border-bottom: 1px solid #E0E0E0;
+          padding-bottom: 5px;
+          text-transform: uppercase;
         }
       }
     }
@@ -125,11 +200,51 @@
 
       .brand-radio-group {
         display: flex;
-        flex-wrap: wrap;
+        align-items: center;
         gap: 15px;
 
         @media (max-width: 767px) {
           justify-content: center;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        // Container cho phần scroll của brands
+        .brand-scroll-container {
+          display: flex;
+          gap: 15px;
+          overflow-x: auto;
+          max-height: 70px;
+          padding: 5px 0;
+          flex: 1;
+          
+          // Giới hạn hiển thị tối đa 10 brand items trong một hàng
+          max-width: calc(10 * (80px + 15px));
+          
+          // Custom scrollbar styling
+          &::-webkit-scrollbar {
+            height: 6px;
+          }
+          
+          &::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+          }
+          
+          &::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+            
+            &:hover {
+              background: #a1a1a1;
+            }
+          }
+
+          @media (max-width: 767px) {
+            max-width: 100%;
+            justify-content: center;
+            flex-wrap: nowrap;
+          }
         }
       }
 
@@ -140,11 +255,13 @@
         cursor: pointer;
         padding: 4px;
         transition: all 0.2s;
+        flex-shrink: 0; // Prevent shrinking trong scroll container
 
         span {
           font-size: 16px;
           vertical-align: middle;
           color: #444444;
+          white-space: nowrap;
         }
 
         .brand-logo {
@@ -163,6 +280,11 @@
         &.selected .brand-logo {
           transform: scale(1.2);
           border: 2px solid #007BFF;
+        }
+
+        &.selected span {
+          color: #007BFF;
+          font-weight: 600;
         }
       }
     }
@@ -264,18 +386,21 @@
         .price-block {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           margin-bottom: 15px;
+          min-height: 50px; // Đặt chiều cao tối thiểu cố định
 
           .price-left {
             display: flex;
             flex-direction: column;
             gap: 2px;
+            min-height: 40px; // Đặt chiều cao tối thiểu cho phần giá
 
             .discount-price {
               font-size: medium;
               color: red;
               font-weight: bold;
+              line-height: 1.2;
             }
 
             .original-price {
@@ -283,6 +408,7 @@
               text-decoration: line-through;
               color: #666666;
               font-size: 0.9em;
+              line-height: 1.2;
             }
           }
 
@@ -294,6 +420,7 @@
             padding: 4px 6px;
             border-radius: 4px;
             white-space: nowrap;
+            align-self: flex-start; // Căn lên trên
           }
         }
 

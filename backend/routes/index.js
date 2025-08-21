@@ -63,27 +63,10 @@ router.put(
 );
 router.delete("/products/:id", auth, productController.deleteProduct);
 
-// Product Types
-router.get("/product-types", productTypeController.getProductTypes);
-router.get(
-  "/product-types-with-categories",
-  productTypeController.getProductTypesWithCategories
-);
-router.get("/product-types/:id", productTypeController.getProductTypeById);
-router.post("/product-types", auth, productTypeController.createProductType);
-router.put("/product-types/:id", auth, productTypeController.updateProductType);
-router.delete(
-  "/product-types/:id",
-  auth,
-  productTypeController.deleteProductType
-);
-
-// Categories
+// Categories - Gộp thành 1 endpoint duy nhất
 router.get("/categories", categoryController.getCategories);
-router.get(
-  "/categories/by-product-type/:productTypeId",
-  categoryController.getCategoriesByProductType
-);
+router.get("/categories/hierarchy", categoryController.getCategoriesHierarchy);
+router.get("/categories/parent-dropdown", categoryController.getParentCategoriesForDropdown);
 router.get("/categories/:id", categoryController.getCategoryById);
 router.post("/categories", categoryController.createCategory);
 router.put("/categories/:id", categoryController.updateCategory);
@@ -102,6 +85,7 @@ router.get("/coupons/:id", couponController.getCouponById);
 router.post("/coupons", couponController.createCoupon);
 router.put("/coupons/:id", couponController.updateCoupon);
 router.delete("/coupons/:id", couponController.deleteCoupon);
+router.post("/coupons/redeem", auth, couponController.redeemCoupon);
 
 // Orders
 router.get("/orders", auth, orderController.getOrders);
@@ -159,6 +143,15 @@ router.get("/profile", auth, userController.getCurrentUser);
 router.put("/profile", auth, userController.updateProfile);
 router.put("/profile/change-password", auth, userController.changePassword);
 
+// Loyalty (Khách hàng thân thiết)
+router.get('/loyalty/info', auth, userController.getLoyaltyInfo);
+router.get('/loyalty/history', auth, userController.getLoyaltyHistory);
+router.post('/loyalty/redeem', auth, userController.redeemLoyaltyPoints);
+
+// Rewards (Ưu đãi/quà tặng)
+router.get('/rewards', userController.getRewardList);
+router.post('/rewards/redeem', auth, userController.redeemReward);
+
 // Contact management (admin)
 router.get("/contacts", contactController.getContacts);
 router.patch("/contacts/:id/status", contactController.updateContactStatus);
@@ -180,6 +173,9 @@ router.get('/review/user/:product_id', auth, reviewController.getUserReviewsForP
 router.get('/review/unreviewed-orders/:product_id', auth, reviewController.getUnreviewedOrderDetails);
 router.put('/review/update/:review_id', auth, reviewController.updateReview);
 
+// New routes for enhanced review functionality
+router.get('/review/user-latest/:product_id', auth, reviewController.getUserLatestReviewForProduct);
+router.get('/review/can-review/:product_id', auth, reviewController.canUserReviewProduct);
 
 // Review (admin)
 router.post("/review/admin-reply", auth, reviewController.adminReply);

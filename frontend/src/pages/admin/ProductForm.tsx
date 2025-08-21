@@ -7,7 +7,7 @@ import {
   deleteProduct,
   Product,
 } from "@/api/productAPI";
-import { fetchAllCategories, Category } from "@/api/categoryAPI";
+import { fetchCategories, Category } from "@/api/categoryAPI";
 import { fetchAllBrands } from "@/api/brandAPI";
 import { fetchProductTypes } from "@/api/productTypeAPI";
 import "@/styles/pages/admin/productDetail.scss";
@@ -80,7 +80,7 @@ const ProductForm: React.FC = () => {
     const fetchData = async () => {
       try {
         const [cats, brs, tys] = await Promise.all([
-          fetchAllCategories({}),
+          fetchCategories({}),
           fetchAllBrands({}),
           fetchProductTypes(),
         ]);

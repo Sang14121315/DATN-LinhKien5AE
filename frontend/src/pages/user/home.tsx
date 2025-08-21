@@ -8,8 +8,8 @@ import axios from "axios";
 
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { fetchHomeData, HomeDataResponse } from '../../api/user/homeAPI';
-import { Category, fetchCategoriesByProductType } from '../../api/user/categoryAPI';
-import { ProductType, fetchAllProductTypes } from "@/api/user/productTypeAPI";
+import { Category, fetchCategoriesHierarchy } from '../../api/user/categoryAPI';
+// import { ProductType, fetchAllProductTypes } from "@/api/user/productTypeAPI";
 import "@/styles/pages/user/home.scss";
 
 const HomePage: React.FC = () => {
@@ -119,7 +119,7 @@ const HomePage: React.FC = () => {
 
         const categoriesByProductType: Record<string, Category[]> = {};
         const categoryPromises = productTypeData.map((productType) =>
-          fetchCategoriesByProductType(productType._id).then((categories) => ({
+          fetchCategoriesHierarchy(productType._id).then((categories) => ({
             productTypeId: productType._id,
             categories,
           }))
