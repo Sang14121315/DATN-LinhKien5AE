@@ -94,7 +94,17 @@ const BrandTable: React.FC = () => {
   };
 
   const getLogoUrl = (brand: Brand) => {
-    return brand.logo_url || '';
+    // Ưu tiên logo_data (base64) nếu có
+    if (brand.logo_data) {
+      return brand.logo_data;
+    }
+    // Nếu có logo_url, kiểm tra và thêm tiền tố nếu cần
+    if (brand.logo_url) {
+      return brand.logo_url.startsWith('http')
+        ? brand.logo_url
+        : `http://localhost:5000${brand.logo_url}`;
+    }
+    return ''; // Không có logo
   };
 
   const paginated = brands.slice(
@@ -194,6 +204,10 @@ const BrandTable: React.FC = () => {
                       src={getLogoUrl(brand)}
                       alt={brand.name}
                       className="brand-logo"
+                      onError={(e) => {
+                        console.error(`Lỗi tải ảnh: ${getLogoUrl(brand)}`);
+                        e.currentTarget.src = '/path/to/fallback-image.png'; // Ảnh dự phòng
+                      }}
                     />
                   ) : (
                     <span>Không có</span>

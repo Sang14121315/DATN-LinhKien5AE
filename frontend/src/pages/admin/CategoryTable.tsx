@@ -199,22 +199,22 @@ const CategoryTable: React.FC = () => {
                         onClick={() => navigate(`/admin/category/${cat._id}/form`)}
                         title="Xem chi tiết"
                       >
-                        <FaEye />
+                        <FaEye /> Xem
                       </button>
-                      <button
+                      {/* <button
                         className="edit-button"
                         onClick={() => navigate(`/admin/category/${cat._id}/form`)}
                         title="Chỉnh sửa"
                       >
                         <FaEdit />
-                      </button>
-                      <button
+                      </button> */}
+                      {/* <button
                         className="delete-button"
                         onClick={() => handleDelete(cat._id!, cat.name)}
                         title="Xóa"
                       >
                         <FaTrash />
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                 </tr>

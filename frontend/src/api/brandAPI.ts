@@ -43,36 +43,48 @@ export const getBrandById = async (id: string): Promise<Brand> => {
 };
 
 // ✅ Tạo mới thương hiệu
-export const createBrand = async (data: Partial<Brand> & { logoFile?: File }): Promise<Brand> => {
-  if (data.logoFile) {
-    const formData = new FormData();
-    formData.append('name', data.name || '');
-    formData.append('slug', data.slug || '');
-    formData.append('logoFile', data.logoFile);
-    const response = await axiosInstance.post('/admin/brands', formData, {
+export const createBrand = async (data: FormData): Promise<Brand> => {
+  try {
+    const name = data.get('name')?.toString()?.trim();
+    if (!name) {
+      throw new Error('Tên thương hiệu là bắt buộc');
+    }
+
+    const slug = data.get('slug')?.toString()?.trim() || name.toLowerCase().replace(/\s+/g, '-');
+    data.set('slug', slug); // Cập nhật slug trong FormData
+
+    console.log('FormData before sending:', { name, slug, logoFile: data.get('logoFile') }); // Debug
+
+    const response = await axiosInstance.post('/admin/brands', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
-  } else {
-    const response = await axiosInstance.post('/admin/brands', data);
-    return response.data;
+  } catch (error: any) {
+    console.error('Error creating brand:', error?.response?.data?.message || error.message);
+    throw new Error(error?.response?.data?.message || 'Không thể tạo thương hiệu');
   }
 };
 
 // ✅ Cập nhật thương hiệu
-export const updateBrand = async (id: string, data: Partial<Brand> & { logoFile?: File }): Promise<Brand> => {
-  if (data.logoFile) {
-    const formData = new FormData();
-    formData.append('name', data.name || '');
-    formData.append('slug', data.slug || '');
-    formData.append('logoFile', data.logoFile);
-    const response = await axiosInstance.put(`/admin/brands/${id}`, formData, {
+export const updateBrand = async (id: string, data: FormData): Promise<Brand> => {
+  try {
+    const name = data.get('name')?.toString()?.trim();
+    if (!name) {
+      throw new Error('Tên thương hiệu là bắt buộc');
+    }
+
+    const slug = data.get('slug')?.toString()?.trim() || name.toLowerCase().replace(/\s+/g, '-');
+    data.set('slug', slug); // Cập nhật slug trong FormData
+
+    console.log('FormData before sending:', { name, slug, logoFile: data.get('logoFile') }); // Debug
+
+    const response = await axiosInstance.put(`/admin/brands/${id}`, data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
-  } else {
-    const response = await axiosInstance.put(`/admin/brands/${id}`, data);
-    return response.data;
+  } catch (error: any) {
+    console.error('Error updating brand:', error?.response?.data?.message || error.message);
+    throw new Error(error?.response?.data?.message || 'Không thể cập nhật thương hiệu');
   }
 };
 

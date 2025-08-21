@@ -159,6 +159,19 @@ const ProductListPage: React.FC = () => {
     return `http://localhost:5000/uploads/products/${url}`;
   };
 
+  // Function để lấy URL cho brand logo
+  const getBrandImageUrl = (brand: Brand): string => {
+    if (brand.logo_url) {
+      if (brand.logo_url.startsWith('http')) return brand.logo_url;
+      if (brand.logo_url.startsWith('/uploads')) return `http://localhost:5000${brand.logo_url}`;
+      return `http://localhost:5000/uploads/brands/${brand.logo_url}`;
+    }
+    if (brand.logo_data) {
+      return brand.logo_data;
+    }
+    return "/public/assets/default_brand_logo.png";
+  };
+
   const sortMenu = (
     <Menu onClick={(e) => setSortOrder(e.key as string)}>
       <Menu.Item key="high-to-low">Giá cao - thấp</Menu.Item>
@@ -179,48 +192,50 @@ const ProductListPage: React.FC = () => {
               <div className="dropdown-header">
                 <span>DANH MỤC SẢN PHẨM</span>
               </div>
-              <ul className="dropdown-content">
-                <li
-                  onClick={() => {
-                    setSelectedCategory("all");
-                    setOpenDropdown(null);
-                  }}
-                  className={selectedCategory === "all" ? "active" : ""}
-                >
-                  TẤT CẢ SẢN PHẨM
-                </li>
-                {categories.map((category) => (
-                  <li key={category._id} className={selectedCategory === category._id ? "active" : ""}>
-                    <div
-                      className="category-item"
-                      onClick={() => {
-                        setSelectedCategory(category._id || "all");
-                        toggleDropdown(category._id || "");
-                      }}
-                    >
-                      {category.name}
-                      {category.children && category.children.length > 0 && (
-                        <span className="dropdown-icon">
-                          {openDropdown === category._id ? "▲" : "▼"}
-                        </span>
-                      )}
-                    </div>
-                    {category.children && category.children.length > 0 && openDropdown === category._id && (
-                      <ul className="child-category-list">
-                        {category.children.map((child) => (
-                          <li
-                            key={child._id}
-                            onClick={() => setSelectedCategory(child._id || "all")}
-                            className={selectedCategory === child._id ? "active" : ""}
-                          >
-                            {child.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+              <div className="dropdown-content-wrapper">
+                <ul className="dropdown-content">
+                  <li
+                    onClick={() => {
+                      setSelectedCategory("all");
+                      setOpenDropdown(null);
+                    }}
+                    className={selectedCategory === "all" ? "active" : ""}
+                  >
+                    TẤT CẢ SẢN PHẨM
                   </li>
-                ))}
-              </ul>
+                  {categories.map((category) => (
+                    <li key={category._id} className={selectedCategory === category._id ? "active" : ""}>
+                      <div
+                        className="category-item"
+                        onClick={() => {
+                          setSelectedCategory(category._id || "all");
+                          toggleDropdown(category._id || "");
+                        }}
+                      >
+                        {category.name}
+                        {category.children && category.children.length > 0 && (
+                          <span className="dropdown-icon">
+                            {openDropdown === category._id ? "▲" : "▼"}
+                          </span>
+                        )}
+                      </div>
+                      {category.children && category.children.length > 0 && openDropdown === category._id && (
+                        <ul className="child-category-list">
+                          {category.children.map((child) => (
+                            <li
+                              key={child._id}
+                              onClick={() => setSelectedCategory(child._id || "all")}
+                              className={selectedCategory === child._id ? "active" : ""}
+                            >
+                              {child.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <div className="price-filter">
                 <h3>KHOẢNG GIÁ</h3>
                 {[
@@ -262,20 +277,22 @@ const ProductListPage: React.FC = () => {
                 >
                   <span>Tất cả</span>
                 </div>
-                {brands.map((b) => (
-                  <div
-                    className={`brand-item ${selectedBrand === b._id ? "selected" : ""}`}
-                    key={b._id}
-                    onClick={() => setSelectedBrand(b._id)}
-                  >
-                    <img
-                      src={b.logo_url || b.logo_data || "/public/assets/default_brand_logo.png"}
-                      alt={b.name}
-                      className="brand-logo"
-                      title={b.name}
-                    />
-                  </div>
-                ))}
+                <div className="brand-scroll-container">
+                  {brands.map((b) => (
+                    <div
+                      className={`brand-item ${selectedBrand === b._id ? "selected" : ""}`}
+                      key={b._id}
+                      onClick={() => setSelectedBrand(b._id)}
+                    >
+                      <img
+                        src={getBrandImageUrl(b)}
+                        alt={b.name}
+                        className="brand-logo"
+                        title={b.name}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
