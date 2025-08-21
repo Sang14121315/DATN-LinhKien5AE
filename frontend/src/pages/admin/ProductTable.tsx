@@ -121,12 +121,7 @@ const ProductTable: React.FC = () => {
             ))}
           </select>
 
-          <select onChange={e => handleFilterChange('product_type_id', e.target.value)}>
-            <option value="">📄 Loại</option>
-            {types.map((type: any) => (
-              <option key={type._id} value={type._id}>{type.name}</option>
-            ))}
-          </select>
+          
 
           <select onChange={e => handleFilterChange('brand_id', e.target.value)}>
             <option value="">🔁 Thương hiệu</option>
@@ -159,7 +154,6 @@ const ProductTable: React.FC = () => {
             <th>Ngày</th>
             <th>Số lượng</th>
             <th>Danh mục</th>
-            <th>Loại</th>
             <th>Thương hiệu</th>
             <th>Trạng thái</th>
             <th>Chức năng</th>
@@ -181,7 +175,7 @@ const ProductTable: React.FC = () => {
                 <td>{product.created_at ? new Date(product.created_at).toLocaleDateString('vi-VN') : '—'}</td>
                 <td>{product.stock}</td>
                 <td>{(product.category_id as any)?.name || '—'}</td>
-                <td>{(product.product_type_id as any)?.name || '—'}</td>
+                
                 <td>{(product.brand_id as any)?.name || '—'}</td>
                 <td><span className="status approved">Đã duyệt</span></td>
                 <td>

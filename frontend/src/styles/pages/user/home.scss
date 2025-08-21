@@ -35,85 +35,77 @@ body {
 
   /* =========== SIDEBAR =========== */
   .sidebar {
-    width: 280px;
-    background: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
+  width: 280px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
 
-    .sidebar-section {
-      .dropdown-header {
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-        padding: 10px 0;
-        border-bottom: 1px solid #eee;
-        text-transform: uppercase;
-      }
+  .sidebar-section {
+    .dropdown-header {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      text-transform: uppercase;
+    }
 
-      .dropdown-content {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+    // 👉 thay dropdown-content cũ bằng của ProductList
+    .dropdown-content {
+      padding-left: 0;
+      list-style: none;
+      margin: 0;
 
-        li {
-          padding: 10px 15px;
-          cursor: pointer;
-          font-size: 14px;
-          color: #333;
-          transition: all 0.2s ease;
+      li {
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 500;
+        color: #444444;
+        border-bottom: 1px solid #E0E0E0;
+        transition: all 0.2s;
+        position: relative;
 
-          &:hover {
-            background: #f8f9fa;
-            color: #39b6ff;
-          }
-
-          &.active {
-            background: #f8f9fa;
-            color: #39b6ff;
-            font-weight: 500;
-          }
-
-          &.product-type-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-            text-transform: uppercase;
-            padding: 12px 15px;
-
-            .toggle-icon {
-              font-size: 12px;
-              color: #666;
-            }
-
-            &.expanded {
-              background: #f8f9fa;
-            }
-          }
+        &:hover {
+          background-color: #F0F0F0;
         }
 
-        .subcategory-list {
+        &.active {
+          color: #007BFF;
+          font-weight: 600;
+        }
+
+        .category-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .dropdown-icon {
+          font-size: 12px;
+          color: #666666;
+        }
+
+        .child-category-list {
           list-style: none;
-          padding: 0;
-          margin: 0 0 10px 15px;
-          border-left: 2px solid #39b6ff;
+          padding-left: 20px;
+          margin-top: 5px;
 
           li {
             padding: 8px 15px;
-            font-size: 13px;
-            font-weight: 400;
-            color: #555;
+            font-size: 14px;
+            color: #555555;
+            border-bottom: none;
 
             &:hover {
-              background: #f0f0f0;
-              color: #39b6ff;
+              background-color: #E8ECEF;
             }
 
             &.active {
-              color: #39b6ff;
+              color: #007BFF;
               font-weight: 500;
             }
           }
@@ -121,6 +113,8 @@ body {
       }
     }
   }
+}
+
 
   /* =========== BANNER =========== */
   .content-right {
