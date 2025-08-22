@@ -30,7 +30,7 @@ const ProductListPage: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
-  const itemsPerPage = 16;
+  const itemsPerPage = 12;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = products.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(products.length / itemsPerPage);
