@@ -270,21 +270,7 @@ const ProductForm: React.FC = () => {
         </div>
 
         <div className="two-columns">
-          <div>
-            <label>Loại</label>
-            <select
-              name="product_type_id"
-              value={product.product_type_id}
-              onChange={handleInputChange}
-            >
-              <option value="">-- chọn --</option>
-              {types.map((t) => (
-                <option key={t._id} value={t._id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          
           <div>
             <label>Giá</label>
             <input
