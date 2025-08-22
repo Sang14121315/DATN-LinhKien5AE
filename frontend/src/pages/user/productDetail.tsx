@@ -348,11 +348,13 @@ const ProductDetail: React.FC = () => {
               </>
             )}
           </div>
+          
           <div className="quantity-section">
             <label htmlFor="quantity">Số lượng:</label>
             <div className="quantity-input">
               <button
                 onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                disabled={quantity <= 1}
               >
                 -
               </button>
@@ -360,23 +362,36 @@ const ProductDetail: React.FC = () => {
                 type="number"
                 value={quantity}
                 min={1}
+                max={product.stock}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
                   if (!isNaN(val) && val >= 1) {
-                    setQuantity(val);
+                    // Giới hạn số lượng không vượt quá tồn kho
+                    setQuantity(Math.min(val, product.stock));
                   }
                 }}
               />
-              <button onClick={() => setQuantity((prev) => prev + 1)}>+</button>
+              <button 
+                onClick={() => setQuantity((prev) => Math.min(prev + 1, product.stock))}
+                disabled={quantity >= product.stock || product.stock <= 0}
+              >
+                +
+              </button>
             </div>
+            {quantity >= product.stock && product.stock > 0 && (
+              <span className="stock-warning">
+                Đã đạt số lượng tối đa trong kho ({product.stock})
+              </span>
+            )}
           </div>
 
           <div className="cta">
             <button
               className="add-cart"
               onClick={() => addToCart({ ...product, quantity })}
+              disabled={product.stock <= 0}
             >
-              <FaCartPlus /> THÊM VÀO GIỎ
+              <FaCartPlus /> {product.stock <= 0 ? "HẾT HÀNG" : "THÊM VÀO GIỎ"}
             </button>
             <button
               className="buy-now"
@@ -384,8 +399,9 @@ const ProductDetail: React.FC = () => {
                 addToCart({ ...product, quantity });
                 navigate("/checkout");
               }}
+              disabled={product.stock <= 0}
             >
-              MUA NGAY
+              {product.stock <= 0 ? "HẾT HÀNG" : "MUA NGAY"}
             </button>
           </div>
 
