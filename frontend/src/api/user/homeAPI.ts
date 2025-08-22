@@ -13,3 +13,8 @@ export const fetchHomeData = async (): Promise<HomeData> => {
   const response = await axios.get('http://localhost:5000/api/home');
   return response.data;
 };
+
+export const fetchSaleProducts = async (): Promise<Product[]> => {
+  const response = await axios.get('http://localhost:5000/api/products/sale');
+  return response.data;
+};

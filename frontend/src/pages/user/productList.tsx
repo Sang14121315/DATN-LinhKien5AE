@@ -62,21 +62,30 @@ const ProductListPage: React.FC = () => {
 
   // Load filters từ URL hoặc sessionStorage
   useEffect(() => {
-    const categoryFromUrl = searchParams.get("category");
-    if (categoryFromUrl) {
-      setSelectedCategory(categoryFromUrl);
-    } else {
-      const saved = sessionStorage.getItem("productFilters");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setSelectedCategory(parsed.category || "all");
-        setSelectedBrand(parsed.brand || "all");
-        setSelectedPrice(parsed.price || "all");
-        setTimeout(() => window.scrollTo(0, parsed.scroll || 0), 50);
-      }
+  const categoryFromUrl = searchParams.get("category");
+  const brandFromUrl = searchParams.get("brand");
+
+  if (categoryFromUrl) {
+    setSelectedCategory(categoryFromUrl);
+  }
+  if (brandFromUrl) {
+    setSelectedBrand(brandFromUrl);
+  }
+
+  // Nếu không có gì trong URL thì fallback từ sessionStorage
+  if (!categoryFromUrl && !brandFromUrl) {
+    const saved = sessionStorage.getItem("productFilters");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setSelectedCategory(parsed.category || "all");
+      setSelectedBrand(parsed.brand || "all");
+      setSelectedPrice(parsed.price || "all");
+      setTimeout(() => window.scrollTo(0, parsed.scroll || 0), 50);
     }
-    setFiltersInitialized(true);
-  }, [searchParams]);
+  }
+
+  setFiltersInitialized(true);
+}, [searchParams]);
 
   // Lọc và sắp xếp sản phẩm theo bộ lọc
   useEffect(() => {

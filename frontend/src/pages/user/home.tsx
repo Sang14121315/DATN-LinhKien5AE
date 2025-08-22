@@ -9,6 +9,7 @@ import axios from "axios";
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
 import { fetchHomeData, HomeDataResponse } from '../../api/user/homeAPI';
 import { Category, fetchCategoriesHierarchy } from '../../api/user/categoryAPI';
+import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
 import "@/styles/pages/user/home.scss";
 
 const HomePage: React.FC = () => {
@@ -25,6 +26,8 @@ const HomePage: React.FC = () => {
   const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState("all");
 
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -84,10 +87,11 @@ const HomePage: React.FC = () => {
 
   const bannerImages = [
     "/img/bn1.png",
-    "/img/bn2.png",
-    "/img/bn3.png",
-    "/img/bn4.jpeg"
+    "/img/r3.webp",
+    "/img/r4.jpg",
+    "/img/r5.png"
   ];
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,6 +124,19 @@ const HomePage: React.FC = () => {
 
     fetchData();
   }, []);
+
+useEffect(() => {
+  const fetchBrands = async () => {
+    try {
+      const brandData = await fetchAllBrands();
+      setBrands(brandData);
+    } catch (error) {
+      console.error("Lỗi khi tải thương hiệu:", error);
+    }
+  };
+  fetchBrands();
+}, []);
+
 
   useEffect(() => {
     const fetchProductsByCategory = async () => {
@@ -197,6 +214,18 @@ const HomePage: React.FC = () => {
   const toggleDropdown = (categoryId: string) => {
     setOpenDropdown(openDropdown === categoryId ? null : categoryId);
   };
+
+const getBrandImageUrl = (brand: Brand): string => {
+  if (brand.logo_url) {
+    if (brand.logo_url.startsWith("http")) return brand.logo_url;
+    if (brand.logo_url.startsWith("/uploads")) return `http://localhost:5000${brand.logo_url}`;
+    return `http://localhost:5000/uploads/brands/${brand.logo_url}`;
+  }
+  if (brand.logo_data) {
+    return brand.logo_data;
+  }
+  return "/public/assets/default_brand_logo.png";
+};
 
   const renderProductItem = (product: Product) => (
     <div key={product._id} className="product-item">
@@ -335,13 +364,13 @@ const HomePage: React.FC = () => {
               </div>
               <div className="promo-banners">
                 <div className="promo-banner">
-                  <img src="/img/sl4.png" alt="Banner khuyến mãi 1" />
+                  <img src="/img/sl1.webp" alt="Banner khuyến mãi 1" />
                 </div>
                 <div className="promo-banner">
                   <img src="/img/sl2.png" alt="Banner khuyến mãi 2" />
                 </div>
                 <div className="promo-banner">
-                  <img src="/img/sl3.png" alt="Banner khuyến mãi 3" />
+                  <img src="/img/r2.jpg" alt="Banner khuyến mãi 3" />
                 </div>
               </div>
             </div>
@@ -349,12 +378,34 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+<section className="brand-section">
+  <div className="brand-radio-group">
+
+    <div className="brand-scroll-container">
+      {brands.slice(0, 10).map((b) => (   // chỉ lấy 8 brand đầu tiên
+        <div
+          className={`brand-item ${selectedBrand === b._id ? "selected" : ""}`}
+          key={b._id}
+          onClick={() => navigate(`/product-list?brand=${b._id}`)}
+        >
+          <img
+            src={getBrandImageUrl(b)}
+            alt={b.name}
+            className="brand-logo"
+            title={b.name}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
       <section className="hot-products">
         <div className="hot-sale-header">
           <div className="header-left">
             <div className="title-section">
               <span className="flame-icon">🔥</span>
-              <h2>HOT SALE CUỐI TUẦN</h2>
+              <h2>KHUYẾN MÃI CUỐI TUẦN</h2>
             </div>
           </div>
           <div className="category-filters">
@@ -460,7 +511,7 @@ const HomePage: React.FC = () => {
 
       <section className="km-products">
         <div className="section-header">
-          <h2>Sản phẩm khuyến mãi</h2>
+          <h2>SẢN PHẨM BÁN CHẠY</h2>
         </div>
         <div className="product-carousel">
           <div className="product-list">
