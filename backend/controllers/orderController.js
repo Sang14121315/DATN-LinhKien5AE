@@ -2,6 +2,8 @@ const OrderService = require('../services/orderService');
 const OrderDetailService = require('../services/orderDetailService');
 const CartService = require('../services/CartService');
 const UserService = require('../services/userService');
+const Product = require('../models/Product'); // ✅ THÊM
+const Order = require('../models/Order'); // ✅ THÊM
 const Joi = require('joi');
 const { createMomoPayment } = require('../services/orderService');
 const { sendOrderStatusUpdateEmail, sendOrderNotificationToAdmin } = require('../utils/emailService');
@@ -134,6 +136,25 @@ module.exports = {
       const { customer, payment_method, items, total, ward, district, city } = req.body;
       const fullAddress = `${customer.address}, ${ward}, ${district}, ${city}`;
 
+      // ✅ 1. KIỂM TRA STOCK TRƯỚC KHI TẠO ĐƠN HÀNG
+      console.log('🔄 Checking stock availability...');
+      for (const item of items) {
+        const product = await Product.findById(item.product_id);
+        if (!product) {
+          return res.status(400).json({ 
+            message: `Sản phẩm "${item.name}" không tồn tại` 
+          });
+        }
+        
+        if (!product.canReserve(item.quantity)) {
+          const availableStock = product.stock - (product.reserved_stock || 0);
+          return res.status(400).json({ 
+            message: `Sản phẩm "${item.name}" không đủ hàng. Còn lại: ${availableStock}, yêu cầu: ${item.quantity}` 
+          });
+        }
+      }
+
+      // ✅ 2. TẠO ĐƠN HÀNG
       const order = await OrderService.create({
         user_id: userId,
         payment_method,
@@ -148,6 +169,7 @@ module.exports = {
         city
       });
 
+      // ✅ 3. TẠO ORDER DETAILS
       const detailDocs = items.map(item => ({
         order_id: order._id,
         product_id: item.product_id,
@@ -158,12 +180,40 @@ module.exports = {
       }));
 
       await OrderDetailService.createMany(detailDocs);
+
+      // ✅ 4. RESERVE STOCK CHO TẤT CẢ ITEMS
+      console.log('🔄 Reserving stock for order:', order._id);
+      try {
+        for (const item of items) {
+          await Product.reserveStock(item.product_id, item.quantity);
+          console.log(`✅ Reserved ${item.quantity} units of ${item.name}`);
+        }
+        
+        // Đánh dấu đã reserve inventory
+        await OrderService.update(order._id, { 
+          inventory_reserved: true,
+          updated_at: new Date()
+        });
+        
+        console.log('✅ Stock reservation completed for order:', order._id);
+      } catch (stockError) {
+        console.error('❌ Error reserving stock:', stockError);
+        
+        // Rollback: Xóa đơn hàng và order details nếu không reserve được stock
+        await OrderDetailService.deleteByOrderId(order._id);
+        await OrderService.delete(order._id);
+        
+        return res.status(400).json({ 
+          message: stockError.message || 'Không thể đặt hàng do vấn đề tồn kho' 
+        });
+      }
+
+      // ✅ 5. XÓA GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
       await CartService.clearCart(userId);
 
-      // Gửi email xác nhận cho khách hàng (từ frontend EmailJS)
+      // ✅ 6. GỬI EMAIL VÀ THÔNG BÁO
       console.log('📧 Email xác nhận sẽ được gửi từ frontend (EmailJS)');
 
-      // Gửi email thông báo cho admin
       try {
         const orderWithItems = {
           ...order._doc,
@@ -173,7 +223,6 @@ module.exports = {
         console.log('✅ Email thông báo đã gửi cho admin');
       } catch (emailError) {
         console.error('❌ Lỗi gửi email thông báo cho admin:', emailError);
-        // Không dừng quá trình tạo đơn hàng nếu email thất bại
       }
 
       const io = req.app.get('io');
@@ -250,13 +299,40 @@ module.exports = {
         });
       }
 
-      // Không cho phép quay lùi: enforce tiến từng bước; tuy nhiên API cho phép gọi nhiều lần liên tiếp để đi tiếp
-      const updated = await OrderService.update(req.params.id, { status: requestedStatus, updated_at: new Date() });
+      // ✅ XỬ LÝ INVENTORY THEO TRẠNG THÁI MỚI
+      console.log(`🔄 Updating order ${req.params.id} from ${oldStatus} to ${requestedStatus}`);
+
+      if (requestedStatus === 'canceled') {
+        // ✅ HỦY ĐƠN HÀNG → HOÀN TRẢ STOCK
+        console.log('🔄 Order canceled - releasing reserved stock...');
+        try {
+          await Order.releaseInventory(req.params.id);
+          console.log('✅ Released reserved stock for canceled order');
+        } catch (inventoryError) {
+          console.error('❌ Error releasing inventory:', inventoryError);
+          // Không dừng quá trình cập nhật nếu có lỗi inventory
+        }
+      } else if (requestedStatus === 'completed') {
+        // ✅ HOÀN THÀNH ĐƠN HÀNG → XÁC NHẬN BÁN
+        console.log('🔄 Order completed - confirming inventory...');
+        try {
+          await Order.confirmInventory(req.params.id);
+          console.log('✅ Confirmed inventory for completed order');
+        } catch (inventoryError) {
+          console.error('❌ Error confirming inventory:', inventoryError);
+        }
+      }
+
+      // ✅ CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
+      const updated = await OrderService.update(req.params.id, { 
+        status: requestedStatus, 
+        updated_at: new Date() 
+      });
 
       // Email sẽ được gửi từ frontend thay vì backend
       console.log('📧 Order status updated. Email will be sent from frontend.');
 
-      // Kiểm tra nếu trạng thái mới là 'completed' (đơn hàng hoàn thành) thì cộng điểm
+      // ✅ TÍNH ĐIỂM LOYALTY KHI HOÀN THÀNH
       if (requestedStatus === 'completed' && order.user_id) {
         const User = require('../models/User');
         const LoyaltyTransaction = require('../models/LoyaltyTransaction');
@@ -284,12 +360,23 @@ module.exports = {
 
       res.json(updated);
     } catch (error) {
+      console.error('❌ Error updating order:', error);
       res.status(500).json({ message: error.message || 'Lỗi cập nhật đơn hàng' });
     }
   },
 
   deleteOrder: async (req, res) => {
     try {
+      // ✅ TRƯỚC KHI XÓA ĐƠN HÀNG → HOÀN TRẢ STOCK NẾU CẦN
+      console.log('🔄 Deleting order - checking inventory status...');
+      try {
+        await Order.releaseInventory(req.params.id);
+        console.log('✅ Released inventory before deleting order');
+      } catch (inventoryError) {
+        console.error('❌ Error releasing inventory before delete:', inventoryError);
+        // Tiếp tục xóa ngay cả khi có lỗi inventory
+      }
+
       await OrderService.delete(req.params.id);
       res.json({ message: 'Đã xóa đơn hàng' });
     } catch (error) {
@@ -308,7 +395,25 @@ module.exports = {
       const { customer, payment_method, items, total, ward, district, city } = req.body;
       const fullAddress = `${customer.address}, ${ward}, ${district}, ${city}`;
 
-      // Tạo đơn hàng thực sự trong database
+      // ✅ 1. KIỂM TRA STOCK TRƯỚC KHI TẠO ĐƠN HÀNG MOMO
+      console.log('🔄 Checking stock for MoMo order...');
+      for (const item of items) {
+        const product = await Product.findById(item.product_id);
+        if (!product) {
+          return res.status(400).json({ 
+            message: `Sản phẩm "${item.name}" không tồn tại` 
+          });
+        }
+        
+        if (!product.canReserve(item.quantity)) {
+          const availableStock = product.stock - (product.reserved_stock || 0);
+          return res.status(400).json({ 
+            message: `Sản phẩm "${item.name}" không đủ hàng. Còn lại: ${availableStock}, yêu cầu: ${item.quantity}` 
+          });
+        }
+      }
+
+      // ✅ 2. TẠO ĐƠN HÀNG MOMO
       const order = await OrderService.create({
         user_id: userId,
         payment_method,
@@ -323,7 +428,7 @@ module.exports = {
         city
       });
 
-      // Tạo order details
+      // ✅ 3. TẠO ORDER DETAILS
       const detailDocs = items.map(item => ({
         order_id: order._id,
         product_id: item.product_id,
@@ -335,7 +440,34 @@ module.exports = {
 
       await OrderDetailService.createMany(detailDocs);
 
-      // Xóa giỏ hàng ngay khi tạo đơn hàng thành công
+      // ✅ 4. RESERVE STOCK CHO MOMO ORDER
+      console.log('🔄 Reserving stock for MoMo order:', order._id);
+      try {
+        for (const item of items) {
+          await Product.reserveStock(item.product_id, item.quantity);
+          console.log(`✅ Reserved ${item.quantity} units of ${item.name} for MoMo order`);
+        }
+        
+        // Đánh dấu đã reserve inventory
+        await OrderService.update(order._id, { 
+          inventory_reserved: true,
+          updated_at: new Date()
+        });
+        
+        console.log('✅ Stock reservation completed for MoMo order:', order._id);
+      } catch (stockError) {
+        console.error('❌ Error reserving stock for MoMo order:', stockError);
+        
+        // Rollback: Xóa đơn hàng và order details
+        await OrderDetailService.deleteByOrderId(order._id);
+        await OrderService.delete(order._id);
+        
+        return res.status(400).json({ 
+          message: stockError.message || 'Không thể đặt hàng MoMo do vấn đề tồn kho' 
+        });
+      }
+
+      // ✅ 5. XÓA GIỎ HÀNG NGAY KHI TẠO ĐƠN HÀNG MOMO THÀNH CÔNG
       console.log('🛒 Creating MoMo order - Clearing cart for user:', userId);
       try {
         await CartService.clearCart(userId);
@@ -347,7 +479,7 @@ module.exports = {
       // Email xác nhận MoMo sẽ được gửi từ frontend (EmailJS)
       console.log('📧 Email xác nhận MoMo sẽ được gửi từ frontend (EmailJS)');
 
-      // Tạo link thanh toán Momo với orderId thực
+      // ✅ 6. TẠO LINK THANH TOÁN MOMO VỚI ORDERID THỰC
       const orderId = order._id.toString();
       const redirectUrl = 'http://localhost:5173/momo-callback';
       const ipnUrl = process.env.MOMO_IPN_URL || 'http://localhost:5000/api/momo/webhook';
@@ -368,9 +500,17 @@ module.exports = {
           orderDetails: detailDocs 
         });
       } else {
-        // Nếu tạo link thanh toán thất bại, xóa đơn hàng đã tạo
-        await OrderService.delete(order._id);
+        // ✅ NẾU TẠO LINK THANH TOÁN THẤT BẠI → HOÀN TRẢ STOCK VÀ XÓA ĐƠN HÀNG
+        console.log('❌ MoMo payment creation failed - rolling back...');
+        try {
+          await Order.releaseInventory(order._id);
+          console.log('✅ Released reserved stock due to MoMo payment creation failure');
+        } catch (releaseError) {
+          console.error('❌ Error releasing stock during MoMo rollback:', releaseError);
+        }
+        
         await OrderDetailService.deleteByOrderId(order._id);
+        await OrderService.delete(order._id);
         res.status(500).json({ message: 'Không tạo được link thanh toán MoMo' });
       }
     } catch (err) {
@@ -389,7 +529,7 @@ module.exports = {
       console.log('📞 MoMo webhook received:', { orderId, resultCode, message });
       
       if (resultCode === 0) {
-        // Thanh toán thành công
+        // ✅ THANH TOÁN THÀNH CÔNG
         console.log('✅ MoMo webhook - Payment successful, processing...');
         try {
           // Cập nhật trạng thái đơn hàng thành 'paid'
@@ -401,16 +541,6 @@ module.exports = {
           console.log('✅ MoMo webhook - Order updated:', updatedOrder);
           
           if (updatedOrder) {
-            // Xóa giỏ hàng của user
-            console.log('🛒 MoMo webhook - Clearing cart for user:', updatedOrder.user_id);
-            try {
-              await CartService.clearCart(updatedOrder.user_id);
-              console.log('✅ MoMo webhook - Cart cleared successfully');
-            } catch (cartError) {
-              console.error('❌ MoMo webhook - Error clearing cart:', cartError);
-              // Tiếp tục xử lý ngay cả khi xóa giỏ hàng thất bại
-            }
-            
             // Email thông báo thanh toán thành công sẽ được gửi từ frontend (EmailJS)
             console.log('📧 Email thông báo thanh toán thành công sẽ được gửi từ frontend (EmailJS)');
 
@@ -442,15 +572,21 @@ module.exports = {
           console.error('❌ Lỗi xử lý webhook MoMo:', error);
         }
       } else {
-        // Thanh toán thất bại
+        // ✅ THANH TOÁN THẤT BẠI → HOÀN TRẢ STOCK
         console.log('❌ MoMo payment failed for order:', orderId, 'with code:', resultCode);
         
-        // Có thể cập nhật trạng thái đơn hàng thành 'failed' nếu muốn
         try {
+          // Cập nhật trạng thái đơn hàng thành 'failed'
           await OrderService.update(orderId, { 
             status: 'failed',
             updated_at: new Date()
           });
+          
+          // Hoàn trả stock đã reserve
+          console.log('🔄 MoMo payment failed - releasing reserved stock...');
+          await Order.releaseInventory(orderId);
+          console.log('✅ Released reserved stock for failed MoMo payment');
+          
         } catch (error) {
           console.error('❌ Lỗi cập nhật trạng thái đơn hàng thất bại:', error);
         }

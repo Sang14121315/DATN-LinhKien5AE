@@ -42,6 +42,17 @@ interface UnreviewedOrder {
   order_created_at: string;
 }
 
+// ✅ Interface cho stock info
+interface StockInfo {
+  product_id: string;
+  product_name: string;
+  total_stock: number;
+  reserved_stock: number;
+  available_stock: number;
+  is_available: boolean;
+  updated_at: string;
+}
+
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -62,6 +73,10 @@ const ProductDetail: React.FC = () => {
   const [canUserReview, setCanUserReview] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showAlreadyReviewedPopup, setShowAlreadyReviewedPopup] = useState(false);
+  
+  // ✅ State mới để quản lý thông tin tồn kho real-time
+  const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
+  const [isLoadingStock, setIsLoadingStock] = useState(false);
 
   const formatCurrency = (amount: number): string =>
     new Intl.NumberFormat("vi-VN", {
@@ -74,11 +89,55 @@ const ProductDetail: React.FC = () => {
       ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
       : 0;
 
+  // ✅ Function để fetch thông tin tồn kho real-time với endpoint đúng
+  const fetchStockInfo = async (productId: string): Promise<StockInfo | null> => {
+    try {
+      setIsLoadingStock(true);
+      console.log(`🔄 Fetching stock info for product: ${productId}`);
+      
+      // ✅ SỬA: Sử dụng endpoint đúng từ routes
+      const response = await axios.get(`/api/product/stock-info/${productId}`);
+      console.log('✅ Stock info response:', response.data);
+      
+      const stockData: StockInfo = response.data;
+      setStockInfo(stockData);
+      
+      return stockData;
+    } catch (error: any) {
+      console.error("❌ Lỗi khi lấy thông tin tồn kho:", error);
+      
+      // ✅ Fallback: Nếu API lỗi, sử dụng thông tin từ product hiện tại
+      if (product) {
+        const fallbackStock: StockInfo = {
+          product_id: product._id,
+          product_name: product.name,
+          total_stock: product.stock,
+          reserved_stock: 0,
+          available_stock: product.stock,
+          is_available: product.stock > 0,
+          updated_at: new Date().toISOString()
+        };
+        setStockInfo(fallbackStock);
+        return fallbackStock;
+      }
+      
+      return null;
+    } finally {
+      setIsLoadingStock(false);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchProductById(id as string);
+        console.log('📦 Product data:', data);
         setProduct(data);
+
+        // ✅ Fetch thông tin tồn kho real-time ngay sau khi có product
+        if (data._id) {
+          await fetchStockInfo(data._id);
+        }
 
         const viewedRaw = localStorage.getItem("viewedProducts");
         const viewed: Product[] = viewedRaw ? JSON.parse(viewedRaw) : [];
@@ -134,6 +193,17 @@ const ProductDetail: React.FC = () => {
     };
 
     fetchData();
+
+    // ✅ Set interval để refresh stock info mỗi 30 giây
+    const stockRefreshInterval = setInterval(() => {
+      if (id) {
+        fetchStockInfo(id);
+      }
+    }, 30000);
+
+    return () => {
+      clearInterval(stockRefreshInterval);
+    };
   }, [id, isAuthenticated]);
 
   const handleOpenReviewModal = () => {
@@ -298,10 +368,49 @@ const ProductDetail: React.FC = () => {
     setVisibleReviews(reviews.length);
   };
 
+  // ✅ Function để xử lý thêm vào giỏ hàng với kiểm tra tồn kho real-time
+  const handleAddToCart = async (productToAdd: Product, quantityToAdd: number) => {
+    try {
+      console.log(`🛒 Adding to cart: ${quantityToAdd} units of ${productToAdd.name}`);
+      
+      // ✅ Refresh stock info trước khi thêm vào giỏ
+      const latestStockInfo = await fetchStockInfo(productToAdd._id);
+      
+      if (!latestStockInfo) {
+        alert("Không thể kiểm tra tồn kho, vui lòng thử lại!");
+        return;
+      }
+      
+      // ✅ Kiểm tra tồn kho available
+      if (latestStockInfo.available_stock < quantityToAdd) {
+        alert(`Không đủ hàng trong kho! Chỉ còn ${latestStockInfo.available_stock} sản phẩm có thể mua.`);
+        return;
+      }
+      
+      console.log(`✅ Stock check passed. Available: ${latestStockInfo.available_stock}, Requested: ${quantityToAdd}`);
+      addToCart({ ...productToAdd, quantity: quantityToAdd });
+      
+    } catch (error) {
+      console.error("❌ Lỗi khi kiểm tra tồn kho:", error);
+      alert("Không thể kiểm tra tồn kho, vui lòng thử lại!");
+    }
+  };
+
   if (!product) return <div>Đang tải sản phẩm...</div>;
 
   const discountPercent = product.sale ? Math.round((1 - 0.66) * 100) : 0;
   const priceAfterSale = product.sale ? product.price * 0.66 : product.price;
+
+  // ✅ Sử dụng stockInfo nếu có, fallback về product.stock
+  const availableStock = stockInfo?.available_stock ?? product.stock;
+  const isOutOfStock = availableStock <= 0;
+
+  console.log('🔍 Current stock info:', {
+    stockInfo,
+    availableStock,
+    isOutOfStock,
+    productStock: product.stock
+  });
 
   return (
     <div className="product-detail-container">
@@ -328,9 +437,22 @@ const ProductDetail: React.FC = () => {
             <div className="availability">
               Tình trạng:{" "}
               <strong
-                className={product.stock > 0 ? "in-stock" : "out-of-stock"}
+                className={!isOutOfStock ? "in-stock" : "out-of-stock"}
               >
-                {product.stock > 0 ? `Còn hàng (${product.stock})` : "Hết hàng"}
+                {isLoadingStock ? (
+                  "Đang cập nhật..."
+                ) : !isOutOfStock ? (
+                  <>
+                    Còn hàng ({availableStock})
+                    {stockInfo?.reserved_stock && stockInfo.reserved_stock > 0 && (
+                      <span className="reserved-info">
+                        {" "}(Đã giữ: {stockInfo.reserved_stock})
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  "Hết hàng"
+                )}
               </strong>
             </div>
           </div>
@@ -362,25 +484,25 @@ const ProductDetail: React.FC = () => {
                 type="number"
                 value={quantity}
                 min={1}
-                max={product.stock}
+                max={availableStock}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
                   if (!isNaN(val) && val >= 1) {
-                    // Giới hạn số lượng không vượt quá tồn kho
-                    setQuantity(Math.min(val, product.stock));
+                    // Giới hạn số lượng không vượt quá tồn kho available
+                    setQuantity(Math.min(val, availableStock));
                   }
                 }}
               />
               <button 
-                onClick={() => setQuantity((prev) => Math.min(prev + 1, product.stock))}
-                disabled={quantity >= product.stock || product.stock <= 0}
+                onClick={() => setQuantity((prev) => Math.min(prev + 1, availableStock))}
+                disabled={quantity >= availableStock || isOutOfStock}
               >
                 +
               </button>
             </div>
-            {quantity >= product.stock && product.stock > 0 && (
+            {quantity >= availableStock && availableStock > 0 && (
               <span className="stock-warning">
-                Đã đạt số lượng tối đa trong kho ({product.stock})
+                Đã đạt số lượng tối đa có thể mua ({availableStock})
               </span>
             )}
           </div>
@@ -388,20 +510,22 @@ const ProductDetail: React.FC = () => {
           <div className="cta">
             <button
               className="add-cart"
-              onClick={() => addToCart({ ...product, quantity })}
-              disabled={product.stock <= 0}
+              onClick={() => handleAddToCart(product, quantity)}
+              disabled={isOutOfStock || isLoadingStock}
             >
-              <FaCartPlus /> {product.stock <= 0 ? "HẾT HÀNG" : "THÊM VÀO GIỎ"}
+              <FaCartPlus /> {isOutOfStock ? "HẾT HÀNG" : isLoadingStock ? "ĐANG CẬP NHẬT..." : "THÊM VÀO GIỎ"}
             </button>
             <button
               className="buy-now"
-              onClick={() => {
-                addToCart({ ...product, quantity });
-                navigate("/checkout");
+              onClick={async () => {
+                await handleAddToCart(product, quantity);
+                if (!isOutOfStock) {
+                  navigate("/checkout");
+                }
               }}
-              disabled={product.stock <= 0}
+              disabled={isOutOfStock || isLoadingStock}
             >
-              {product.stock <= 0 ? "HẾT HÀNG" : "MUA NGAY"}
+              {isOutOfStock ? "HẾT HÀNG" : isLoadingStock ? "ĐANG CẬP NHẬT..." : "MUA NGAY"}
             </button>
           </div>
 
@@ -476,7 +600,7 @@ const ProductDetail: React.FC = () => {
                 className="add-cart"
                 onClick={(e) => {
                   e.stopPropagation();
-                  addToCart({ ...rp, quantity: 1 });
+                  handleAddToCart(rp, 1);
                 }}
               >
                 <FaCartPlus /> THÊM VÀO GIỎ
@@ -527,7 +651,7 @@ const ProductDetail: React.FC = () => {
                     className="add-cart"
                     onClick={(e) => {
                       e.stopPropagation();
-                      addToCart({ ...vp, quantity: 1 });
+                      handleAddToCart(vp, 1);
                     }}
                   >
                     <FaShoppingCart /> THÊM VÀO GIỎ
@@ -590,12 +714,6 @@ const ProductDetail: React.FC = () => {
                   <p className="review-date">
                     {new Date(userLatestReview.created_at).toLocaleDateString("vi-VN")}
                   </p>
-                  {/* <button
-                    className="delete-review"
-                    onClick={() => handleDeleteReview(userLatestReview._id)}
-                  >
-                    <FaTrash /> Xóa đánh giá
-                  </button> */}
                 </div>
               </div>
             )}

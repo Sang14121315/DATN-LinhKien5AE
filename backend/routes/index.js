@@ -48,6 +48,8 @@ router.delete("/cart/clear", auth, cartController.clearCart);
 // Products
 router.get("/products/search", productController.searchProducts);
 router.get("/products", productController.getProducts);
+// ✅ FIX: Thêm route stock-info cho product
+router.get("/product/stock-info/:id", productController.getInventoryInfo);
 router.post(
   "/products",
   auth,
@@ -62,6 +64,10 @@ router.put(
   productController.updateProduct
 );
 router.delete("/products/:id", auth, productController.deleteProduct);
+
+// ✅ THÊM: Inventory Management Routes
+router.post("/products/check-availability", productController.checkAvailability);
+router.get("/products/:id/inventory", productController.getInventoryInfo);
 
 // Categories - Gộp thành 1 endpoint duy nhất
 router.get("/categories", categoryController.getCategories);
@@ -148,7 +154,7 @@ router.get('/loyalty/info', auth, userController.getLoyaltyInfo);
 router.get('/loyalty/history', auth, userController.getLoyaltyHistory);
 router.post('/loyalty/redeem', auth, userController.redeemLoyaltyPoints);
 
-// Rewards (Ưu đãi/quà tặng)
+// Rewards (ưu đãi/quà tặng)
 router.get('/rewards', userController.getRewardList);
 router.post('/rewards/redeem', auth, userController.redeemReward);
 

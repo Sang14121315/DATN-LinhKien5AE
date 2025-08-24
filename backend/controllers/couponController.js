@@ -2,6 +2,7 @@ const CouponService = require('../services/CouponService');
 const Joi = require('joi');
 const LoyaltyTransaction = require('../models/LoyaltyTransaction');
 const Coupon = require('../models/Coupon');
+const User = require('../models/User');
 
 const couponSchema = Joi.object({
   code: Joi.string().required(),
