@@ -64,6 +64,14 @@ const Header: React.FC = () => {
       currency: "VND",
     }).format(amount);
 
+  // Hàm xử lý cắt ngắn tên user
+  const truncateUserName = (name: string): string => {
+    if (name.length > 12) {
+      return name.substring(0, 12) + "...";
+    }
+    return name;
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -181,7 +189,7 @@ const Header: React.FC = () => {
                         >
                           <FaUserCircle className="user-icon" />
                           <div className="user-info-vertical">
-                            <span className="user-name">{user.name}</span>
+                            <span className="user-name">{truncateUserName(user.name)}</span>
                             <span className="user-arrow">▼</span>
                           </div>
                         </div>
@@ -250,7 +258,7 @@ const Header: React.FC = () => {
                             className="auth-user"
                             onClick={() => setShowUserDropdown((prev) => !prev)}
                           >
-                            <FaUserCircle className="nav-icon" /> {user.name}
+                            <FaUserCircle className="nav-icon" /> {truncateUserName(user.name)}
                           </div>
                           {showUserDropdown && (
                             <div className="dropdown-menu">
