@@ -9,7 +9,7 @@ const productSchema = Joi.object({
   stock: Joi.number().required(),
   img_url: Joi.string().allow(''),
   category_id: Joi.string().required(),
-  sale: Joi.boolean(),
+  sale: Joi.boolean().allow('true', 'false'),
   view: Joi.number(),
   hot: Joi.boolean(),
   coupons_id: Joi.string().allow(''),
@@ -55,7 +55,12 @@ exports.createProduct = async (req, res) => {
     const { error } = productSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
-    const product = await ProductService.create({ ...req.body, img_url: req.file ? `/uploads/${req.file.filename}` : '' });
+    // Convert string boolean to actual boolean
+    const productData = { ...req.body };
+    if (productData.sale === 'true') productData.sale = true;
+    if (productData.sale === 'false') productData.sale = false;
+
+    const product = await ProductService.create({ ...productData, img_url: req.file ? `/uploads/${req.file.filename}` : '' });
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Error creating product' });
@@ -67,7 +72,12 @@ exports.updateProduct = async (req, res) => {
     const { error } = productSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
-    const product = await ProductService.update(req.params.id, { ...req.body, img_url: req.file ? `/uploads/${req.file.filename}` : req.body.img_url });
+    // Convert string boolean to actual boolean
+    const productData = { ...req.body };
+    if (productData.sale === 'true') productData.sale = true;
+    if (productData.sale === 'false') productData.sale = false;
+
+    const product = await ProductService.update(req.params.id, { ...productData, img_url: req.file ? `/uploads/${req.file.filename}` : req.body.img_url });
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Error updating product' });
