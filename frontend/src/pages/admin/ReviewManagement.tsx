@@ -99,11 +99,17 @@ const ReviewManagement: React.FC = () => {
   return (
     <div style={{ padding: '16px' }}>
       <style>{`
-        .compact-table .ant-table-thead > tr > th { background: #f7f8fa; font-weight: 600; }
-        .compact-table .ant-table-tbody > tr > td { padding: 10px 12px; }
+        .compact-table .ant-table-thead > tr > th {
+          background: linear-gradient(180deg,#f9fafb,#f3f4f6);
+          font-weight: 700;
+          color: #111827;
+        }
+        .compact-table .ant-table-tbody > tr > td { padding: 12px 14px; }
+        .compact-table .ant-table-tbody > tr:hover > td { background: #f9fafb !important; }
         .compact-table .ant-table-tbody > tr:nth-child(odd) > td { background: #fafafa; }
+        .ant-tag-green { border-radius: 999px; padding: 2px 10px; }
       `}</style>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' as const }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' as const, alignItems: 'center' }}>
             <Input
           placeholder="Tìm theo tên, email, sản phẩm, nội dung..."
               value={searchTerm}
@@ -126,7 +132,7 @@ const ReviewManagement: React.FC = () => {
           ]}
         />
         <Space style={{ marginLeft: 'auto' }}>
-          <Tag color="blue">Tổng: {filteredReviews.length}</Tag>
+          <Tag color="blue" style={{ borderRadius: 999 }}>Tổng: {filteredReviews.length}</Tag>
         </Space>
       </div>
 
@@ -190,22 +196,7 @@ const ReviewManagement: React.FC = () => {
               </Tooltip>
             ),
           },
-          {
-            title: 'Phản hồi',
-            dataIndex: 'reply',
-            key: 'reply',
-            ellipsis: true,
-            width: 260,
-            render: (text?: string) => (
-              text ? (
-                <Tooltip title={text} placement="topLeft">
-                  <Typography.Text ellipsis style={{ maxWidth: 240, display: 'inline-block' }}>{text}</Typography.Text>
-                </Tooltip>
-              ) : (
-                <span style={{ color: '#bfbfbf' }}>—</span>
-              )
-            ),
-          },
+         
           {
             title: 'Ngày',
             dataIndex: 'created_at',

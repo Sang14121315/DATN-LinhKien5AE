@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "@/styles/pages/user/forgotPassword.scss";
 
 import { forgotPassword, resetPassword } from "@/api/user/userAPI";
-import { X } from "lucide-react";
+import { X, Eye, EyeOff } from "lucide-react";
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -17,6 +17,8 @@ const ForgotPasswordPage: React.FC = () => {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -205,12 +207,7 @@ const ForgotPasswordPage: React.FC = () => {
       className="forgot-password-form-container"
       onSubmit={showOtpInput ? handleResetPassword : handleSendOTP}
     >
-      <div className="forgot-password-tabs">
-        <span>
-          <Link to="/login">Đăng nhập</Link>
-        </span>
-        <span className="active">Quên mật khẩu</span>
-      </div>
+      <h2>Quên mật khẩu</h2>
 
       {message && (
         <div className={`forgot-password-message ${message.type}`}>
@@ -349,22 +346,38 @@ const ForgotPasswordPage: React.FC = () => {
 
           <div className="forgot-password-form-group forgot-password-new-password-group">
             <input
-              type="password"
+              type={showNewPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu mới"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
             />
+            <button
+              type="button"
+              className="forgot-password-toggle-password"
+              aria-label="Ẩn/hiện mật khẩu mới"
+              onClick={() => setShowNewPassword((v) => !v)}
+            >
+              {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           <div className="forgot-password-form-group forgot-password-confirm-password-group">
             <input
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Xác nhận mật khẩu mới"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
+            <button
+              type="button"
+              className="forgot-password-toggle-password"
+              aria-label="Ẩn/hiện xác nhận mật khẩu"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           <button

@@ -3,6 +3,9 @@
   display: flex;
   min-height: 100vh;
   
+  // Ensure content does not slide under fixed sidebar
+  padding-left: 250px;
+
   .admin-content {
     flex-grow: 1;
     background-color: #f5f6fa;

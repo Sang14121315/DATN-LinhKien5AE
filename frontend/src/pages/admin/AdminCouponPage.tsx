@@ -277,7 +277,7 @@ const AdminCouponPage: React.FC = () => {
                 <td className="product-cell">{coupon.code}</td>
                 <td>
                   <span className={`discount-type ${coupon.discount_type}`}>
-                    {coupon.discount_type === "percentage" ? "Phần trăm" : "Cố định"}
+                    {coupon.discount_type === "percentage" ? "Phần trăm" : "Số Tiền"}
                   </span>
                 </td>
                 <td className="total-cell">
@@ -288,11 +288,11 @@ const AdminCouponPage: React.FC = () => {
                 </td>
                 <td>
                   {coupon.min_order_value ? (
-                    <span style={{ color: '#d46b08', fontWeight: '500' }}>
+                    <span style={{ color: '#000000', fontWeight: '500' }}>
                       {coupon.min_order_value.toLocaleString()}₫
                     </span>
                   ) : (
-                    <span style={{ color: '#52c41a', fontSize: '12px' }}>
+                    <span style={{ color: '#00000', fontSize: '15px' }}>
                       Không giới hạn
                     </span>
                   )}

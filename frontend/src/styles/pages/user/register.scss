@@ -1350,6 +1350,7 @@ $font-xl: 18px;
         font-size: 28px;
         font-weight: bold;
         margin-bottom: $space-xxxl;
+        position: relative;
 
         @media (max-width: 768px) {
           font-size: 24px;
@@ -1366,6 +1367,22 @@ $font-xl: 18px;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+        }
+
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 60px;
+          height: 3px;
+          background: linear-gradient(
+            90deg,
+            $smember-blue 0%,
+            $smember-blue-dark 100%
+          );
+          border-radius: 2px;
         }
       }
 
@@ -1436,7 +1453,7 @@ $font-xl: 18px;
           .toggle-password {
             position: absolute;
             right: $space-sm;
-            top: 40%;
+            top: 53%;
             transform: translateY(-50%);
             background: none;
             border: none;
@@ -1753,7 +1770,7 @@ $font-xl: 18px;
         .toggle-password {
           position: absolute;
           right: 8px;
-          top: 40%;
+          top: 50%;
           transform: translateY(-50%);
           background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
           border: 1px solid #cbd5e1;
@@ -1944,9 +1961,7 @@ $font-xl: 18px;
       .register-form-container .register-footer {
         text-align: center;
         padding: 20px;
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         border-radius: 16px;
-        border: 1px solid #e2e8f0;
         transition: all 0.3s ease;
 
         &:hover {

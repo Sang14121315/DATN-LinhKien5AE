@@ -213,18 +213,6 @@ const AdminOrderPage: React.FC = () => {
   return (
     <div className="admin-orders">
       <h2>📦 Quản lý đơn hàng</h2>
-      <div style={{ 
-        fontSize: '14px', 
-        color: '#666', 
-        marginBottom: '16px',
-        padding: '8px 12px',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '6px',
-        border: '1px solid #e8e8e8'
-      }}>
-        💡 <strong>Lưu ý:</strong> Đơn hàng được sắp xếp theo thứ tự cập nhật gần nhất, sau đó theo ngày tạo. 
-        Đơn hàng vừa được cập nhật trạng thái sẽ hiển thị lên đầu danh sách.
-      </div>
       {/* Bộ lọc */}
       <form className="order-filter-form" onSubmit={e => e.preventDefault()}>
         <input
@@ -274,13 +262,6 @@ const AdminOrderPage: React.FC = () => {
           placeholder="Tổng đến (₫)"
           min="0"
         />
-        <select value={ordersPerPage} onChange={e => { setOrdersPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{marginLeft: 12}}>
-          <option value={5}>5 / trang</option>
-          <option value={10}>10 / trang</option>
-          <option value={20}>20 / trang</option>
-          <option value={50}>50 / trang</option>
-          <option value={100}>100 / trang</option>
-        </select>
         <button type="button" onClick={handleClearFilters} className="clear-filter-btn">Xóa lọc</button>
       </form>
       {/* Danh sách đơn hàng */}
@@ -346,11 +327,6 @@ const AdminOrderPage: React.FC = () => {
                         ));
                       })()}
                         </select>
-                        {order.updated_at && order.updated_at !== order.created_at && (
-                          <div style={{ fontSize: '11px', color: '#1890ff', fontStyle: 'italic' }}>
-                            ⏰ Vừa cập nhật
-                          </div>
-                        )}
                       </div>
                     </td>
                   <td>
