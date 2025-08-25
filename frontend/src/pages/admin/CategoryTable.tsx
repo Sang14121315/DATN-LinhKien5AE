@@ -1,13 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { FaEye, FaPlus, FaChevronRight, FaChevronDown, FaEdit, FaTrash } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import { 
-  fetchCategories, 
-  fetchCategoriesHierarchy, 
+import React, { useEffect, useState } from "react";
+import {
+  FaEye,
+  FaPlus,
+  FaChevronRight,
+  FaChevronDown,
+  FaEdit,
+  FaTrash,
+} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import {
+  fetchCategories,
+  fetchCategoriesHierarchy,
   fetchParentCategoriesForDropdown,
-  deleteCategory 
-} from '@/api/categoryAPI';
-import '@/styles/pages/admin/categoryTable.scss';
+  deleteCategory,
+} from "@/api/categoryAPI";
+import "@/styles/pages/admin/categoryTable.scss";
 
 interface Category {
   _id?: string;
@@ -29,15 +36,19 @@ interface ParentCategory {
 
 const CategoryTable: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [parentCategories, setParentCategories] = useState<ParentCategory[]>([]);
-  const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
-  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
+  const [parentCategories, setParentCategories] = useState<ParentCategory[]>(
+    []
+  );
+  const [viewMode, setViewMode] = useState<"list" | "tree">("list");
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(
+    new Set()
+  );
   const [filters, setFilters] = useState<{
     name: string;
     parent: string; // '' = all, 'null' = parent only, parentId = children của parent đó
     startDate: string;
     endDate: string;
-  }>({ name: '', parent: '', startDate: '', endDate: '' });
+  }>({ name: "", parent: "", startDate: "", endDate: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,7 +62,7 @@ const CategoryTable: React.FC = () => {
         const data = await fetchParentCategoriesForDropdown();
         setParentCategories(data);
       } catch (error) {
-        console.error('Lỗi khi tải danh mục cha:', error);
+        console.error("Lỗi khi tải danh mục cha:", error);
       }
     };
 
@@ -63,7 +74,7 @@ const CategoryTable: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        if (viewMode === 'tree') {
+        if (viewMode === "tree") {
           // Tree view: load hierarchy
           const data = await fetchCategoriesHierarchy();
           setCategories(data);
@@ -80,8 +91,8 @@ const CategoryTable: React.FC = () => {
         }
         setError(null);
       } catch (err) {
-        console.error('Lỗi khi tải dữ liệu:', err);
-        setError('Không thể tải dữ liệu. Vui lòng thử lại.');
+        console.error("Lỗi khi tải dữ liệu:", err);
+        setError("Không thể tải dữ liệu. Vui lòng thử lại.");
       } finally {
         setLoading(false);
       }
@@ -94,12 +105,12 @@ const CategoryTable: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
     setCurrentPage(1);
   };
 
   const toggleParentExpand = (parentId: string) => {
-    setExpandedParents(prev => {
+    setExpandedParents((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(parentId)) {
         newSet.delete(parentId);
@@ -110,19 +121,23 @@ const CategoryTable: React.FC = () => {
     });
   };
 
-  const getParentName = (parent: string | { _id: string; name: string } | null | undefined) => {
-    if (!parent) return '—';
-    if (typeof parent === 'object' && parent.name) return parent.name;
-    const found = parentCategories.find(p => p._id === parent);
-    return found ? found.name : 'Không xác định';
+  const getParentName = (
+    parent: string | { _id: string; name: string } | null | undefined
+  ) => {
+    if (!parent) return "—";
+    if (typeof parent === "object" && parent.name) return parent.name;
+    const found = parentCategories.find((p) => p._id === parent);
+    return found ? found.name : "Không xác định";
   };
 
   const getCategoryType = (parent: any) => {
-    return parent ? 'child' : 'parent';
+    return parent ? "child" : "parent";
   };
 
   const handleDelete = async (id: string, categoryName: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa danh mục "${categoryName}"?`)) {
+    if (
+      window.confirm(`Bạn có chắc chắn muốn xóa danh mục "${categoryName}"?`)
+    ) {
       try {
         await deleteCategory(id);
         // Reload data after delete
@@ -132,13 +147,14 @@ const CategoryTable: React.FC = () => {
         if (filters.startDate) filterParams.startDate = filters.startDate;
         if (filters.endDate) filterParams.endDate = filters.endDate;
 
-        const data = viewMode === 'tree' 
-          ? await fetchCategoriesHierarchy()
-          : await fetchCategories(filterParams);
+        const data =
+          viewMode === "tree"
+            ? await fetchCategoriesHierarchy()
+            : await fetchCategories(filterParams);
         setCategories(data);
       } catch (error) {
-        console.error('Lỗi khi xóa danh mục:', error);
-        setError('Không thể xóa danh mục. Vui lòng thử lại.');
+        console.error("Lỗi khi xóa danh mục:", error);
+        setError("Không thể xóa danh mục. Vui lòng thử lại.");
       }
     }
   };
@@ -179,42 +195,39 @@ const CategoryTable: React.FC = () => {
                     </span>
                   </td>
                   <td>
-                    <div className="category-name">
-                      {cat.name}
-                    </div>
+                    <div className="category-name">{cat.name}</div>
                   </td>
                   <td>{cat.slug}</td>
-                  <td>{cat.description?.slice(0, 50) || '—'}{cat.description && cat.description.length > 50 ? '...' : ''}</td>
                   <td>
-                    <span className={`type-badge ${getCategoryType(cat.parent)}`}>
-                      {getCategoryType(cat.parent) === 'parent' ? 'Cha' : 'Con'}
+                    {cat.description?.slice(0, 50) || "—"}
+                    {cat.description && cat.description.length > 50
+                      ? "..."
+                      : ""}
+                  </td>
+                  <td>
+                    <span
+                      className={`type-badge ${getCategoryType(cat.parent)}`}
+                    >
+                      {getCategoryType(cat.parent) === "parent" ? "Cha" : "Con"}
                     </span>
                   </td>
                   <td>{getParentName(cat.parent)}</td>
-                  <td>{cat.created_at ? new Date(cat.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                  <td>
+                    {cat.created_at
+                      ? new Date(cat.created_at).toLocaleDateString("vi-VN")
+                      : "N/A"}
+                  </td>
                   <td>
                     <div className="action-buttons">
                       <button
                         className="view-button"
-                        onClick={() => navigate(`/admin/category/${cat._id}/form`)}
+                        onClick={() =>
+                          navigate(`/admin/category/${cat._id}/form`)
+                        }
                         title="Xem chi tiết"
                       >
                         <FaEye /> Xem
                       </button>
-                      {/* <button
-                        className="edit-button"
-                        onClick={() => navigate(`/admin/category/${cat._id}/form`)}
-                        title="Chỉnh sửa"
-                      >
-                        <FaEdit />
-                      </button> */}
-                      {/* <button
-                        className="delete-button"
-                        onClick={() => handleDelete(cat._id!, cat.name)}
-                        title="Xóa"
-                      >
-                        <FaTrash />
-                      </button> */}
                     </div>
                   </td>
                 </tr>
@@ -228,25 +241,27 @@ const CategoryTable: React.FC = () => {
           <div className="pagination">
             <button
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
               className="pagination-btn"
             >
               Trước
             </button>
-            
+
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i}
-                className={`pagination-btn ${currentPage === i + 1 ? 'active' : ''}`}
+                className={`pagination-btn ${
+                  currentPage === i + 1 ? "active" : ""
+                }`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
-            
+
             <button
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
               className="pagination-btn"
             >
               Sau
@@ -272,7 +287,10 @@ const CategoryTable: React.FC = () => {
               </span>
             </td>
             <td>
-              <div className="tree-item" style={{ paddingLeft: `${level * 20}px` }}>
+              <div
+                className="tree-item"
+                style={{ paddingLeft: `${level * 20}px` }}
+              >
                 {hasChildren && (
                   <button
                     className="expand-button"
@@ -281,32 +299,45 @@ const CategoryTable: React.FC = () => {
                     {isExpanded ? <FaChevronDown /> : <FaChevronRight />}
                   </button>
                 )}
-                <span className="category-name">
-                  {category.name}
-                </span>
+                <span className="category-name">{category.name}</span>
               </div>
             </td>
             <td>{category.slug}</td>
-            <td>{category.description?.slice(0, 50) || '—'}{category.description && category.description.length > 50 ? '...' : ''}</td>
             <td>
-              <span className={`type-badge ${getCategoryType(category.parent)}`}>
-                {getCategoryType(category.parent) === 'parent' ? 'Cha' : 'Con'}
+              {category.description?.slice(0, 50) || "—"}
+              {category.description && category.description.length > 50
+                ? "..."
+                : ""}
+            </td>
+            <td>
+              <span
+                className={`type-badge ${getCategoryType(category.parent)}`}
+              >
+                {getCategoryType(category.parent) === "parent" ? "Cha" : "Con"}
               </span>
             </td>
             <td>{getParentName(category.parent)}</td>
-            <td>{category.created_at ? new Date(category.created_at).toLocaleDateString('vi-VN') : 'N/A'}</td>
+            <td>
+              {category.created_at
+                ? new Date(category.created_at).toLocaleDateString("vi-VN")
+                : "N/A"}
+            </td>
             <td>
               <div className="action-buttons">
                 <button
                   className="view-button"
-                  onClick={() => navigate(`/admin/category/${category._id}/form`)}
+                  onClick={() =>
+                    navigate(`/admin/category/${category._id}/form`)
+                  }
                   title="Xem chi tiết"
                 >
                   <FaEye />
                 </button>
                 <button
                   className="edit-button"
-                  onClick={() => navigate(`/admin/category/${category._id}/edit`)}
+                  onClick={() =>
+                    navigate(`/admin/category/${category._id}/edit`)
+                  }
                   title="Chỉnh sửa"
                 >
                   <FaEdit />
@@ -321,11 +352,11 @@ const CategoryTable: React.FC = () => {
               </div>
             </td>
           </tr>
-          
+
           {/* Render children if expanded */}
-          {hasChildren && isExpanded && category.children!.map(child => 
-            renderTreeItem(child, level + 1)
-          )}
+          {hasChildren &&
+            isExpanded &&
+            category.children!.map((child) => renderTreeItem(child, level + 1))}
         </React.Fragment>
       );
     };
@@ -350,7 +381,7 @@ const CategoryTable: React.FC = () => {
               <td colSpan={8}>Không tìm thấy danh mục nào.</td>
             </tr>
           ) : (
-            categories.map(category => renderTreeItem(category))
+            categories.map((category) => renderTreeItem(category))
           )}
         </tbody>
       </table>
@@ -361,104 +392,62 @@ const CategoryTable: React.FC = () => {
 
   return (
     <div className="category-page-container">
-      <div className="page-header">
-        <h2 className="page-title">Quản lý Danh mục</h2>
-        
-        {/* View mode toggle */}
-        {/* <div className="view-mode-toggle">
-          <button
-            className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-            onClick={() => setViewMode('list')}
-          >
-            Danh sách
-          </button>
-          <button
-            className={`toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
-            onClick={() => setViewMode('tree')}
-          >
-            Cây danh mục
-          </button>
-        </div> */}
-      </div>
+      <h2 className="page-title">Quản lý danh mục</h2>
 
       {error && <div className="error-message">{error}</div>}
 
-      {/* Filters - chỉ hiển thị trong list view */}
-      {viewMode === 'list' && (
-        <div className="filters-section">
-          <div className="filters-row">
-            <div className="filter-group">
-              <label>Tìm kiếm:</label>
-              <input
-                type="text"
-                name="name"
-                value={filters.name}
-                onChange={handleFilterChange}
-                placeholder="Tìm kiếm danh mục..."
-                className="filter-input"
-              />
-            </div>
+      {/* Top Controls - Similar to BrandTable */}
+      {viewMode === "list" && (
+        <div className="top-controls">
+          <div className="left-filters">
+            <select
+              name="parent"
+              value={filters.parent}
+              onChange={handleFilterChange}
+              className="filter-select"
+            >
+              <option value="">Tất cả</option>
+              <option value="null">Danh mục cha</option>
+              {parentCategories.map((parent) => (
+                <option key={parent._id} value={parent._id}>
+                  Con của: {parent.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              name="startDate"
+              value={filters.startDate}
+              onChange={handleFilterChange}
+              className="filter-input"
+            />
+            <input
+              type="date"
+              name="endDate"
+              value={filters.endDate}
+              onChange={handleFilterChange}
+              className="filter-input"
+            />
+          </div>
 
-            <div className="filter-group">
-              <label>Loại danh mục:</label>
-              <select
-                name="parent"
-                value={filters.parent}
-                onChange={handleFilterChange}
-                className="filter-select"
-              >
-                <option value="">Tất cả</option>
-                <option value="null">Danh mục cha</option>
-                {parentCategories.map(parent => (
-                  <option key={parent._id} value={parent._id}>
-                    Con của: {parent.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label>Từ ngày:</label>
-              <input
-                type="date"
-                name="startDate"
-                value={filters.startDate}
-                onChange={handleFilterChange}
-                className="filter-input"
-              />
-            </div>
-
-            <div className="filter-group">
-              <label>Đến ngày:</label>
-              <input
-                type="date"
-                name="endDate"
-                value={filters.endDate}
-                onChange={handleFilterChange}
-                className="filter-input"
-              />
-            </div>
+          <div className="right-controls">
+            <input
+              type="text"
+              name="name"
+              value={filters.name}
+              onChange={handleFilterChange}
+              placeholder="Tìm kiếm danh mục..."
+              className="filter-input"
+            />
+            <button
+              className="add-button"
+              onClick={() => navigate("/admin/category/create")}
+            >
+              <FaPlus /> Thêm
+            </button>
           </div>
         </div>
       )}
-
-      {/* Action buttons */}
-      <div className="action-bar">
-        <div className="left-actions">
-          <span className="total-count">
-            Tổng cộng: {categories.length} danh mục
-          </span>
-        </div>
-        
-        <div className="right-actions">
-          <button
-            className="add-button primary"
-            onClick={() => navigate('/admin/category/create')}
-          >
-            <FaPlus /> Thêm danh mục mới
-          </button>
-        </div>
-      </div>
 
       {/* Loading state */}
       {loading && (
@@ -471,7 +460,7 @@ const CategoryTable: React.FC = () => {
       {/* Table content */}
       {!loading && (
         <div className="table-container">
-          {viewMode === 'list' ? renderListView() : renderTreeView()}
+          {viewMode === "list" ? renderListView() : renderTreeView()}
         </div>
       )}
     </div>
