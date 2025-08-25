@@ -190,22 +190,7 @@ const ReviewManagement: React.FC = () => {
               </Tooltip>
             ),
           },
-          {
-            title: 'Phản hồi',
-            dataIndex: 'reply',
-            key: 'reply',
-            ellipsis: true,
-            width: 260,
-            render: (text?: string) => (
-              text ? (
-                <Tooltip title={text} placement="topLeft">
-                  <Typography.Text ellipsis style={{ maxWidth: 240, display: 'inline-block' }}>{text}</Typography.Text>
-                </Tooltip>
-              ) : (
-                <span style={{ color: '#bfbfbf' }}>—</span>
-              )
-            ),
-          },
+         
           {
             title: 'Ngày',
             dataIndex: 'created_at',
