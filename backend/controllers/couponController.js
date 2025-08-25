@@ -12,16 +12,17 @@ const couponSchema = Joi.object({
   min_order_value: Joi.number().default(0),
   start_date: Joi.date().required(),
   end_date: Joi.date().required(),
-  max_uses: Joi.number().default(Infinity),
-  is_active: Joi.boolean().default(true)
-});
+  max_uses: Joi.number().default(1),
+  is_active: Joi.boolean().default(true),
+  pointsRequired: Joi.number().required(),
+  limitMonth: Joi.number().default(3)
+}).unknown(true);
 
 const getCoupons = async (req, res) => {
   try {
     const { is_active } = req.query;
     const filters = {};
     if (is_active !== undefined) filters.is_active = is_active === 'true';
-    filters.pointsRequired = { $exists: true, $gt: 0 };
     const coupons = await CouponService.getAll(filters);
     res.json(coupons);
   } catch (error) {
@@ -42,27 +43,39 @@ const getCouponById = async (req, res) => {
 
 const createCoupon = async (req, res) => {
   try {
+    console.log('📩 [Coupon] Create - Incoming body:', req.body);
     const { error } = couponSchema.validate(req.body);
-    if (error) return res.status(400).json({ message: error.details[0].message });
+    if (error) {
+      console.error('❌ [Coupon] Create - Validation error:', error.details);
+      return res.status(400).json({ message: error.details[0].message, details: error.details });
+    }
 
     const coupon = await CouponService.create(req.body);
+    console.log('✅ [Coupon] Create - Saved:', coupon?._id);
     res.status(201).json(coupon);
   } catch (error) {
+    console.error('❌ [Coupon] Create - Server error:', error);
     res.status(500).json({ message: error.message || 'Error creating coupon' });
   }
 };
 
 const updateCoupon = async (req, res) => {
   try {
+    console.log('📩 [Coupon] Update - ID:', req.params.id, 'Body:', req.body);
     const { error } = couponSchema.validate(req.body);
-    if (error) return res.status(400).json({ message: error.details[0].message });
+    if (error) {
+      console.error('❌ [Coupon] Update - Validation error:', error.details);
+      return res.status(400).json({ message: error.details[0].message, details: error.details });
+    }
 
     const coupon = await CouponService.update(req.params.id, req.body);
     if (!coupon) {
       return res.status(404).json({ message: 'Coupon not found' });
     }
+    console.log('✅ [Coupon] Update - Updated:', coupon?._id);
     res.json(coupon);
   } catch (error) {
+    console.error('❌ [Coupon] Update - Server error:', error);
     res.status(500).json({ message: error.message || 'Error updating coupon' });
   }
 };

@@ -12,6 +12,8 @@ const defaultForm = {
   end_date: "",
   max_uses: 1,
   is_active: true,
+  pointsRequired: 0,
+  limitMonth: 3,
 };
 
 const CouponForm: React.FC = () => {
@@ -55,6 +57,8 @@ const CouponForm: React.FC = () => {
         discount_value: Number(formData.discount_value),
         min_order_value: Number(formData.min_order_value),
         max_uses: Number(formData.max_uses),
+        pointsRequired: Number(formData.pointsRequired),
+        limitMonth: Number(formData.limitMonth),
         start_date: formData.start_date ? new Date(formData.start_date).toISOString() : undefined,
         end_date: formData.end_date ? new Date(formData.end_date).toISOString() : undefined,
       };
@@ -181,6 +185,52 @@ const CouponForm: React.FC = () => {
               value={formData.max_uses} 
               onChange={handleChange} 
               required 
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="row">
+          <div>
+            <label>Điểm cần để đổi</label>
+            <input 
+              name="pointsRequired" 
+              type="number"
+              value={formData.pointsRequired}
+              onChange={handleChange}
+              required
+              style={{
+                height: '40px',
+                padding: '0 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                lineHeight: '40px',
+                outline: 'none',
+                margin: 0,
+                width: '100%'
+              }}
+            />
+          </div>
+          <div>
+            <label>Giới hạn đổi mỗi tháng</label>
+            <input 
+              name="limitMonth" 
+              type="number"
+              value={formData.limitMonth}
+              onChange={handleChange}
               style={{
                 height: '40px',
                 padding: '0 16px',
