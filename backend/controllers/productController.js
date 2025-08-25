@@ -103,7 +103,7 @@ exports.updateProduct = async (req, res) => {
     if (error) return res.status(400).json({ message: error.details[0].message });
 
 
-    const products = await ProductService.update(req.params.id, { 
+    const product = await ProductService.update(req.params.id, { 
       ...req.body, 
       img_url: req.file ? `/uploads/${req.file.filename}` : req.body.img_url 
     });

@@ -213,16 +213,6 @@ const AdminOrderPage: React.FC = () => {
   return (
     <div className="admin-orders">
       <h2>📦 Quản lý đơn hàng</h2>
-      <div style={{ 
-        fontSize: '14px', 
-        color: '#666', 
-        marginBottom: '16px',
-        padding: '8px 12px',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '6px',
-        border: '1px solid #e8e8e8'
-      }}>
-      </div>
       {/* Bộ lọc */}
       <form className="order-filter-form" onSubmit={e => e.preventDefault()}>
         <input
