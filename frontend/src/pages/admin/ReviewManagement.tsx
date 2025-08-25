@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { getAllReviews, deleteReview } from '@/api/dashboardAPI';
 import { FaTrash, FaSearch } from 'react-icons/fa';
 import { message, Input, Select, Tag, Table, Rate, Button, Space, Tooltip, Avatar, Typography, Popconfirm } from 'antd';
+import '@/styles/pages/admin/reviewManagement.scss';
 
  
 
@@ -65,14 +66,6 @@ const ReviewManagement: React.FC = () => {
         }
   };
 
-  const getRatingColor = (rating: number) => {
-    if (rating >= 4) return 'green';
-    if (rating >= 3) return 'orange';
-    return 'red';
-  };
-
-  
-
   const filteredReviews = useMemo(() => {
     return reviews.filter(review => {
     const matchesRating = filterRating === 0 || review.rating === filterRating;
@@ -97,135 +90,148 @@ const ReviewManagement: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '16px' }}>
-      <style>{`
-        .compact-table .ant-table-thead > tr > th {
-          background: linear-gradient(180deg,#f9fafb,#f3f4f6);
-          font-weight: 700;
-          color: #111827;
-        }
-        .compact-table .ant-table-tbody > tr > td { padding: 12px 14px; }
-        .compact-table .ant-table-tbody > tr:hover > td { background: #f9fafb !important; }
-        .compact-table .ant-table-tbody > tr:nth-child(odd) > td { background: #fafafa; }
-        .ant-tag-green { border-radius: 999px; padding: 2px 10px; }
-      `}</style>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' as const, alignItems: 'center' }}>
-            <Input
-          placeholder="Tìm theo tên, email, sản phẩm, nội dung..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              prefix={<FaSearch style={{ color: '#bfbfbf' }} />}
-          style={{ maxWidth: 360 }}
-          allowClear
-            />
-          <Select
-            value={filterRating}
-            onChange={setFilterRating}
-          style={{ width: 140 }}
-          options={[
-            { value: 0, label: 'Tất cả' },
-            { value: 5, label: '5 sao' },
-            { value: 4, label: '4 sao' },
-            { value: 3, label: '3 sao' },
-            { value: 2, label: '2 sao' },
-            { value: 1, label: '1 sao' },
-          ]}
-        />
-        <Space style={{ marginLeft: 'auto' }}>
-          <Tag color="blue" style={{ borderRadius: 999 }}>Tổng: {filteredReviews.length}</Tag>
-        </Space>
+    <div className="review-management">
+      <div className="page-header">
+        <h1>Quản lý đánh giá sản phẩm</h1>
+        <p>Xem và quản lý tất cả đánh giá từ người dùng</p>
       </div>
 
-      <Table
-        rowKey="_id"
-        size="middle"
-        loading={loading}
-        dataSource={filteredReviews}
-        pagination={{ pageSize: 10, showSizeChanger: false }}
-        bordered
-        sticky
-        tableLayout="fixed"
-        className="compact-table"
-        columns={[
-          {
-            title: 'Người dùng',
-            dataIndex: ['user_id', 'name'],
-            key: 'user',
-            render: (_value, record: Review) => (
-          <div>
-                <div style={{ fontWeight: 600 }}>{record.user_id.name}</div>
-                <div style={{ color: '#8c8c8c', fontSize: 12 }}>{record.user_id.email}</div>
-              </div>
-            ),
-          },
-          {
-            title: 'Sản phẩm',
-            dataIndex: ['product_id', 'name'],
-            key: 'product',
-            render: (_value, record: Review) => (
-              <Space>
-                <Avatar shape="square" size={28} src={record.product_id.img_url} style={{ backgroundColor: '#f0f0f0' }}>
-                  {(record.product_id.name || 'P').charAt(0)}
-                </Avatar>
-                <span>{record.product_id.name}</span>
-              </Space>
-            ),
-          },
-          {
-            title: 'Đánh giá',
-            dataIndex: 'rating',
-            key: 'rating',
-            width: 180,
-            align: 'center' as const,
-            render: (value: number) => (
-              <Space>
-                <Rate disabled value={value} />
-                <Tag color={getRatingColor(value)} style={{ marginLeft: 4 }}>{value}/5</Tag>
-              </Space>
-            ),
-          },
-          {
-            title: 'Nội dung',
-            dataIndex: 'comment',
-            key: 'comment',
-            ellipsis: true,
-            width: 320,
-            render: (text: string) => (
-              <Tooltip title={text} placement="topLeft">
-                <Typography.Text ellipsis style={{ maxWidth: 300, display: 'inline-block' }}>{text}</Typography.Text>
-              </Tooltip>
-            ),
-          },
-         
-          {
-            title: 'Ngày',
-            dataIndex: 'created_at',
-            key: 'created_at',
-            width: 180,
-            render: (value: string) => formatDate(value),
-            sorter: (a: Review, b: Review) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-            defaultSortOrder: 'descend',
-          },
-          {
-            title: 'Thao tác',
-            key: 'actions',
-            fixed: 'right',
-            width: 100,
-            render: (_value, record: Review) => (
-              <Popconfirm
-                title="Xóa đánh giá?"
-                description="Hành động này không thể hoàn tác."
-                okText="Xóa"
-                cancelText="Hủy"
-                onConfirm={() => deleteReviewById(record._id)}
-              >
-                <Button type="text" danger icon={<FaTrash />} />
-              </Popconfirm>
-            ),
-          },
-        ]}
-        scroll={{ x: 1000 }}
-      />
+      <div className="search-filter-section">
+        <div className="search-filter-container">
+          <div className="search-input">
+            <Input
+              placeholder="Tìm theo tên, email, sản phẩm, nội dung..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              prefix={<FaSearch style={{ color: '#9ca3af' }} />}
+              allowClear
+            />
+          </div>
+          <div className="rating-filter">
+            <Select
+              value={filterRating}
+              onChange={setFilterRating}
+              options={[
+                { value: 0, label: 'Tất cả' },
+                { value: 5, label: '5 sao' },
+                { value: 4, label: '4 sao' },
+                { value: 3, label: '3 sao' },
+                { value: 2, label: '2 sao' },
+                { value: 1, label: '1 sao' },
+              ]}
+            />
+          </div>
+          <div className="total-count">
+            <Tag>Tổng: {filteredReviews.length}</Tag>
+          </div>
+        </div>
+      </div>
+
+      <div className="table-section">
+        <Table
+          rowKey="_id"
+          size="middle"
+          loading={loading}
+          dataSource={filteredReviews}
+          pagination={{ pageSize: 10, showSizeChanger: false }}
+          bordered
+          sticky
+          tableLayout="fixed"
+          columns={[
+            {
+              title: 'Người dùng',
+              dataIndex: ['user_id', 'name'],
+              key: 'user',
+              render: (_value, record: Review) => (
+                <div className="user-column">
+                  <div className="user-name">{record.user_id.name}</div>
+                  <div className="user-email">{record.user_id.email}</div>
+                </div>
+              ),
+            },
+            {
+              title: 'Sản phẩm',
+              dataIndex: ['product_id', 'name'],
+              key: 'product',
+              render: (_value, record: Review) => (
+                <div className="product-column">
+                  <Space>
+                    <Avatar shape="square" size={28} src={record.product_id.img_url} style={{ backgroundColor: '#f0f0f0' }}>
+                      {(record.product_id.name || 'P').charAt(0)}
+                    </Avatar>
+                    <span className="product-name">{record.product_id.name}</span>
+                  </Space>
+                </div>
+              ),
+            },
+            {
+              title: 'Đánh giá',
+              dataIndex: 'rating',
+              key: 'rating',
+              width: 180,
+              align: 'center' as const,
+              render: (value: number) => (
+                <div className="rating-column">
+                  <Rate disabled value={value} />
+                  <Tag 
+                    className={`rating-tag rating-${value}`}
+                    style={{ marginLeft: 8 }}
+                  >
+                    {value}/5
+                  </Tag>
+                </div>
+              ),
+            },
+            {
+              title: 'Nội dung',
+              dataIndex: 'comment',
+              key: 'comment',
+              ellipsis: true,
+              width: 320,
+              render: (text: string) => (
+                <div className="content-column">
+                  <Tooltip title={text} placement="topLeft">
+                    <div className="review-content">{text}</div>
+                  </Tooltip>
+                </div>
+              ),
+            },
+            {
+              title: 'Ngày',
+              dataIndex: 'created_at',
+              key: 'created_at',
+              width: 180,
+              render: (value: string) => (
+                <div className="date-column">
+                  {formatDate(value)}
+                </div>
+              ),
+              sorter: (a: Review, b: Review) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+              defaultSortOrder: 'descend',
+            },
+            {
+              title: 'Thao tác',
+              key: 'actions',
+              fixed: 'right',
+              width: 100,
+              render: (_value, record: Review) => (
+                <div className="actions-column">
+                  <Popconfirm
+                    title="Xóa đánh giá?"
+                    description="Hành động này không thể hoàn tác."
+                    okText="Xóa"
+                    cancelText="Hủy"
+                    onConfirm={() => deleteReviewById(record._id)}
+                  >
+                    <Button type="text" danger icon={<FaTrash />} />
+                  </Popconfirm>
+                </div>
+              ),
+            },
+          ]}
+          scroll={{ x: 1000 }}
+        />
+      </div>
     </div>
   );
 };
