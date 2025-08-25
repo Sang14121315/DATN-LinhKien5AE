@@ -99,6 +99,7 @@ router.post("/coupons", couponController.createCoupon);
 router.put("/coupons/:id", couponController.updateCoupon);
 router.delete("/coupons/:id", couponController.deleteCoupon);
 router.post("/coupons/redeem", auth, couponController.redeemCoupon);
+router.get("/coupons/user-count-in-month/:couponId", auth, couponController.getUserCouponCountInMonth);
 
 // Orders
 router.get("/orders", auth, orderController.getOrders);

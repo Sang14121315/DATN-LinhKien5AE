@@ -200,7 +200,14 @@ export interface Coupon {
   pointsRequired: number;
   description?: string;
   image?: string;
+  limitMonth?: number; // Số lượt đổi tối đa/tháng
 }
+
+// Lấy số lượt user đã đổi 1 coupon trong tháng hiện tại
+export const getUserCouponCountInMonth = async (couponId: string): Promise<number> => {
+  const response = await axios.get(`/coupons/user-count-in-month/${couponId}`);
+  return response.data.count;
+};
 
 export const getCouponList = async (): Promise<Coupon[]> => {
   const response = await axios.get('/coupons?is_active=true');
