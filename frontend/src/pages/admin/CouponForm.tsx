@@ -21,7 +21,19 @@ const CouponForm: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      getCouponById(id).then(data => setFormData(data));
+      getCouponById(id).then((data) => {
+        const formatDateYMD = (val: any) => {
+          if (!val) return '';
+          const d = new Date(val);
+          if (isNaN(d.getTime())) return '';
+          return d.toISOString().slice(0, 10);
+        };
+        setFormData({
+          ...data,
+          start_date: formatDateYMD(data.start_date),
+          end_date: formatDateYMD(data.end_date),
+        });
+      });
     }
   }, [id]);
 
@@ -43,8 +55,8 @@ const CouponForm: React.FC = () => {
         discount_value: Number(formData.discount_value),
         min_order_value: Number(formData.min_order_value),
         max_uses: Number(formData.max_uses),
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
+        start_date: formData.start_date ? new Date(formData.start_date).toISOString() : undefined,
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : undefined,
       };
       if (id) {
         await updateCouponAPI(id, payload);
