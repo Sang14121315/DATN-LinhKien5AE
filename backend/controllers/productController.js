@@ -77,7 +77,7 @@ exports.createProduct = async (req, res) => {
     if (error) return res.status(400).json({ message: error.details[0].message });
 
 
-    const product = await ProductService.create({ 
+    const products = await ProductService.create({ 
       ...req.body, 
       img_url: req.file ? `/uploads/${req.file.filename}` : '',
       reserved_stock: 0 // ✅ KHỞI TẠO RESERVED_STOCK = 0
@@ -103,7 +103,7 @@ exports.updateProduct = async (req, res) => {
     if (error) return res.status(400).json({ message: error.details[0].message });
 
 
-    const product = await ProductService.update(req.params.id, { 
+    const products = await ProductService.update(req.params.id, { 
       ...req.body, 
       img_url: req.file ? `/uploads/${req.file.filename}` : req.body.img_url 
     });
