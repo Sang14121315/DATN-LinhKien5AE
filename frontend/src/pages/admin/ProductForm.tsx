@@ -26,7 +26,7 @@ interface ProductFormData {
   category_id: string;
   brand_id: string;
   product_type_id: string;
-  sale: boolean;
+  sale: number; // số tiền giảm giá
   created_at: string;
   status: string;
   img_url?: string;
@@ -65,7 +65,7 @@ const ProductForm: React.FC = () => {
     category_id: "",
     brand_id: "",
     product_type_id: "",
-    sale: false,
+    sale: 0,
     created_at: "",
     status: "Đã duyệt",
   });
@@ -115,7 +115,7 @@ const ProductForm: React.FC = () => {
               res.product_type_id && typeof res.product_type_id === "object"
                 ? res.product_type_id._id
                 : res.product_type_id || "",
-            sale: res.sale || false,
+            sale: res.sale || 0,
             created_at: res.created_at || "",
             status: "Đã duyệt",
           });
@@ -139,10 +139,9 @@ const ProductForm: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-    // Ensure price and stock are non-negative
-    if (name === "price" || name === "stock") {
+    if (name === "price" || name === "stock" || name === "sale") {
       const numValue = parseFloat(value);
-      if (numValue < 0) return; // Prevent negative values
+      if (numValue < 0) return;
       setProduct({ ...product, [name]: numValue });
     } else {
       setProduct({ ...product, [name]: value });
@@ -342,16 +341,22 @@ const ProductForm: React.FC = () => {
           </div>
 
           <div className="form-row">
-            <div className="form-groupp">
-              <label>Giảm giá:</label>
-              <select
+            <div className="form-group">
+              <label>Giảm giá (VNĐ):</label>
+              <input
+                type="number"
                 name="sale"
-                value={product.sale ? 'true' : 'false'}
-                onChange={(e) => setProduct({ ...product, sale: e.target.value === 'true' })}
-              >
-                <option value="false">Không</option>
-                <option value="true">Có</option>
-              </select>
+                value={product.sale}
+                onChange={handleInputChange}
+                min="0"
+                max={product.price}
+                placeholder="Nhập số tiền giảm giá"
+              />
+              {product.price > 0 && product.sale > 0 && (
+                <div style={{ color: 'green', marginTop: 4 }}>
+                  Giảm {((product.sale / product.price) * 100).toFixed(2)}%
+                </div>
+              )}
             </div>
           </div>
 

@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema({
   reserved_stock: { type: Number, default: 0 }, // ✅ THÊM FIELD MỚI: Số lượng đã reserve
   img_url: String,
   category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  sale: { type: Boolean, default: false },
+  sale: { type: Number, default: 0 },
   view: { type: Number, default: 0 },
   hot: { type: Boolean, default: false },
   coupons_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Coupon' },

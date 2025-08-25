@@ -11,7 +11,7 @@ export interface Product {
   category_id: { _id: string; name: string } | string;
   brand_id: { _id: string; name: string } | string;
   product_type_id: { _id: string; name: string } | string;
-  sale?: boolean;
+  sale?: number;
   hot?: boolean;
   view?: number;
   created_at?: string;
