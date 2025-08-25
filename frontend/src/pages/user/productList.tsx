@@ -345,15 +345,7 @@ const ProductListPage: React.FC = () => {
                           }}
                         />
 
-                        <button
-                          className="favorite-icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFavoriteClick(product);
-                          }}
-                        >
-                          {isFavorite ? <FaHeart /> : <FaRegHeart />}
-                        </button>
+                        
                         <p className="product-brand">
                           {typeof product.brand_id === "object" ? product.brand_id.name : product.brand_id}
                         </p>
@@ -373,19 +365,29 @@ const ProductListPage: React.FC = () => {
                           {product.sale && <div className="discount-percent">-34%</div>}
                         </div>
                         <button
-                          className="add-to-cart"
-                          onClick={() =>
-                            addToCart({
-                              _id: product._id,
-                              name: product.name,
-                              price: product.price,
-                              quantity: 1,
-                              img_url: product.img_url,
-                            })
-                          }
-                        >
-                          <FaShoppingCart /> Thêm vào giỏ
-                        </button>
+                                                    className="add-to-cart-btnn"
+                                                    onClick={() =>
+                                                      addToCart({
+                                                        _id: product._id,
+                                                        name: product.name,
+                                                        price: product.price,
+                                                        img_url: product.img_url,
+                                                        quantity: 1,
+                                                      })
+                                                    }
+                                                  >
+                                                    <FaShoppingCart className="cart-icon" />
+                                                    <span className="btn-text">Thêm vào giỏ</span>
+                                                  </button>
+                                                  <button
+                                                    className="favorite-icon"
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handleFavoriteClick(product);
+                                                    }}
+                                                  >
+                                                    {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                                                  </button>
                       </div>
                     </Col>
                   );
