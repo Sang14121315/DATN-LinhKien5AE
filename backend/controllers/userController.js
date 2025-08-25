@@ -1,8 +1,9 @@
 const UserService = require("../services/userService");
+const { sendWelcomeEmail } = require("../utils/welcomeEmailService");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
-const LoyaltyTransaction = require('../models/LoyaltyTransaction');
-const Reward = require('../models/Reward');
+const LoyaltyTransaction = require("../models/LoyaltyTransaction");
+const Reward = require("../models/Reward");
 
 // Validation schemas
 const userSchema = Joi.object({
@@ -40,6 +41,13 @@ exports.register = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+
+    // Gửi email chào mừng (không chặn response)
+    try {
+      Promise.resolve()
+        .then(() => sendWelcomeEmail(user))
+        .catch(() => {});
+    } catch (_) {}
 
     res
       .cookie("token", token, {
@@ -306,15 +314,17 @@ exports.changePassword = async (req, res) => {
 exports.getLoyaltyInfo = async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await require('../models/User').findById(userId);
-    if (!user) return res.status(404).json({ message: 'Không tìm thấy user' });
+    const user = await require("../models/User").findById(userId);
+    if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
     res.json({
       loyaltyPoints: user.loyaltyPoints || 0,
       totalSpent: user.totalSpent || 0,
-      memberLevel: user.memberLevel || 'Bạc'
+      memberLevel: user.memberLevel || "Bạc",
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Lỗi lấy thông tin khách hàng thân thiết' });
+    res.status(500).json({
+      message: error.message || "Lỗi lấy thông tin khách hàng thân thiết",
+    });
   }
 };
 
@@ -322,10 +332,12 @@ exports.getLoyaltyInfo = async (req, res) => {
 exports.getLoyaltyHistory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const history = await LoyaltyTransaction.find({ user_id: userId }).sort({ created_at: -1 });
+    const history = await LoyaltyTransaction.find({ user_id: userId }).sort({
+      created_at: -1,
+    });
     res.json(history);
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Lỗi lấy lịch sử điểm' });
+    res.status(500).json({ message: error.message || "Lỗi lấy lịch sử điểm" });
   }
 };
 
@@ -334,31 +346,42 @@ exports.redeemLoyaltyPoints = async (req, res) => {
   try {
     const userId = req.user.id;
     const { points, description } = req.body;
-    if (!points || points <= 0) return res.status(400).json({ message: 'Số điểm quy đổi không hợp lệ' });
-    const user = await require('../models/User').findById(userId);
-    if (!user) return res.status(404).json({ message: 'Không tìm thấy user' });
-    if ((user.loyaltyPoints || 0) < points) return res.status(400).json({ message: 'Bạn không đủ điểm để quy đổi' });
+    if (!points || points <= 0)
+      return res.status(400).json({ message: "Số điểm quy đổi không hợp lệ" });
+    const user = await require("../models/User").findById(userId);
+    if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
+    if ((user.loyaltyPoints || 0) < points)
+      return res.status(400).json({ message: "Bạn không đủ điểm để quy đổi" });
     user.loyaltyPoints -= points;
     await user.save();
-    await require('../models/LoyaltyTransaction').create({
+    await require("../models/LoyaltyTransaction").create({
       user_id: user._id,
-      type: 'redeem',
+      type: "redeem",
       points: points,
-      description: description || 'Quy đổi điểm lấy ưu đãi'
+      description: description || "Quy đổi điểm lấy ưu đãi",
     });
-    res.json({ success: true, message: 'Quy đổi điểm thành công', currentPoints: user.loyaltyPoints });
+    res.json({
+      success: true,
+      message: "Quy đổi điểm thành công",
+      currentPoints: user.loyaltyPoints,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Lỗi quy đổi điểm' });
+    res.status(500).json({ message: error.message || "Lỗi quy đổi điểm" });
   }
 };
 
 // Lấy danh sách ưu đãi/quà tặng
 exports.getRewardList = async (req, res) => {
   try {
-    const rewards = await Reward.find({ isActive: true, $or: [ { quantity: 0 }, { quantity: { $gt: 0 } } ] });
+    const rewards = await Reward.find({
+      isActive: true,
+      $or: [{ quantity: 0 }, { quantity: { $gt: 0 } }],
+    });
     res.json(rewards);
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Lỗi lấy danh sách ưu đãi/quà tặng' });
+    res
+      .status(500)
+      .json({ message: error.message || "Lỗi lấy danh sách ưu đãi/quà tặng" });
   }
 };
 
@@ -367,15 +390,23 @@ exports.redeemReward = async (req, res) => {
   try {
     const userId = req.user.id;
     const { rewardId } = req.body;
-    if (!rewardId) return res.status(400).json({ message: 'Thiếu rewardId' });
-    const user = await require('../models/User').findById(userId);
-    if (!user) return res.status(404).json({ message: 'Không tìm thấy user' });
+    if (!rewardId) return res.status(400).json({ message: "Thiếu rewardId" });
+    const user = await require("../models/User").findById(userId);
+    if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
     const reward = await Reward.findById(rewardId);
-    if (!reward || !reward.isActive || (reward.quantity > 0 && reward.quantity < 1)) {
-      return res.status(400).json({ message: 'Ưu đãi/quà tặng không khả dụng' });
+    if (
+      !reward ||
+      !reward.isActive ||
+      (reward.quantity > 0 && reward.quantity < 1)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Ưu đãi/quà tặng không khả dụng" });
     }
     if ((user.loyaltyPoints || 0) < reward.pointsRequired) {
-      return res.status(400).json({ message: 'Bạn không đủ điểm để đổi ưu đãi này' });
+      return res
+        .status(400)
+        .json({ message: "Bạn không đủ điểm để đổi ưu đãi này" });
     }
     // Trừ điểm và giảm số lượng
     user.loyaltyPoints -= reward.pointsRequired;
@@ -385,14 +416,20 @@ exports.redeemReward = async (req, res) => {
       await reward.save();
     }
     // Ghi lịch sử giao dịch điểm
-    await require('../models/LoyaltyTransaction').create({
+    await require("../models/LoyaltyTransaction").create({
       user_id: user._id,
-      type: 'redeem',
+      type: "redeem",
       points: reward.pointsRequired,
-      description: `Đổi lấy: ${reward.name}`
+      description: `Đổi lấy: ${reward.name}`,
     });
-    res.json({ success: true, message: `Đã đổi thành công: ${reward.name}`, currentPoints: user.loyaltyPoints });
+    res.json({
+      success: true,
+      message: `Đã đổi thành công: ${reward.name}`,
+      currentPoints: user.loyaltyPoints,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Lỗi đổi điểm lấy ưu đãi' });
+    res
+      .status(500)
+      .json({ message: error.message || "Lỗi đổi điểm lấy ưu đãi" });
   }
 };

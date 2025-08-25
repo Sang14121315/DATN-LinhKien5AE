@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import "@/styles/pages/user/login.scss";
 import { loginUser } from "@/api/user/userAPI";
 import { useAuth } from "@/context/AuthContext";
-import { Eye, EyeOff, Gift, X } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
 import GoogleLoginButton from "@/components/user/GoogleLoginButton";
 
 // Types for auth/login response and router state
@@ -127,18 +127,20 @@ const LoginPage: React.FC = () => {
 
   // Reusable form renderer for desktop and mobile sheet
   const renderLoginForm = () => (
-    <div className="login-form-container">
+    <div className="register-form-container">
       <h2>
         Đăng nhập <span className="highlight">5AE Linh Kiện</span>
       </h2>
 
-      {errorMsg && <p className="login-error-message">{errorMsg}</p>}
+      {errorMsg && <div className="register-error-message">{errorMsg}</div>}
 
       <form onSubmit={handleLogin}>
         <div className="form-group">
           <label>Email</label>
           <input
             type="email"
+            inputMode="email"
+            autoComplete="email"
             placeholder="Nhập email của bạn"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -151,6 +153,7 @@ const LoginPage: React.FC = () => {
           <div className="password-input">
             <input
               type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
               placeholder="Nhập mật khẩu của bạn"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -162,131 +165,161 @@ const LoginPage: React.FC = () => {
               onClick={() => setShowPassword(!showPassword)}
               aria-label="Toggle password visibility"
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </div>
 
-        <div className="login-info-box">
-          <p>
-            Trải nghiệm đăng nhập liền mạch tại 5AELinhKien - Nơi cung cấp linh
-            kiện điện tử chất lượng cao
-          </p>
+        <div className="terms-text">
+          Trải nghiệm đăng nhập liền mạch tại 5AELinhKien - Nơi cung cấp linh
+          kiện điện tử chất lượng cao
         </div>
 
-        <button type="submit" className="login-button" disabled={isLoggingIn}>
+        <button
+          type="submit"
+          className="register-button"
+          disabled={isLoggingIn}
+        >
           {isLoggingIn ? "ĐANG ĐĂNG NHẬP..." : "Đăng nhập"}
         </button>
 
-        <div className="login-divider">
-          <span>hoặc</span>
+        <div className="register-footer">
+          <p>
+            <Link to="/forgot-password">Quên mật khẩu?</Link>
+          </p>
         </div>
 
-        <GoogleLoginButton
-          onSuccess={(user) => {
-            console.log("Google login successful:", user);
-          }}
-          onError={(error) => {
-            setErrorMsg(`Google login failed: ${error}`);
-          }}
-        />
-
-        <div className="login-links">
-          <Link to="/forgot-password" className="forgot-password">
-            Quên mật khẩu?
-          </Link>
-        </div>
-
-        <div className="register-link">
+        <div className="register-footer" style={{ marginTop: 12 }}>
           <p>
             Bạn chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
           </p>
+        </div>
+
+        <div
+          className="register-footer"
+          style={{ background: "transparent", border: "none", padding: 0 }}
+        >
+          <GoogleLoginButton
+            onSuccess={(user) => {
+              console.log("Google login successful:", user);
+            }}
+            onError={(error) => {
+              setErrorMsg(`Google login failed: ${error}`);
+            }}
+          />
         </div>
       </form>
     </div>
   );
 
   return (
-    <div className="login-layout-new">
-      {/* Left Column - 5AELinhKien Benefits */}
-      <div className="login-left-column">
-        <div className="smember-header">
-          <h1>
-            Nhập hội khách hàng thành viên{" "}
-            <span className="highlight">5AE Linh Kiện</span>
+    <div className="register-layout-new">
+      <div className="register-left-column">
+        <div className="register-header-modern">
+          <div className="header-badge">
+            <span className="badge-text">🎉 Mới</span>
+          </div>
+          <h1 className="main-title">
+            Chào mừng bạn đến với
+            <span className="brand-highlight"> 5AE Linh Kiện</span>
           </h1>
-          <p>Để không bỏ lỡ các ưu đãi hấp dẫn từ 5AELinhKien</p>
+          <p className="subtitle">
+            Nơi kết nối cộng đồng công nghệ với những sản phẩm chất lượng cao
+          </p>
         </div>
 
-        <div className="smember-benefits">
-          <div className="benefit-item">
-            <Gift className="benefit-icon" />
-            <span>Giảm giá linh kiện điện tử chất lượng cao</span>
+        <div className="stats-container">
+          <div className="stat-card">
+            <div className="stat-number">100+</div>
+            <div className="stat-label">Sản phẩm đa dạng</div>
           </div>
-          <div className="benefit-item">
-            <Gift className="benefit-icon" />
-            <span>Miễn phí giao hàng cho đơn hàng từ 500.000₫</span>
+          <div className="stat-card">
+            <div className="stat-number">24/7</div>
+            <div className="stat-label">Hỗ trợ khách hàng</div>
           </div>
-          <div className="benefit-item">
-            <Gift className="benefit-icon" />
-            <span>Tư vấn kỹ thuật chuyên nghiệp 24/7</span>
-          </div>
-          <div className="benefit-item">
-            <Gift className="benefit-icon" />
-            <span>Bảo hành chính hãng, đổi trả dễ dàng</span>
-          </div>
-          <div className="benefit-item">
-            <Gift className="benefit-icon" />
-            <span>Ưu đãi đặc biệt cho khách hàng thân thiết</span>
-          </div>
-          <div className="benefit-item">
-            <Gift className="benefit-icon" />
-            <span>Hỗ trợ lắp ráp và cài đặt tại nhà</span>
+          <div className="stat-card">
+            <div className="stat-number">100%</div>
+            <div className="stat-label">Chính hãng</div>
           </div>
         </div>
 
-        {isMobile && (
-          <div className="mobile-cta">
-            <Link to="/register" className="btn btn-outline">
-              Đăng ký
-            </Link>
-            <button
-              className="btn btn-primary"
-              onClick={() => setIsSheetOpen(true)}
-            >
-              Đăng nhập
-            </button>
+        <div className="features-showcase">
+          <div className="feature-item">
+            <div className="feature-icon-wrapper">
+              <div className="feature-icon">🚀</div>
+            </div>
+            <div className="feature-content">
+              <h3>Giao hàng siêu tốc</h3>
+              <p>Nhận hàng trong vòng 2-4 giờ tại Hà Nội</p>
+            </div>
           </div>
-        )}
 
-        <div className="smember-illustration">
-          <div className="character">
-            <div className="character-body"></div>
-            <div className="character-antennae"></div>
-            <div className="character-shoes"></div>
-            <div className="gift-box"></div>
+          <div className="feature-item">
+            <div className="feature-icon-wrapper">
+              <div className="feature-icon">🛡️</div>
+            </div>
+            <div className="feature-content">
+              <h3>Bảo hành chính hãng</h3>
+              <p>Cam kết 100% sản phẩm chính hãng</p>
+            </div>
           </div>
-          <div className="vouchers">
-            <div className="voucher">10k</div>
-            <div className="voucher">20%</div>
-            <div className="voucher">5%</div>
-            <div className="voucher">50k</div>
+
+          <div className="feature-item">
+            <div className="feature-icon-wrapper">
+              <div className="feature-icon">💎</div>
+            </div>
+            <div className="feature-content">
+              <h3>Ưu đãi độc quyền</h3>
+              <p>Giảm giá đặc biệt cho thành viên mới</p>
+            </div>
           </div>
-          <div className="stars">
-            <div className="star"></div>
-            <div className="star"></div>
-            <div className="star"></div>
+        </div>
+
+        <div className="trust-section">
+          <div className="trust-title">Được tin tưởng bởi</div>
+          <div className="trust-logos">
+            <div className="trust-logo">🏢</div>
+            <div className="trust-logo">🎓</div>
+            <div className="trust-logo">🏭</div>
+            <div className="trust-logo">💻</div>
           </div>
+        </div>
+
+        <div className="cta-section">
+          <div className="cta-text">
+            <h3>Bắt đầu hành trình ngay hôm nay!</h3>
+            <p>Tham gia cùng chúng tôi để trải nghiệm dịch vụ tốt nhất</p>
+          </div>
+
+          {isMobile && (
+            <div className="mobile-cta">
+              <Link to="/register" className="btn btn-outline">
+                Đăng ký
+              </Link>
+              <button
+                className="btn btn-primary"
+                onClick={() => setIsSheetOpen(true)}
+              >
+                Đăng nhập
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="decorative-elements">
+          <div className="floating-circle circle-1"></div>
+          <div className="floating-circle circle-2"></div>
+          <div className="floating-circle circle-3"></div>
+          <div className="floating-dots dots-1"></div>
+          <div className="floating-dots dots-2"></div>
         </div>
       </div>
 
-      {/* Right Column - Login Form (hidden on mobile) */}
-      <div className="login-right-column">{renderLoginForm()}</div>
+      <div className="register-right-column">{renderLoginForm()}</div>
 
-      {/* Mobile Bottom Sheet */}
       {isMobile && (
         <div
-          className={`mobile-login-sheet ${isSheetOpen ? "open" : ""}`}
+          className={`mobile-register-sheet ${isSheetOpen ? "open" : ""}`}
           onClick={() => setIsSheetOpen(false)}
         >
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
