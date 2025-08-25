@@ -347,27 +347,7 @@
           margin-bottom: 10px;
         }
 
-        .favorite-icon {
-          position: absolute;
-          top: 1px;
-          right: 1px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 24px;
-          color: #666666;
-          transition: color 0.2s;
-          z-index: 10;
-
-          &:hover {
-            color: red;
-            transform: scale(1.1);
-          }
-
-          svg {
-            fill: currentColor;
-          }
-        }
+        
 
         .product-brand {
           font-size: 12px;
@@ -424,25 +404,78 @@
           }
         }
 
-        .add-to-cart {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-          padding: 6px 12px;
-          font-size: 13px;
-          border: 1px solid #007BFF;
-          background-color: #FFFFFF;
-          color: #444444;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.2s;
+        .add-to-cart-btnn {
+      background: #39b6ff;
+      color: white;
+      border: 1px solid #39b6ff;
+      border-radius: 50px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      padding: 0;
+      position: relative;
+      white-space: nowrap;
 
-          &:hover {
-            background-color: #007BFF;
-            color: #FFFFFF;
-          }
+      .cart-icon {
+        color: white;
+        font-size: 16px;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        transition: all 0.3s ease;
+      }
+
+      .btn-text {
+        opacity: 0;
+        width: 0;
+        transition: all 0.3s ease;
+        margin-left: 0;
+      }
+
+      &:hover {
+        width: 145px;
+        justify-content: flex-start;
+        padding-left: 40px;
+
+        .cart-icon {
+          left: 12px;
+          transform: translateX(0);
         }
+
+        .btn-text {
+          opacity: 1;
+          width: auto;
+          margin-left: 8px;
+        }
+      }
+    }
+
+    .favorite-icon {
+      position: absolute;
+      top: 358px;
+      right: 15px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 32px;
+      color: #666666;
+      transition: color 0.2s;
+      z-index: 10;
+
+      &:hover {
+        color: red;
+        transform: scale(1.1);
+      }
+
+      svg {
+        fill: currentColor;
+      }
+    }
       }
     }
 
