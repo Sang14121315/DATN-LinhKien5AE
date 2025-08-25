@@ -17,11 +17,6 @@ interface Brand {
   name: string;
 }
 
-interface ProductType {
-  _id: string;
-  name: string;
-}
-
 interface ProductFormData {
   name: string;
   slug: string;
@@ -37,7 +32,7 @@ interface ProductFormData {
   img_url?: string;
 }
 
-// ✅ Hàm xử lý đường dẫn ảnh
+// Hàm xử lý đường dẫn ảnh
 const getImageUrl = (url?: string): string => {
   if (!url) return "";
   if (url.startsWith("http")) return url;
@@ -58,7 +53,7 @@ const ProductForm: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [types, setTypes] = useState<ProductType[]>([]);
+  const [defaultProductTypeId, setDefaultProductTypeId] = useState<string>("");
 
   const [product, setProduct] = useState<ProductFormData>({
     name: "",
@@ -79,14 +74,17 @@ const ProductForm: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [cats, brs, tys] = await Promise.all([
+        const [cats, brs, productTypes] = await Promise.all([
           fetchCategories({}),
           fetchAllBrands({}),
           fetchProductTypes(),
         ]);
         setCategories(cats);
         setBrands(brs);
-        setTypes(tys);
+        // Lấy ID của product type đầu tiên làm mặc định
+        if (productTypes.length > 0) {
+          setDefaultProductTypeId(productTypes[0]._id);
+        }
       } catch (error) {
         console.error("Lỗi khi load dữ liệu:", error);
       }
@@ -141,7 +139,14 @@ const ProductForm: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-    setProduct({ ...product, [name]: value });
+    // Ensure price and stock are non-negative
+    if (name === "price" || name === "stock") {
+      const numValue = parseFloat(value);
+      if (numValue < 0) return; // Prevent negative values
+      setProduct({ ...product, [name]: numValue });
+    } else {
+      setProduct({ ...product, [name]: value });
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,18 +173,55 @@ const ProductForm: React.FC = () => {
       return;
     }
 
+    // Validate required fields
+    if (!product.name.trim()) {
+      alert("Vui lòng nhập tên sản phẩm!");
+      return;
+    }
+    if (!product.category_id) {
+      alert("Vui lòng chọn danh mục!");
+      return;
+    }
+    if (!product.brand_id) {
+      alert("Vui lòng chọn thương hiệu!");
+      return;
+    }
+    if (product.price <= 0) {
+      alert("Vui lòng nhập giá sản phẩm lớn hơn 0!");
+      return;
+    }
+    if (product.stock < 0) {
+      alert("Vui lòng nhập số lượng không âm!");
+      return;
+    }
+
+    // Generate slug if empty
     if (!product.slug || product.slug.trim() === "") {
       product.slug = generateSlug(product.name);
     }
 
     const formData = new FormData();
-    Object.entries(product).forEach(([key, value]) => {
-      if (key === "created_at" || key === "status" || key === "img_url") return;
-      if (value !== undefined && value !== null && value !== "") {
-        formData.append(key, String(value));
-      }
-    });
+    
+    // Add all required fields
+    formData.append("name", product.name);
+    formData.append("slug", product.slug);
+    formData.append("description", product.description || "");
+    formData.append("price", product.price.toString());
+    formData.append("stock", product.stock.toString());
+    formData.append("category_id", product.category_id);
+    formData.append("brand_id", product.brand_id);
+    // Tự động gán product_type_id mặc định hoặc giữ nguyên nếu đang edit
+    if (isEditMode && product.product_type_id) {
+      formData.append("product_type_id", product.product_type_id);
+    } else if (defaultProductTypeId) {
+      formData.append("product_type_id", defaultProductTypeId);
+    } else {
+      // Fallback nếu không có product type nào
+      formData.append("product_type_id", "65f1234567890abcdef12345");
+    }
+    formData.append("sale", product.sale.toString());
 
+    // Add image
     if (imageFile) {
       formData.append("image", imageFile);
     } else if (product.img_url && product.img_url.trim() !== "") {
@@ -195,8 +237,10 @@ const ProductForm: React.FC = () => {
         alert("Thêm sản phẩm mới thành công!");
       }
       navigate("/admin/products");
-    } catch {
-      alert("Thao tác thất bại!");
+    } catch (error: unknown) {
+      console.error("Lỗi:", error);
+      const errorMessage = error instanceof Error ? error.message : "Thao tác thất bại!";
+      alert(errorMessage);
     }
   };
 
@@ -213,168 +257,167 @@ const ProductForm: React.FC = () => {
   };
 
   return (
-    <div className="containe">
-      <h2>{isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}</h2>
+    <div className="containerr">
+      <h2>{isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm mới"}</h2>
       {loading && (
-        <div style={{ textAlign: "center", padding: "20px" }}>Đang tải...</div>
+        <div className="loading">Đang tải dữ liệu...</div>
       )}
 
-      <div className="left">
-        <label>Tên sản phẩm</label>
-        <input
-          name="name"
-          value={product.name}
-          onChange={handleInputChange}
-          placeholder="Nhập tên sản phẩm"
-        />
+      <div className="form-container">
+        <div className="form-section">
+          <label>Tên sản phẩm: </label>
+          <input
+            name="name"
+            value={product.name}
+            onChange={handleInputChange}
+            placeholder="Nhập tên sản phẩm"
+          />
 
-        <label>Mô tả</label>
-        <textarea
-          name="description"
-          value={product.description}
-          onChange={handleInputChange}
-          placeholder="Nhập mô tả sản phẩm"
-        />
+          <label>Mô tả:</label>
+          <textarea
+            name="description"
+            value={product.description}
+            onChange={handleInputChange}
+            placeholder="Nhập mô tả sản phẩm"
+          />
 
-        <div className="two-columns">
-          <div>
-            <label>Danh mục</label>
-            <select
-              name="category_id"
-              value={product.category_id}
-              onChange={handleInputChange}
-            >
-              <option value="">-- chọn --</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>Thương hiệu</label>
-            <select
-              name="brand_id"
-              value={product.brand_id}
-              onChange={handleInputChange}
-            >
-              <option value="">-- chọn --</option>
-              {brands.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="two-columns">
-          
-          <div>
-            <label>Giá</label>
-            <input
-              type="number"
-              name="price"
-              value={product.price}
-              onChange={handleInputChange}
-            />
-          </div>
-        </div>
-
-        <div className="two-columns">
-          <div>
-            <label>Số lượng</label>
-            <input
-              type="number"
-              name="stock"
-              value={product.stock}
-              onChange={handleInputChange}
-            />
-          </div>
-        <div>
-  <label>Giảm giá</label>
-  <select
-    name="sale"
-    value={product.sale ? 'true' : 'false'}
-    onChange={(e) => setProduct({ ...product, sale: e.target.value === 'true' })}
-  >
-    <option value="false">Không</option>
-    <option value="true">Có</option>
-  </select>
-</div>
-        </div>
-
-        <div className="buttons">
-          <button className="update" onClick={handleSubmit}>
-            {isEditMode ? "CẬP NHẬT" : "THÊM"}
-          </button>
-          {isEditMode && (
-            <button className="delete" onClick={handleDelete}>
-              XÓA
-            </button>
-          )}
-          <button className="back" onClick={() => navigate(-1)}>
-            QUAY LẠI
-          </button>
-        </div>
-      </div>
-
-      <div className="right">
-        <div className="upload-box">
-          <p>Ảnh sản phẩm {isEditMode ? "(tùy chọn)" : "(bắt buộc)"}</p>
-          <label htmlFor="image-upload" style={{ cursor: "pointer" }}>
-            <input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              style={{ display: "none" }}
-            />
-            <button type="button">
-              {imageFile ? "Thay đổi ảnh" : "Chọn ảnh"}
-            </button>
-          </label>
-        </div>
-
-        <div className="upload-preview">
-          {imagePreview && (
-            <div className="upload-item" style={{ position: "relative" }}>
-              <div className="upload-thumb">
-                <img
-                  src={imagePreview}
-                  alt="preview"
-                  style={{ maxWidth: "100%", height: "auto" }}
-                  onError={(e) => {
-                    e.currentTarget.src = "/images/no-image.png";
-                  }}
-                />
-              </div>
-              {isEditMode && imageFile && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview(getImageUrl(product.img_url));
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: "5px",
-                    right: "5px",
-                    background: "red",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "20px",
-                    height: "20px",
-                    cursor: "pointer",
-                  }}
-                >
-                  ×
-                </button>
-              )}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Danh mục: </label>
+              <select
+                name="category_id"
+                value={product.category_id}
+                onChange={handleInputChange}
+              >
+                <option value="">-- Chọn danh mục --</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+            <div className="form-group">
+              <label>Thương hiệu: </label>
+              <select
+                name="brand_id"
+                value={product.brand_id}
+                onChange={handleInputChange}
+              >
+                <option value="">-- Chọn thương hiệu --</option>
+                {brands.map((b) => (
+                  <option key={b._id} value={b._id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Giá: </label>
+              <input
+                type="number"
+                name="price"
+                value={product.price}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                placeholder="Nhập giá sản phẩm"
+              />
+            </div>
+            <div className="form-group">
+              <label>Số lượng: </label>
+              <input
+                type="number"
+                name="stock"
+                value={product.stock}
+                onChange={handleInputChange}
+                min="0"
+                step="1"
+                placeholder="Nhập số lượng"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-groupp">
+              <label>Giảm giá:</label>
+              <select
+                name="sale"
+                value={product.sale ? 'true' : 'false'}
+                onChange={(e) => setProduct({ ...product, sale: e.target.value === 'true' })}
+              >
+                <option value="false">Không</option>
+                <option value="true">Có</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="buttons">
+            <button className="btn btn-primary" onClick={handleSubmit}>
+              {isEditMode ? "CẬP NHẬT" : "THÊM"}
+            </button>
+            <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+              QUAY LẠI
+            </button>
+            {isEditMode && (
+              <button className="btn btn-danger" onClick={handleDelete}>
+                XÓA
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="image-section">
+          <div className="upload-box">
+            <p>Ảnh sản phẩm {isEditMode ? "(tùy chọn)" : "(bắt buộc)"}</p>
+            <label htmlFor="image-upload" className="upload-label">
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                style={{ display: "none" }}
+              />
+              <button type="button" className="upload-btn">
+                {imageFile ? "Thay đổi ảnh" : "Chọn ảnh"}
+              </button>
+            </label>
+          </div>
+
+          <div className="upload-preview">
+            {imagePreview ? (
+              <div className="upload-item">
+                <div className="upload-thumb">
+                  <img
+                    src={imagePreview}
+                    alt="preview"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/no-image.png";
+                    }}
+                  />
+                </div>
+                {isEditMode && imageFile && (
+                  <button
+                    type="button"
+                    className="remove-image"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(getImageUrl(product.img_url));
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="upload-placeholder">
+                Chưa có ảnh được chọn
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
