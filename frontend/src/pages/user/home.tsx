@@ -428,7 +428,7 @@ const getBrandImageUrl = (brand: Brand): string => {
     <div className="header-left">
       <div className="title-section">
         <span className="flame-icon">🔥</span>
-        <h2>KHUYẾN MÃI CUỐI TUẦN</h2>
+        <h2>SẢN PHẨM HOT</h2>
       </div>
     </div>
   </div>
@@ -520,7 +520,7 @@ const getBrandImageUrl = (brand: Brand): string => {
 
 <section className="km-products">
   <div className="section-header">
-    <h2>SẢN PHẨM ĐƯỢC XEM NHIỀU NHẤT</h2>
+    <h2>SẢN PHẨM KHUYẾN MÃI</h2>
   </div>
   <div className="product-carousel">
     <div className="product-list">
