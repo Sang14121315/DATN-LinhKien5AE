@@ -21,7 +21,9 @@ class ProductService {
   }
 
   static async update(id, data) {
-    const product = await Product.findByIdAndUpdate(id, data, { new: true });
+    // Tự động cập nhật updated_at khi chỉnh sửa sản phẩm
+    const updateData = { ...data, updated_at: new Date() };
+    const product = await Product.findByIdAndUpdate(id, updateData, { new: true });
     if (!product) throw new Error('Product not found');
     return product;
   }

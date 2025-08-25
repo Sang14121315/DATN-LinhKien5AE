@@ -7,7 +7,7 @@ import { FaShoppingCart, FaRegHeart, FaHeart, FaBars } from "react-icons/fa";
 import axios from "axios";
 
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
-import { fetchHomeData, HomeDataResponse } from '../../api/user/homeAPI';
+import { fetchHomeData } from '../../api/user/homeAPI';
 import { Category, fetchCategoriesHierarchy } from '../../api/user/categoryAPI';
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
 import "@/styles/pages/user/home.scss";
@@ -137,6 +137,29 @@ useEffect(() => {
   fetchBrands();
 }, []);
 
+useEffect(() => {
+  const fetchProductsByCategory = async () => {
+    try {
+      let filteredProducts: Product[];
+      if (selectedCategory === 'all') {
+        filteredProducts = hotProducts;
+      } else {
+        filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
+      }
+      setAllCategoryProducts(filteredProducts);
+      setCategoryProducts(filteredProducts.slice(0, 5));
+      setCurrentProductIndex(0);
+    } catch (error) {
+      console.error('Lỗi khi lọc sản phẩm theo danh mục:', error);
+      setAllCategoryProducts(hotProducts);
+      setCategoryProducts(hotProducts.slice(0, 5));
+      setCurrentProductIndex(0);
+    }
+  };
+
+  fetchProductsByCategory();
+}, [selectedCategory, hotProducts]);
+
 
   useEffect(() => {
     const fetchProductsByCategory = async () => {
@@ -177,7 +200,7 @@ useEffect(() => {
     setCurrentSlide((prev) => (prev - 1 + bannerImages.length) % bannerImages.length);
   };
 
-  const goToSlide = (index: number) => {
+    const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
 
@@ -400,180 +423,175 @@ const getBrandImageUrl = (brand: Brand): string => {
   </div>
 </section>
 
-      <section className="hot-products">
-        <div className="hot-sale-header">
-          <div className="header-left">
-            <div className="title-section">
-              <span className="flame-icon">🔥</span>
-              <h2>KHUYẾN MÃI CUỐI TUẦN</h2>
+<section className="hot-products">
+  <div className="hot-sale-header">
+    <div className="header-left">
+      <div className="title-section">
+        <span className="flame-icon">🔥</span>
+        <h2>KHUYẾN MÃI CUỐI TUẦN</h2>
+      </div>
+    </div>
+  </div>
+
+  <div className="product-carousel">
+    <button
+      className="carousel-arrow prev"
+      onClick={prevProducts}
+      disabled={currentProductIndex === 0}
+    >
+      ‹
+    </button>
+    <div className="product-list">
+      {categoryProducts.length > 0 ? (
+        categoryProducts.map((product) => (
+          <div className="product-card" key={product._id}>
+            <img
+              src={getImageUrl(product.img_url)}
+              alt={product.name}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/product/${product._id}`)}
+            />
+            <p className="product-brand">
+              {typeof product.brand_id === "object"
+                ? product.brand_id.name
+                : product.brand_id}
+            </p>
+            <h4 className="product-name">{product.name}</h4>
+            <div className="price-block">
+              <div className="price-left">
+                {product.sale && product.price ? (
+                  <>
+                    <div className="discount-price">
+                      {formatCurrency(product.price * 0.66)}
+                    </div>
+                    <div className="original-price">
+                      {formatCurrency(product.price)}
+                    </div>
+                  </>
+                ) : (
+                  <div className="discount-price">
+                    {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
+                  </div>
+                )}
+              </div>
+              {product.sale && <div className="discount-percent">-34%</div>}
             </div>
-          </div>
-          <div className="category-filters">
-            <button
-              className={`filter-btn ${selectedCategory === 'all' ? 'active' : ''}`}
-              onClick={() => {
-                setSelectedCategory('all');
-                navigate('/product-list');
-              }}
-            >
-              Tất cả
-            </button>
-            {categories.slice(0, 3).map((category) => (
+            <div className="action-buttons">
               <button
-                key={category._id}
-                className={`filter-btn ${selectedCategory === category._id ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedCategory(category._id);
-                  navigate(`/product-list?category=${category._id}`);
+                className="add-to-cart-btn"
+                onClick={() =>
+                  addToCart({
+                    _id: product._id,
+                    name: product.name,
+                    price: product.price,
+                    img_url: product.img_url,
+                    quantity: 1,
+                  })
+                }
+              >
+                <FaShoppingCart className="cart-icon" />
+                <span className="btn-text">Thêm vào giỏ</span>
+              </button>
+              <button
+                className="favorite-iconm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFavoriteClick(product);
                 }}
               >
-                {category.name}
+                {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
               </button>
-            ))}
+            </div>
           </div>
-        </div>
+        ))
+      ) : (
+        <p>Không có sản phẩm nào trong danh mục này.</p>
+      )}
+    </div>
+    <button
+      className="carousel-arrow next"
+      onClick={nextProducts}
+      disabled={currentProductIndex + 5 >= allCategoryProducts.length}
+    >
+      ›
+    </button>
+  </div>
+</section>
 
-        <div className="product-carousel">
-          <button
-            className="carousel-arrow prev"
-            onClick={prevProducts}
-            disabled={currentProductIndex === 0}
-          >
-            ‹
-          </button>
-          <div className="product-list">
-            {categoryProducts.length > 0 ? (
-              categoryProducts.map((product) => (
-                <div key={product._id} className="hot-product-card">
-                  <div className="card-header">
-                    <span className="discount-tag">Giảm 13%</span>
-                    <span className="installment-tag">Trả góp 0%</span>
-                  </div>
-                  <div className="product-image">
-                    <img
-                      src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
-                      alt={product.name}
-                      onClick={() => navigate(`/product/${product._id}`)}
-                    />
-                  </div>
-                  <div className="product-info">
-                    <h4 className="product-name">{product.name}</h4>
-                    <div className="price-section">
-                      <span className="current-price">
-                        {product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}
-                      </span>
-                      {product.sale && product.price && (
-                        <span className="original-price">{formatCurrency(product.price * 1.15)}</span>
-                      )}
+<section className="km-products">
+  <div className="section-header">
+    <h2>SẢN PHẨM ĐƯỢC XEM NHIỀU NHẤT</h2>
+  </div>
+  <div className="product-carousel">
+    <div className="product-list">
+      {saleProducts.length > 0 ? (
+        saleProducts.slice(currentSaleIndex, currentSaleIndex + 5).map((product) => (
+          <div className="product-card" key={product._id}>
+            <img
+              src={getImageUrl(product.img_url)}
+              alt={product.name}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/product/${product._id}`)}
+            />
+            <p className="product-brand">
+              {typeof product.brand_id === "object"
+                ? product.brand_id.name
+                : product.brand_id}
+            </p>
+            <h4 className="product-name">{product.name}</h4>
+            <div className="price-block">
+              <div className="price-left">
+                {product.sale && product.price ? (
+                  <>
+                    <div className="discount-price">
+                      {formatCurrency(product.price * 0.66)}
                     </div>
-                    <div className="action-buttons">
-                      <button
-                        className="add-to-cart-btn"
-                        onClick={() =>
-                          addToCart({
-                            _id: product._id,
-                            name: product.name,
-                            price: product.price,
-                            img_url: product.img_url,
-                            quantity: 1,
-                          })
-                        }
-                      >
-                        <FaShoppingCart className="cart-icon" />
-                        <span className="btn-text">Thêm vào giỏ</span>
-                      </button>
-                      <button
-                        className="favorite-iconm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFavoriteClick(product);
-                        }}
-                      >
-                        {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                      </button>
+                    <div className="original-price">
+                      {formatCurrency(product.price)}
                     </div>
+                  </>
+                ) : (
+                  <div className="discount-price">
+                    {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
                   </div>
-                </div>
-              ))
-            ) : (
-              <p>Không có sản phẩm nào trong danh mục này.</p>
-            )}
+                )}
+              </div>
+              {product.sale && <div className="discount-percent">-34%</div>}
+            </div>
+            <div className="action-buttons">
+              <button
+                className="add-to-cart-btn"
+                onClick={() =>
+                  addToCart({
+                    _id: product._id,
+                    name: product.name,
+                    price: product.price,
+                    img_url: product.img_url,
+                    quantity: 1,
+                  })
+                }
+              >
+                <FaShoppingCart className="cart-icon" />
+                <span className="btn-text">Thêm vào giỏ</span>
+              </button>
+              <button
+                className="favorite-iconm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFavoriteClick(product);
+                }}
+              >
+                {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+              </button>
+            </div>
           </div>
-          <button
-            className="carousel-arrow next"
-            onClick={nextProducts}
-            disabled={currentProductIndex + 5 >= allCategoryProducts.length}
-          >
-            ›
-          </button>
-        </div>
-      </section>
-
-      <section className="km-products">
-        <div className="section-header">
-          <h2>SẢN PHẨM BÁN CHẠY</h2>
-        </div>
-        <div className="product-carousel">
-          <div className="product-list">
-            {saleProducts.length > 0 ? (
-              saleProducts.slice(currentSaleIndex, currentSaleIndex + 5).map((product) => (
-                <div key={product._id} className="hot-product-card">
-                  <div className="card-header">
-                    <span className="discount-tag">Giảm 20%</span>
-                    <span className="installment-tag">Trả góp 0%</span>
-                  </div>
-                  <div className="product-image">
-                    <img
-                      src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
-                      alt={product.name}
-                      onClick={() => navigate(`/product/${product._id}`)}
-                    />
-                  </div>
-                  <div className="product-info">
-                    <h4 className="product-name">{product.name}</h4>
-                    <div className="price-section">
-                      <span className="current-price">
-                        {product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}
-                      </span>
-                      {product.sale && product.price && (
-                        <span className="original-price">{formatCurrency(product.price * 1.25)}</span>
-                      )}
-                    </div>
-                    <div className="action-buttons">
-                      <button
-                        className="add-to-cart-btn"
-                        onClick={() =>
-                          addToCart({
-                            _id: product._id,
-                            name: product.name,
-                            price: product.price,
-                            img_url: product.img_url,
-                            quantity: 1,
-                          })
-                        }
-                      >
-                        <FaShoppingCart className="cart-icon" />
-                        <span className="btn-text">Thêm vào giỏ</span>
-                      </button>
-                      <button
-                        className="favorite-iconm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFavoriteClick(product);
-                        }}
-                      >
-                        {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>Không có sản phẩm khuyến mãi.</p>
-            )}
-          </div>
-        </div>
-      </section>
+        ))
+      ) : (
+        <p>Không có sản phẩm khuyến mãi.</p>
+      )}
+    </div>
+  </div>
+</section>
 
       {categories.map((category) => (
         <section key={category._id} id="qc-gh">
