@@ -3,6 +3,7 @@ const Joi = require('joi');
 const LoyaltyTransaction = require('../models/LoyaltyTransaction');
 const Coupon = require('../models/Coupon');
 const User = require('../models/User');
+const UserCoupon = require('../models/UserCoupon');
 
 const couponSchema = Joi.object({
   code: Joi.string().required(),
@@ -90,6 +91,18 @@ const redeemCoupon = async (req, res) => {
     if (!coupon || !coupon.is_active) return res.status(404).json({ message: 'Coupon không khả dụng' });
     if (typeof coupon.pointsRequired !== 'number' || coupon.pointsRequired <= 0) return res.status(400).json({ message: 'Coupon chưa cấu hình số điểm cần đổi' });
     if ((user.loyaltyPoints || 0) < coupon.pointsRequired) return res.status(400).json({ message: 'Bạn không đủ điểm để đổi coupon này' });
+    // Kiểm tra số lần đổi trong tháng
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const count = await UserCoupon.countDocuments({
+      userId: userId,
+      couponId: couponId,
+      redeemedAt: { $gte: startOfMonth, $lte: endOfMonth }
+    });
+    if (coupon.limitMonth && count >= coupon.limitMonth) {
+      return res.status(400).json({ message: 'Bạn đã hết lượt đổi tháng này.' });
+    }
     // Trừ điểm
     user.loyaltyPoints -= coupon.pointsRequired;
     await user.save();
@@ -100,9 +113,33 @@ const redeemCoupon = async (req, res) => {
       points: coupon.pointsRequired,
       description: `Đổi coupon: ${coupon.code}`
     });
+    // Lưu lịch sử đổi coupon
+    await UserCoupon.create({
+      userId: userId,
+      couponId: couponId
+    });
     res.json({ success: true, message: `Đã đổi thành công coupon: ${coupon.code}`, currentPoints: user.loyaltyPoints });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Lỗi đổi điểm lấy coupon' });
+  }
+};
+
+const getUserCouponCountInMonth = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { couponId } = req.params;
+    if (!couponId) return res.status(400).json({ message: 'Thiếu couponId' });
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const count = await UserCoupon.countDocuments({
+      userId: userId,
+      couponId: couponId,
+      redeemedAt: { $gte: startOfMonth, $lte: endOfMonth }
+    });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Lỗi lấy số lượt đổi coupon trong tháng' });
   }
 };
 
@@ -112,5 +149,6 @@ module.exports = {
   createCoupon,
   updateCoupon,
   deleteCoupon,
-  redeemCoupon
+  redeemCoupon,
+  getUserCouponCountInMonth
 };

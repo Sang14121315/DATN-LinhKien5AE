@@ -7,20 +7,29 @@ import {
   getCouponList,
   redeemCoupon,
   Coupon,
+  getUserCouponCountInMonth,
 } from "@/api/user/userAPI";
 import { FaMedal, FaCoins, FaCrown, FaTicketAlt } from "react-icons/fa";
 import "@/styles/pages/user/loyalty.scss";
+import { AxiosError } from "axios";
 
 const LoyaltyPage: React.FC = () => {
   const [loyaltyInfo, setLoyaltyInfo] = useState<LoyaltyInfo | null>(null);
   const [loyaltyHistory, setLoyaltyHistory] = useState<LoyaltyTransaction[]>([]);
   const [redeemingCouponId, setRedeemingCouponId] = useState<string | null>(null);
   const [couponList, setCouponList] = useState<Coupon[]>([]);
+  const [couponRedeemCounts, setCouponRedeemCounts] = useState<{ [couponId: string]: number }>({});
 
   useEffect(() => {
     fetchLoyalty();
     fetchCoupons();
   }, []);
+
+  useEffect(() => {
+    if (couponList.length > 0) {
+      fetchCouponRedeemCounts(couponList);
+    }
+  }, [couponList]);
 
   const fetchLoyalty = async () => {
     try {
@@ -44,20 +53,54 @@ const LoyaltyPage: React.FC = () => {
         new Date(c.end_date) >= now
       );
       setCouponList(filtered);
-    } catch (e) {
+    } catch {
       setCouponList([]);
     }
+  };
+
+  const fetchCouponRedeemCounts = async (coupons: Coupon[]) => {
+    const counts: { [couponId: string]: number } = {};
+    await Promise.all(
+      coupons.map(async (coupon) => {
+        if (coupon.limitMonth) {
+          try {
+            counts[coupon._id] = await getUserCouponCountInMonth(coupon._id);
+          } catch {
+            counts[coupon._id] = 0;
+          }
+        }
+      })
+    );
+    setCouponRedeemCounts(counts);
   };
 
   const handleRedeemCoupon = async (couponId: string) => {
     setRedeemingCouponId(couponId);
     try {
+      const coupon = couponList.find(c => c._id === couponId);
+      if (coupon && coupon.limitMonth) {
+        const count = couponRedeemCounts[couponId] || 0;
+        if (count >= coupon.limitMonth) {
+          alert('Bạn đã hết lượt đổi tháng này.');
+          setRedeemingCouponId(null);
+          return;
+        }
+      }
       const res = await redeemCoupon(couponId);
       alert(res.message || `Đã đổi điểm lấy coupon!`);
       fetchLoyalty();
       fetchCoupons();
-    } catch (e: any) {
-      alert(e?.response?.data?.message || 'Lỗi đổi điểm lấy coupon!');
+      // Sau khi đổi thành công, cập nhật lại số lượt
+      if (coupon && coupon.limitMonth) {
+        setCouponRedeemCounts(prev => ({ ...prev, [couponId]: (prev[couponId] || 0) + 1 }));
+      }
+    } catch (e: unknown) {
+      let message = 'Lỗi đổi điểm lấy coupon!';
+      if (e && typeof e === 'object' && 'isAxiosError' in e && (e as AxiosError).isAxiosError) {
+        const err = e as AxiosError<{ message?: string }>;
+        message = err.response?.data?.message || message;
+      }
+      alert(message);
     } finally {
       setRedeemingCouponId(null);
     }
@@ -86,20 +129,28 @@ const LoyaltyPage: React.FC = () => {
           {couponList.length === 0 ? (
             <div className="reward-empty">Chưa có voucher nào khả dụng.</div>
           ) : (
-            couponList.map(coupon => (
-              <div className="reward-item" key={coupon._id}>
-                <div className="reward-code"><b>{coupon.code}</b></div>
-                <div className="reward-desc">{coupon.description}</div>
-                <div className="reward-points">Điểm cần: <b>{coupon.pointsRequired}</b></div>
-                <div className="reward-date">Hiệu lực: {new Date(coupon.start_date).toLocaleDateString()} - {new Date(coupon.end_date).toLocaleDateString()}</div>
-                <button
-                  disabled={!!redeemingCouponId || (loyaltyInfo && loyaltyInfo.loyaltyPoints < coupon.pointsRequired)}
-                  onClick={() => handleRedeemCoupon(coupon._id)}
-                >
-                  {redeemingCouponId === coupon._id ? 'Đang đổi...' : 'Đổi điểm'}
-                </button>
-              </div>
-            ))
+            couponList.map(coupon => {
+              const count = couponRedeemCounts[coupon._id] || 0;
+              const limit = coupon.limitMonth || 0;
+              const remaining = limit > 0 ? limit - count : undefined;
+              return (
+                <div className="reward-item" key={coupon._id}>
+                  <div className="reward-code"><b>{coupon.code}</b></div>
+                  <div className="reward-desc">{coupon.description}</div>
+                  <div className="reward-points">Điểm cần: <b>{coupon.pointsRequired}</b></div>
+                  <div className="reward-date">Hiệu lực: {new Date(coupon.start_date).toLocaleDateString()} - {new Date(coupon.end_date).toLocaleDateString()}</div>
+                  {limit > 0 && (
+                    <div className="reward-limit">Lượt còn lại tháng này: <b>{remaining}</b>/{limit}</div>
+                  )}
+                  <button
+                    disabled={!!redeemingCouponId || (loyaltyInfo && loyaltyInfo.loyaltyPoints < coupon.pointsRequired) || (limit > 0 && remaining === 0)}
+                    onClick={() => handleRedeemCoupon(coupon._id)}
+                  >
+                    {redeemingCouponId === coupon._id ? 'Đang đổi...' : (limit > 0 && remaining === 0 ? 'Hết lượt' : 'Đổi điểm')}
+                  </button>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
