@@ -4,7 +4,7 @@ const CategoryService = require('../services/categoryService');
 exports.getHomeData = async (req, res) => {
   try {
     const saleProducts = await ProductService.getAll(
-      { sale: true },
+      { sale: { $gt: 0 } },
       8,
       { updated_at: -1, created_at: -1 } // ưu tiên sản phẩm được cập nhật gần nhất, sau đó mới nhất
     );

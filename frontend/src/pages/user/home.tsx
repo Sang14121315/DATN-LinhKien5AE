@@ -459,10 +459,10 @@ const getBrandImageUrl = (brand: Brand): string => {
             <h4 className="product-name">{product.name}</h4>
             <div className="price-block">
               <div className="price-left">
-                {product.sale && product.price ? (
+                {product.sale && product.sale > 0 && product.price > 0 ? (
                   <>
                     <div className="discount-price">
-                      {formatCurrency(product.price * 0.66)}
+                      {formatCurrency(product.price - product.sale)}
                     </div>
                     <div className="original-price">
                       {formatCurrency(product.price)}
@@ -474,7 +474,11 @@ const getBrandImageUrl = (brand: Brand): string => {
                   </div>
                 )}
               </div>
-              {product.sale && <div className="discount-percent">-34%</div>}
+              {product.sale && product.sale > 0 && product.price > 0 && (
+                <div className="discount-percent">
+                  -{Math.round((product.sale / product.price) * 100)}%
+                </div>
+              )}
             </div>
             <div className="action-buttons">
               <button
@@ -541,10 +545,10 @@ const getBrandImageUrl = (brand: Brand): string => {
             <h4 className="product-name">{product.name}</h4>
             <div className="price-block">
               <div className="price-left">
-                {product.sale && product.price ? (
+                {product.sale && product.sale > 0 && product.price > 0 ? (
                   <>
                     <div className="discount-price">
-                      {formatCurrency(product.price * 0.66)}
+                      {formatCurrency(product.price - product.sale)}
                     </div>
                     <div className="original-price">
                       {formatCurrency(product.price)}
@@ -556,7 +560,11 @@ const getBrandImageUrl = (brand: Brand): string => {
                   </div>
                 )}
               </div>
-              {product.sale && <div className="discount-percent">-34%</div>}
+              {product.sale && product.sale > 0 && product.price > 0 && (
+                <div className="discount-percent">
+                  -{Math.round((product.sale / product.price) * 100)}%
+                </div>
+              )}
             </div>
             <div className="action-buttons">
               <button
@@ -628,10 +636,10 @@ const getBrandImageUrl = (brand: Brand): string => {
                         <h4 className="product-name">{product.name}</h4>
                         <div className="price-block">
                           <div className="price-left">
-                            {product.sale && product.price ? (
+                            {product.sale && product.sale > 0 && product.price > 0 ? (
                               <>
                                 <div className="discount-price">
-                                  {formatCurrency(product.price * 0.66)}
+                                  {formatCurrency(product.price - product.sale)}
                                 </div>
                                 <div className="original-price">
                                   {formatCurrency(product.price)}
@@ -643,7 +651,11 @@ const getBrandImageUrl = (brand: Brand): string => {
                               </div>
                             )}
                           </div>
-                          {product.sale && <div className="discount-percent">-34%</div>}
+                          {product.sale && product.sale > 0 && product.price > 0 && (
+                            <div className="discount-percent">
+                              -{Math.round((product.sale / product.price) * 100)}%
+                            </div>
+                          )}
                         </div>
                         <div className="action-buttons">
                           <button
