@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useFavorite } from "@/context/FavoriteContext";
 import { useAuth } from "@/context/AuthContext";
-import { FaShoppingCart, FaRegHeart, FaHeart, FaBars, FaStar } from "react-icons/fa";
+import { FaShoppingCart, FaRegHeart, FaHeart, FaBars } from "react-icons/fa";
 import axios from "axios";
 
 import { Product, fetchFilteredProducts } from "@/api/user/productAPI";
@@ -12,24 +12,18 @@ import { Category, fetchCategoriesHierarchy } from '../../api/user/categoryAPI';
 import { Brand, fetchAllBrands } from "@/api/user/brandAPI";
 import "@/styles/pages/user/home.scss";
 
-// Updated Product interface to include rating info
-interface ProductWithRating extends Product {
-  averageRating?: number;
-  reviewCount?: number;
-}
-
 const HomePage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [hotProducts, setHotProducts] = useState<ProductWithRating[]>([]);
-  const [saleProducts, setSaleProducts] = useState<ProductWithRating[]>([]);
-  const [bestSellerProducts, setBestSellerProducts] = useState<ProductWithRating[]>([]);
+  const [hotProducts, setHotProducts] = useState<Product[]>([]);
+  const [saleProducts, setSaleProducts] = useState<Product[]>([]);
+  const [bestSellerProducts, setBestSellerProducts] = useState<Product[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [categoryProducts, setCategoryProducts] = useState<ProductWithRating[]>([]);
+  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
-  const [allCategoryProducts, setAllCategoryProducts] = useState<ProductWithRating[]>([]);
+  const [allCategoryProducts, setAllCategoryProducts] = useState<Product[]>([]);
   const [currentSaleIndex, setCurrentSaleIndex] = useState(0);
-  const [productsByCategory, setProductsByCategory] = useState<Record<string, ProductWithRating[]>>({});
+  const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -48,33 +42,6 @@ const HomePage: React.FC = () => {
     if (url.startsWith('http')) return url;
     if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
     return `http://localhost:5000/uploads/products/${url}`;
-  };
-
-  // Function to fetch products with reviews
-  const fetchProductsWithReviews = async (products: Product[]): Promise<ProductWithRating[]> => {
-    try {
-      const productsWithReviews = await Promise.all(
-        products.map(async (product) => {
-          try {
-            // Use the existing API endpoint from productController
-            const response = await axios.get(`/api/product/rating-info/${product._id}`);
-            return {
-              ...product,
-              averageRating: response.data.averageRating,
-              reviewCount: response.data.reviewCount
-            };
-          } catch (error) {
-            // If rating fetch fails, return product without rating info
-            console.log(`Could not fetch rating for product ${product._id}`);
-            return product;
-          }
-        })
-      );
-      return productsWithReviews;
-    } catch (error) {
-      console.error('Error fetching products with reviews:', error);
-      return products;
-    }
   };
 
   const handleFavoriteClick = async (product: Product) => {
@@ -125,6 +92,7 @@ const HomePage: React.FC = () => {
     "/img/r5.png"
   ];
 
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -132,29 +100,18 @@ const HomePage: React.FC = () => {
           fetchHomeData(),
           fetchCategoriesHierarchy(),
         ]);
-        setCategories(hierarchyData);
-        
-        // Fetch products with review ratings
-        const [hotProductsWithRatings, saleProductsWithRatings, bestSellerProductsWithRatings] = await Promise.all([
-          fetchProductsWithReviews(homeData.hotProducts),
-          fetchProductsWithReviews(homeData.saleProducts),
-          fetchProductsWithReviews(homeData.bestSellerProducts)
-        ]);
-        
-        setHotProducts(hotProductsWithRatings);
-        setSaleProducts(saleProductsWithRatings);
-        setBestSellerProducts(bestSellerProductsWithRatings);
+        setCategories(hierarchyData); // Sử dụng hierarchyData để có children
+        setHotProducts(homeData.hotProducts);
+        setSaleProducts(homeData.saleProducts);
+        setBestSellerProducts(homeData.bestSellerProducts);
 
-        // Fetch category products with ratings
-        const allCategoryProducts: Record<string, ProductWithRating[]> = {};
-        const productPromises = hierarchyData.map(async (category) => {
-          const products = await fetchFilteredProducts({ category_id: category._id, limit: 5 });
-          const productsWithRatings = await fetchProductsWithReviews(products);
-          return {
+        const allCategoryProducts: Record<string, Product[]> = {};
+        const productPromises = hierarchyData.map((category) =>
+          fetchFilteredProducts({ category_id: category._id, limit: 5 }).then((res) => ({
             categoryId: category._id,
-            products: productsWithRatings,
-          };
-        });
+            products: res,
+          }))
+        );
         const results = await Promise.all(productPromises);
         results.forEach(({ categoryId, products }) => {
           allCategoryProducts[categoryId] = products;
@@ -168,17 +125,41 @@ const HomePage: React.FC = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        const brandData = await fetchAllBrands();
-        setBrands(brandData);
-      } catch (error) {
-        console.error("Lỗi khi tải thương hiệu:", error);
+useEffect(() => {
+  const fetchBrands = async () => {
+    try {
+      const brandData = await fetchAllBrands();
+      setBrands(brandData);
+    } catch (error) {
+      console.error("Lỗi khi tải thương hiệu:", error);
+    }
+  };
+  fetchBrands();
+}, []);
+
+useEffect(() => {
+  const fetchProductsByCategory = async () => {
+    try {
+      let filteredProducts: Product[];
+      if (selectedCategory === 'all') {
+        filteredProducts = hotProducts;
+      } else {
+        filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
       }
-    };
-    fetchBrands();
-  }, []);
+      setAllCategoryProducts(filteredProducts);
+      setCategoryProducts(filteredProducts.slice(0, 5));
+      setCurrentProductIndex(0);
+    } catch (error) {
+      console.error('Lỗi khi lọc sản phẩm theo danh mục:', error);
+      setAllCategoryProducts(hotProducts);
+      setCategoryProducts(hotProducts.slice(0, 5));
+      setCurrentProductIndex(0);
+    }
+  };
+
+  fetchProductsByCategory();
+}, [selectedCategory, hotProducts]);
+
 
   useEffect(() => {
     const fetchProductsByCategory = async () => {
@@ -189,10 +170,8 @@ const HomePage: React.FC = () => {
         } else {
           filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
         }
-        
-        const filteredProductsWithRatings = await fetchProductsWithReviews(filteredProducts);
-        setAllCategoryProducts(filteredProductsWithRatings);
-        setCategoryProducts(filteredProductsWithRatings.slice(0, 5));
+        setAllCategoryProducts(filteredProducts);
+        setCategoryProducts(filteredProducts.slice(0, 5));
         setCurrentProductIndex(0);
       } catch (error) {
         console.error('Lỗi khi lọc sản phẩm theo danh mục:', error);
@@ -221,7 +200,7 @@ const HomePage: React.FC = () => {
     setCurrentSlide((prev) => (prev - 1 + bannerImages.length) % bannerImages.length);
   };
 
-  const goToSlide = (index: number) => {
+    const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
 
@@ -259,38 +238,19 @@ const HomePage: React.FC = () => {
     setOpenDropdown(openDropdown === categoryId ? null : categoryId);
   };
 
-  const getBrandImageUrl = (brand: Brand): string => {
-    if (brand.logo_url) {
-      if (brand.logo_url.startsWith("http")) return brand.logo_url;
-      if (brand.logo_url.startsWith("/uploads")) return `http://localhost:5000${brand.logo_url}`;
-      return `http://localhost:5000/uploads/brands/${brand.logo_url}`;
-    }
-    if (brand.logo_data) {
-      return brand.logo_data;
-    }
-    return "/public/assets/default_brand_logo.png";
-  };
+const getBrandImageUrl = (brand: Brand): string => {
+  if (brand.logo_url) {
+    if (brand.logo_url.startsWith("http")) return brand.logo_url;
+    if (brand.logo_url.startsWith("/uploads")) return `http://localhost:5000${brand.logo_url}`;
+    return `http://localhost:5000/uploads/brands/${brand.logo_url}`;
+  }
+  if (brand.logo_data) {
+    return brand.logo_data;
+  }
+  return "/public/assets/default_brand_logo.png";
+};
 
-  // Component to render star rating
-  const StarRating: React.FC<{ rating: number; reviewCount: number }> = ({ rating, reviewCount }) => {
-    return (
-      <div className="star-rating">
-        <div className="stars">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <FaStar
-              key={star}
-              className={star <= Math.round(rating) ? "star active" : "star"}
-            />
-          ))}
-        </div>
-        <span className="rating-text">
-          {rating.toFixed(1)} ({reviewCount})
-        </span>
-      </div>
-    );
-  };
-
-  const renderProductItem = (product: ProductWithRating) => (
+  const renderProductItem = (product: Product) => (
     <div key={product._id} className="product-item">
       <img
         src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
@@ -305,9 +265,6 @@ const HomePage: React.FC = () => {
       </div>
       {product.sale && product.price && (
         <div className="old-price">{formatCurrency(product.price * 1.2)}</div>
-      )}
-      {product.averageRating && product.reviewCount && product.reviewCount > 0 && (
-        <StarRating rating={product.averageRating} reviewCount={product.reviewCount} />
       )}
       <button
         className="add-to-cart"
@@ -444,210 +401,205 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <section className="brand-section">
-        <div className="brand-radio-group">
-          <div className="brand-scroll-container">
-            {brands.slice(0, 10).map((b) => (
-              <div
-                className={`brand-item ${selectedBrand === b._id ? "selected" : ""}`}
-                key={b._id}
-                onClick={() => navigate(`/product-list?brand=${b._id}`)}
-              >
-                <img
-                  src={getBrandImageUrl(b)}
-                  alt={b.name}
-                  className="brand-logo"
-                  title={b.name}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+<section className="brand-section">
+  <div className="brand-radio-group">
 
-      <section className="hot-products">
-        <div className="hot-sale-header">
-          <div className="header-left">
-            <div className="title-section">
-              <span className="flame-icon">🔥</span>
-              <h2>SẢN PHẨM HOT</h2>
+    <div className="brand-scroll-container">
+      {brands.slice(0, 10).map((b) => (   // chỉ lấy 8 brand đầu tiên
+        <div
+          className={`brand-item ${selectedBrand === b._id ? "selected" : ""}`}
+          key={b._id}
+          onClick={() => navigate(`/product-list?brand=${b._id}`)}
+        >
+          <img
+            src={getBrandImageUrl(b)}
+            alt={b.name}
+            className="brand-logo"
+            title={b.name}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section className="hot-products">
+  <div className="hot-sale-header">
+    <div className="header-left">
+      <div className="title-section">
+        <span className="flame-icon">🔥</span>
+        <h2>SẢN PHẨM HOT</h2>
+      </div>
+    </div>
+  </div>
+
+  <div className="product-carousel">
+    <button
+      className="carousel-arrow prev"
+      onClick={prevProducts}
+      disabled={currentProductIndex === 0}
+    >
+      ‹
+    </button>
+    <div className="product-list">
+      {categoryProducts.length > 0 ? (
+        categoryProducts.map((product) => (
+          <div className="product-card" key={product._id}>
+            <img
+              src={getImageUrl(product.img_url)}
+              alt={product.name}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/product/${product._id}`)}
+            />
+            <p className="product-brand">
+              {typeof product.brand_id === "object"
+                ? product.brand_id.name
+                : product.brand_id}
+            </p>
+            <h4 className="product-name">{product.name}</h4>
+            <div className="price-block">
+              <div className="price-left">
+                {product.sale && product.sale > 0 && product.price > 0 ? (
+                  <>
+                    <div className="discount-price">
+                      {formatCurrency(product.price - product.sale)}
+                    </div>
+                    <div className="original-price">
+                      {formatCurrency(product.price)}
+                    </div>
+                  </>
+                ) : (
+                  <div className="discount-price">
+                    {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
+                  </div>
+                )}
+              </div>
+              {product.sale && product.sale > 0 && product.price > 0 && (
+                <div className="discount-percent">
+                  -{Math.round((product.sale / product.price) * 100)}%
+                </div>
+              )}
+            </div>
+            <div className="action-buttons">
+              <button
+                className="add-to-cart-btn"
+                onClick={() =>
+                  addToCart({
+                    _id: product._id,
+                    name: product.name,
+                    price: product.price,
+                    img_url: product.img_url,
+                    quantity: 1,
+                  })
+                }
+              >
+                <FaShoppingCart className="cart-icon" />
+                <span className="btn-text">Thêm vào giỏ</span>
+              </button>
+              <button
+                className="favorite-iconm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFavoriteClick(product);
+                }}
+              >
+                {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+              </button>
             </div>
           </div>
-        </div>
+        ))
+      ) : (
+        <p>Không có sản phẩm nào trong danh mục này.</p>
+      )}
+    </div>
+    <button
+      className="carousel-arrow next"
+      onClick={nextProducts}
+      disabled={currentProductIndex + 5 >= allCategoryProducts.length}
+    >
+      ›
+    </button>
+  </div>
+</section>
 
-        <div className="product-carousel">
-          <button
-            className="carousel-arrow prev"
-            onClick={prevProducts}
-            disabled={currentProductIndex === 0}
-          >
-            ‹
-          </button>
-          <div className="product-list">
-            {categoryProducts.length > 0 ? (
-              categoryProducts.map((product) => (
-                <div className="product-card" key={product._id}>
-                  <img
-                    src={getImageUrl(product.img_url)}
-                    alt={product.name}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => navigate(`/product/${product._id}`)}
-                  />
-                  <p className="product-brand">
-                    {typeof product.brand_id === "object"
-                      ? product.brand_id.name
-                      : product.brand_id}
-                  </p>
-                  <h4 className="product-name">{product.name}</h4>
-                  <div className="price-block">
-                    <div className="price-left">
-                      {product.sale && product.sale > 0 && product.price > 0 ? (
-                        <>
-                          <div className="discount-price">
-                            {formatCurrency(product.price - product.sale)}
-                          </div>
-                          <div className="original-price">
-                            {formatCurrency(product.price)}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="discount-price">
-                          {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
-                        </div>
-                      )}
+<section className="km-products">
+  <div className="section-header">
+    <h2>SẢN PHẨM KHUYẾN MÃI</h2>
+  </div>
+  <div className="product-carousel">
+    <div className="product-list">
+      {saleProducts.length > 0 ? (
+        saleProducts.slice(currentSaleIndex, currentSaleIndex + 5).map((product) => (
+          <div className="product-card" key={product._id}>
+            <img
+              src={getImageUrl(product.img_url)}
+              alt={product.name}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate(`/product/${product._id}`)}
+            />
+            <p className="product-brand">
+              {typeof product.brand_id === "object"
+                ? product.brand_id.name
+                : product.brand_id}
+            </p>
+            <h4 className="product-name">{product.name}</h4>
+            <div className="price-block">
+              <div className="price-left">
+                {product.sale && product.sale > 0 && product.price > 0 ? (
+                  <>
+                    <div className="discount-price">
+                      {formatCurrency(product.price - product.sale)}
                     </div>
-                    {product.sale && product.sale > 0 && product.price > 0 && (
-                      <div className="discount-percent">
-                        -{Math.round((product.sale / product.price) * 100)}%
-                      </div>
-                    )}
-                  </div>
-                  {product.averageRating && product.reviewCount && product.reviewCount > 0 && (
-                    <StarRating rating={product.averageRating} reviewCount={product.reviewCount} />
-                  )}
-                  <div className="action-buttons">
-                    <button
-                      className="add-to-cart-btn"
-                      onClick={() =>
-                        addToCart({
-                          _id: product._id,
-                          name: product.name,
-                          price: product.price,
-                          img_url: product.img_url,
-                          quantity: 1,
-                        })
-                      }
-                    >
-                      <FaShoppingCart className="cart-icon" />
-                      <span className="btn-text">Thêm vào giỏ</span>
-                    </button>
-                    <button
-                      className="favorite-iconm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteClick(product);
-                      }}
-                    >
-                      {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>Không có sản phẩm nào trong danh mục này.</p>
-            )}
-          </div>
-          <button
-            className="carousel-arrow next"
-            onClick={nextProducts}
-            disabled={currentProductIndex + 5 >= allCategoryProducts.length}
-          >
-            ›
-          </button>
-        </div>
-      </section>
-
-      <section className="km-products">
-        <div className="section-header">
-          <h2>SẢN PHẨM KHUYẾN MÃI</h2>
-        </div>
-        <div className="product-carousel">
-          <div className="product-list">
-            {saleProducts.length > 0 ? (
-              saleProducts.slice(currentSaleIndex, currentSaleIndex + 5).map((product) => (
-                <div className="product-card" key={product._id}>
-                  <img
-                    src={getImageUrl(product.img_url)}
-                    alt={product.name}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => navigate(`/product/${product._id}`)}
-                  />
-                  <p className="product-brand">
-                    {typeof product.brand_id === "object"
-                      ? product.brand_id.name
-                      : product.brand_id}
-                  </p>
-                  <h4 className="product-name">{product.name}</h4>
-                  <div className="price-block">
-                    <div className="price-left">
-                      {product.sale && product.sale > 0 && product.price > 0 ? (
-                        <>
-                          <div className="discount-price">
-                            {formatCurrency(product.price - product.sale)}
-                          </div>
-                          <div className="original-price">
-                            {formatCurrency(product.price)}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="discount-price">
-                          {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
-                        </div>
-                      )}
+                    <div className="original-price">
+                      {formatCurrency(product.price)}
                     </div>
-                    {product.sale && product.sale > 0 && product.price > 0 && (
-                      <div className="discount-percent">
-                        -{Math.round((product.sale / product.price) * 100)}%
-                      </div>
-                    )}
+                  </>
+                ) : (
+                  <div className="discount-price">
+                    {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
                   </div>
-                  {product.averageRating && product.reviewCount && product.reviewCount > 0 && (
-                    <StarRating rating={product.averageRating} reviewCount={product.reviewCount} />
-                  )}
-                  <div className="action-buttons">
-                    <button
-                      className="add-to-cart-btn"
-                      onClick={() =>
-                        addToCart({
-                          _id: product._id,
-                          name: product.name,
-                          price: product.price,
-                          img_url: product.img_url,
-                          quantity: 1,
-                        })
-                      }
-                    >
-                      <FaShoppingCart className="cart-icon" />
-                      <span className="btn-text">Thêm vào giỏ</span>
-                    </button>
-                    <button
-                      className="favorite-iconm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteClick(product);
-                      }}
-                    >
-                      {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                    </button>
-                  </div>
+                )}
+              </div>
+              {product.sale && product.sale > 0 && product.price > 0 && (
+                <div className="discount-percent">
+                  -{Math.round((product.sale / product.price) * 100)}%
                 </div>
-              ))
-            ) : (
-              <p>Không có sản phẩm khuyến mãi.</p>
-            )}
+              )}
+            </div>
+            <div className="action-buttons">
+              <button
+                className="add-to-cart-btn"
+                onClick={() =>
+                  addToCart({
+                    _id: product._id,
+                    name: product.name,
+                    price: product.price,
+                    img_url: product.img_url,
+                    quantity: 1,
+                  })
+                }
+              >
+                <FaShoppingCart className="cart-icon" />
+                <span className="btn-text">Thêm vào giỏ</span>
+              </button>
+              <button
+                className="favorite-iconm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFavoriteClick(product);
+                }}
+              >
+                {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        ))
+      ) : (
+        <p>Không có sản phẩm khuyến mãi.</p>
+      )}
+    </div>
+  </div>
+</section>
 
       {categories.map((category) => (
         <section key={category._id} id="qc-gh">
@@ -705,9 +657,6 @@ const HomePage: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        {product.averageRating && product.reviewCount && product.reviewCount > 0 && (
-                          <StarRating rating={product.averageRating} reviewCount={product.reviewCount} />
-                        )}
                         <div className="action-buttons">
                           <button
                             className="add-to-cart-btn"
