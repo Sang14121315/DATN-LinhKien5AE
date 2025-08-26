@@ -1387,6 +1387,7 @@ $font-xl: 18px;
       }
 
       .form-section {
+        display: block;
         margin-bottom: $space-xxxl;
 
         h3 {
@@ -1400,7 +1401,7 @@ $font-xl: 18px;
       }
 
       .form-group {
-        margin-bottom: $space-xl;
+        margin-bottom: 15px;
         display: block;
         padding: 0px;
 
@@ -1710,9 +1711,9 @@ $font-xl: 18px;
       }
 
       .register-form-container .form-group {
-        margin-bottom: 20px;
         display: block;
         position: relative;
+        padding: 0px;
       }
 
       .register-form-container .form-group label {
@@ -1960,7 +1961,6 @@ $font-xl: 18px;
 
       .register-form-container .register-footer {
         text-align: center;
-        padding: 20px;
         border-radius: 16px;
         transition: all 0.3s ease;
 
