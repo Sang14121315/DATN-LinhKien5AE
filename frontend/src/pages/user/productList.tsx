@@ -353,16 +353,20 @@ const ProductListPage: React.FC = () => {
 
                         <div className="price-block">
                           <div className="price-left">
-                            {product.sale ? (
+                            {product.sale > 0 && product.price > 0 ? (
                               <>
-                                <div className="discount-price">{formatCurrency(product.price * 0.66)}</div>
+                                <div className="discount-price">{formatCurrency(product.price - product.sale)}</div>
                                 <div className="original-price">{formatCurrency(product.price)}</div>
                               </>
                             ) : (
                               <div className="discount-price">{formatCurrency(product.price)}</div>
                             )}
                           </div>
-                          {product.sale && <div className="discount-percent">-34%</div>}
+                          {product.sale > 0 && product.price > 0 && (
+                            <div className="discount-percent">
+                              -{Math.round((product.sale / product.price) * 100)}%
+                            </div>
+                          )}
                         </div>
                         <button
                                                     className="add-to-cart-btnn"

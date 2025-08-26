@@ -1,11 +1,28 @@
 const axios = require("axios");
 
-// Cấu hình EmailJS REST API
+// Cấu hình EmailJS REST API (đọc từ biến môi trường)
 const EMAILJS_CONFIG = {
-  SERVICE_ID: "service_qi4c4fw",
-  TEMPLATE_ID: "template_mk5ebrk",
-  PUBLIC_KEY: "Swpu9Iyd6YA9wadVX",
+  SERVICE_ID: process.env.EMAILJS_SERVICE_ID || "service_kuo4ftg",
+  TEMPLATE_ID: process.env.EMAILJS_TEMPLATE_ID || "template_soktrvg",
+  PUBLIC_KEY: process.env.EMAILJS_PUBLIC_KEY || "pT3t3v6vBVIXyqcU2",
 };
+
+// Email admin mặc định có thể override qua ENV
+const DEFAULT_ADMIN_EMAIL = process.env.ADMIN_EMAIL || "sanghtps39612@gmail.com";
+
+// Validate cấu hình EmailJS
+const validateEmailJsConfig = () => {
+  const missing = [];
+  if (!EMAILJS_CONFIG.SERVICE_ID) missing.push("EMAILJS_SERVICE_ID");
+  if (!EMAILJS_CONFIG.TEMPLATE_ID) missing.push("EMAILJS_TEMPLATE_ID");
+  if (!EMAILJS_CONFIG.PUBLIC_KEY) missing.push("EMAILJS_PUBLIC_KEY");
+  if (missing.length) {
+    console.warn(
+      `⚠️ Thiếu biến môi trường EmailJS: ${missing.join(", ")}. Đang dùng giá trị mặc định nếu có.`
+    );
+  }
+};
+validateEmailJsConfig();
 
 // Debug: Log cấu hình
 console.log("🔧 EmailJS Config:", EMAILJS_CONFIG);
@@ -23,24 +40,22 @@ const sendOrderConfirmationEmail = async (orderData) => {
         ?.map(
           (item) => `
       <tr>
-        <td class="image-cell">
+        <td style="padding:10px;border:1px solid #eee;width:72px;">
           <img src="${
-            item.img_url || "https://via.placeholder.com/80x80?text=No+Image"
-          }" alt="${item.name}" class="product-img">
+            item.img_url || "https://via.placeholder.com/64?text=No+Image"
+          }" alt="${item.name}" width="64" height="64" style="display:block;max-width:64px;max-height:64px;border-radius:6px;object-fit:cover;">
         </td>
-        <td class="name-cell">
-          <div class="product-name">${item.name}</div>
+        <td style="padding:10px;border:1px solid #eee;">
+          <div style="font-size:14px;color:#111;line-height:1.4;">${item.name}</div>
         </td>
-        <td class="quantity-cell">
-          <span class="quantity">${item.quantity}</span>
+        <td align="center" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#1e3a8a;font-size:12px;">${item.quantity}</span>
         </td>
-        <td class="price-cell">
-          <div class="product-price">${item.price?.toLocaleString(
-            "vi-VN"
-          )} VNĐ</div>
+        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <div style="font-size:14px;color:#111;">${item.price?.toLocaleString("vi-VN")} VNĐ</div>
         </td>
-        <td class="price-cell">
-          <div class="product-total">${(
+        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <div style="font-weight:600;color:#111;">${(
             item.price * item.quantity
           )?.toLocaleString("vi-VN")} VNĐ</div>
         </td>
@@ -126,24 +141,22 @@ const sendOrderStatusUpdateEmail = async (orderData, oldStatus, newStatus) => {
         ?.map(
           (item) => `
       <tr>
-        <td class="image-cell">
+        <td style="padding:10px;border:1px solid #eee;width:72px;">
           <img src="${
-            item.img_url || "https://via.placeholder.com/80x80?text=No+Image"
-          }" alt="${item.name}" class="product-img">
+            item.img_url || "https://via.placeholder.com/64?text=No+Image"
+          }" alt="${item.name}" width="64" height="64" style="display:block;max-width:64px;max-height:64px;border-radius:6px;object-fit:cover;">
         </td>
-        <td class="name-cell">
-          <div class="product-name">${item.name}</div>
+        <td style="padding:10px;border:1px solid #eee;">
+          <div style="font-size:14px;color:#111;line-height:1.4;">${item.name}</div>
         </td>
-        <td class="quantity-cell">
-          <span class="quantity">${item.quantity}</span>
+        <td align="center" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#1e3a8a;font-size:12px;">${item.quantity}</span>
         </td>
-        <td class="price-cell">
-          <div class="product-price">${item.price?.toLocaleString(
-            "vi-VN"
-          )} VNĐ</div>
+        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <div style="font-size:14px;color:#111;">${item.price?.toLocaleString("vi-VN")} VNĐ</div>
         </td>
-        <td class="price-cell">
-          <div class="product-total">${(
+        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <div style="font-weight:600;color:#111;">${(
             item.price * item.quantity
           )?.toLocaleString("vi-VN")} VNĐ</div>
         </td>
@@ -232,24 +245,22 @@ const sendOrderNotificationToAdmin = async (orderData) => {
         ?.map(
           (item) => `
       <tr>
-        <td class="image-cell">
+        <td style="padding:10px;border:1px solid #eee;width:72px;">
           <img src="${
-            item.img_url || "https://via.placeholder.com/80x80?text=No+Image"
-          }" alt="${item.name}" class="product-img">
+            item.img_url || "https://via.placeholder.com/64?text=No+Image"
+          }" alt="${item.name}" width="64" height="64" style="display:block;max-width:64px;max-height:64px;border-radius:6px;object-fit:cover;">
         </td>
-        <td class="name-cell">
-          <div class="product-name">${item.name}</div>
+        <td style="padding:10px;border:1px solid #eee;">
+          <div style="font-size:14px;color:#111;line-height:1.4;">${item.name}</div>
         </td>
-        <td class="quantity-cell">
-          <span class="quantity">${item.quantity}</span>
+        <td align="center" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#1e3a8a;font-size:12px;">${item.quantity}</span>
         </td>
-        <td class="price-cell">
-          <div class="product-price">${item.price?.toLocaleString(
-            "vi-VN"
-          )} VNĐ</div>
+        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <div style="font-size:14px;color:#111;">${item.price?.toLocaleString("vi-VN")} VNĐ</div>
         </td>
-        <td class="price-cell">
-          <div class="product-total">${(
+        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
+          <div style="font-weight:600;color:#111;">${(
             item.price * item.quantity
           )?.toLocaleString("vi-VN")} VNĐ</div>
         </td>
@@ -296,7 +307,7 @@ const sendOrderNotificationToAdmin = async (orderData) => {
       .replace(/{{admin_orders_url}}/g, `${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin/orders`);
 
     const templateParams = {
-      to_email: "sanghtps39612@gmail.com", // Email admin mặc định
+      to_email: DEFAULT_ADMIN_EMAIL, // Email admin mặc định
       to_name: "Admin",
       order_id: orderData._id,
       order_date: new Date(orderData.created_at).toLocaleString("vi-VN"),
@@ -313,7 +324,7 @@ const sendOrderNotificationToAdmin = async (orderData) => {
       products_html: productsHtml,
       products_count: orderData.items?.length || 0,
       // Thông tin admin
-      admin_email: "sanghtps39612@gmail.com",
+      admin_email: DEFAULT_ADMIN_EMAIL,
       admin_name: "Admin",
       // HTML content
       message: emailHtml

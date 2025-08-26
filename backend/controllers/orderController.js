@@ -6,7 +6,11 @@ const Product = require('../models/Product'); // ✅ THÊM
 const Order = require('../models/Order'); // ✅ THÊM
 const Joi = require('joi');
 const { createMomoPayment } = require('../services/orderService');
-const { sendOrderStatusUpdateEmail, sendOrderNotificationToAdmin } = require('../utils/emailService');
+const { 
+  sendOrderStatusUpdateEmail,
+  sendOrderNotificationToAdmin,
+  sendOrderConfirmationEmail
+} = require('../utils/orderEmailService');
 
 const orderSchema = Joi.object({
   payment_method: Joi.string().valid('cod', 'bank').default('cod'),
@@ -211,18 +215,22 @@ module.exports = {
       // ✅ 5. XÓA GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
       await CartService.clearCart(userId);
 
-      // ✅ 6. GỬI EMAIL VÀ THÔNG BÁO
-      console.log('📧 Email xác nhận sẽ được gửi từ frontend (EmailJS)');
-
+      // ✅ 6. GỬI EMAIL VÀ THÔNG BÁO (Nodemailer - server)
       try {
         const orderWithItems = {
           ...order._doc,
           items: detailDocs
         };
+        // Gửi cho khách hàng (nếu có email)
+        if (orderWithItems?.customer?.email) {
+          await sendOrderConfirmationEmail(orderWithItems);
+          console.log('✅ Email xác nhận đã gửi cho khách hàng');
+        }
+        // Gửi cho admin
         await sendOrderNotificationToAdmin(orderWithItems);
         console.log('✅ Email thông báo đã gửi cho admin');
       } catch (emailError) {
-        console.error('❌ Lỗi gửi email thông báo cho admin:', emailError);
+        console.error('❌ Lỗi gửi email đơn hàng mới:', emailError);
       }
 
       const io = req.app.get('io');
@@ -329,8 +337,17 @@ module.exports = {
         updated_at: new Date() 
       });
 
-      // Email sẽ được gửi từ frontend thay vì backend
-      console.log('📧 Order status updated. Email will be sent from frontend.');
+      // ✅ GỬI EMAIL CẬP NHẬT TRẠNG THÁI (Nodemailer - server)
+      try {
+        const details = await OrderDetailService.getByOrderId(order._id);
+        const orderWithItems = { ...order._doc, items: details };
+        if (orderWithItems?.customer?.email) {
+          await sendOrderStatusUpdateEmail(orderWithItems, oldStatus, requestedStatus);
+          console.log('✅ Email cập nhật trạng thái đã gửi cho khách hàng');
+        }
+      } catch (emailError) {
+        console.error('❌ Lỗi gửi email cập nhật trạng thái:', emailError);
+      }
 
       // ✅ TÍNH ĐIỂM LOYALTY KHI HOÀN THÀNH
       if (requestedStatus === 'completed' && order.user_id) {
