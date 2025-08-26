@@ -91,6 +91,11 @@ const HomePage: React.FC = () => {
     "/img/r5.png"
   ];
 
+  const getSaleValue = (sale: any) => {
+    const n = Number(sale);
+    return isNaN(n) ? 0 : n;
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -371,26 +376,16 @@ const getBrandImageUrl = (brand: Brand): string => {
             <h4 className="product-name">{product.name}</h4>
             <div className="price-block">
               <div className="price-left">
-                {product.sale && product.sale > 0 && product.price > 0 ? (
+                {getSaleValue(product.sale) > 0 && product.price > 0 ? (
                   <>
-                    <div className="discount-price">
-                      {formatCurrency(product.price - product.sale)}
-                    </div>
-                    <div className="original-price">
-                      {formatCurrency(product.price)}
-                    </div>
+                    <div className="discount-price">{formatCurrency(product.price - getSaleValue(product.sale))}</div>
+                    <div className="original-price">{formatCurrency(product.price)}</div>
+                    <div className="discount-percent">-{Math.round((getSaleValue(product.sale) / product.price) * 100)}%</div>
                   </>
                 ) : (
-                  <div className="discount-price">
-                    {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
-                  </div>
+                  <div className="discount-price">{formatCurrency(product.price)}</div>
                 )}
               </div>
-              {product.sale && product.sale > 0 && product.price > 0 && (
-                <div className="discount-percent">
-                  -{Math.round((product.sale / product.price) * 100)}%
-                </div>
-              )}
             </div>
             <div className="action-buttons">
               <button
@@ -457,24 +452,18 @@ const getBrandImageUrl = (brand: Brand): string => {
             <h4 className="product-name">{product.name}</h4>
             <div className="price-block">
               <div className="price-left">
-                {product.sale && product.sale > 0 && product.price > 0 ? (
+                {getSaleValue(product.sale) > 0 && product.price > 0 ? (
                   <>
-                    <div className="discount-price">
-                      {formatCurrency(product.price - product.sale)}
-                    </div>
-                    <div className="original-price">
-                      {formatCurrency(product.price)}
-                    </div>
+                    <div className="discount-price">{formatCurrency(product.price - getSaleValue(product.sale))}</div>
+                    <div className="original-price">{formatCurrency(product.price)}</div>
                   </>
                 ) : (
-                  <div className="discount-price">
-                    {product.price ? formatCurrency(product.price) : "Giá không khả dụng"}
-                  </div>
+                  <div className="discount-price">{formatCurrency(product.price)}</div>
                 )}
               </div>
-              {product.sale && product.sale > 0 && product.price > 0 && (
+              {getSaleValue(product.sale) > 0 && product.price > 0 && (
                 <div className="discount-percent">
-                  -{Math.round((product.sale / product.price) * 100)}%
+                  -{Math.round((getSaleValue(product.sale) / product.price) * 100)}%
                 </div>
               )}
             </div>
@@ -548,24 +537,18 @@ const getBrandImageUrl = (brand: Brand): string => {
                         <h4 className="product-name">{product.name}</h4>
                         <div className="price-block">
                           <div className="price-left">
-                            {product.sale && product.sale > 0 && product.price > 0 ? (
+                            {getSaleValue(product.sale) > 0 && product.price > 0 ? (
                               <>
-                                <div className="discount-price">
-                                  {formatCurrency(product.price - product.sale)}
-                                </div>
-                                <div className="original-price">
-                                  {formatCurrency(product.price)}
-                                </div>
+                                <div className="discount-price">{formatCurrency(product.price - getSaleValue(product.sale))}</div>
+                                <div className="original-price">{formatCurrency(product.price)}</div>
                               </>
                             ) : (
-                              <div className="discount-price">
-                                {product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}
-                              </div>
+                              <div className="discount-price">{formatCurrency(product.price)}</div>
                             )}
                           </div>
-                          {product.sale && product.sale > 0 && product.price > 0 && (
+                          {getSaleValue(product.sale) > 0 && product.price > 0 && (
                             <div className="discount-percent">
-                              -{Math.round((product.sale / product.price) * 100)}%
+                              -{Math.round((getSaleValue(product.sale) / product.price) * 100)}%
                             </div>
                           )}
                         </div>
