@@ -39,14 +39,22 @@ exports.getProducts = async (req, res) => {
     const products = await query;
     
     // ✅ THÊM THÔNG TIN AVAILABLE_STOCK CHO MỖI SẢN PHẨM
-    const productsWithAvailableStock = products.map(product => {
+    const productsWithAvailableStock = await Promise.all(products.map(async product => {
       const availableStock = product.stock - (product.reserved_stock || 0);
+      // Tính rating trung bình
+      const Review = require('../models/Review');
+      const reviews = await Review.find({ product_id: product._id });
+      let averageRating = 0;
+      if (reviews.length > 0) {
+        averageRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+      }
       return {
         ...product._doc,
         available_stock: availableStock,
-        is_available: availableStock > 0
+        is_available: availableStock > 0,
+        average_rating: averageRating
       };
-    });
+    }));
     
     // ✅ THÊM THÔNG TIN ĐÁNH GIÁ NẾU CÓ YÊU CẦU
     if (includeReviews === 'true') {
@@ -169,14 +177,22 @@ exports.searchProducts = async (req, res) => {
     console.log("Found:", products.length, "products");
 
     // ✅ THÊM THÔNG TIN AVAILABLE_STOCK CHO KẾT QUẢ TÌM KIẾM
-    const productsWithAvailableStock = products.map(product => {
+    const productsWithAvailableStock = await Promise.all(products.map(async product => {
       const availableStock = product.stock - (product.reserved_stock || 0);
+      // Tính rating trung bình
+      const Review = require('../models/Review');
+      const reviews = await Review.find({ product_id: product._id });
+      let averageRating = 0;
+      if (reviews.length > 0) {
+        averageRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+      }
       return {
         ...product._doc,
         available_stock: availableStock,
-        is_available: availableStock > 0
+        is_available: availableStock > 0,
+        average_rating: averageRating
       };
-    });
+    }));
 
     // ✅ THÊM THÔNG TIN ĐÁNH GIÁ NẾU CÓ YÊU CẦU
     if (includeReviews === 'true') {

@@ -4,6 +4,8 @@ import {
   fetchUserById,
   User,
   blockUser,
+  changeAdminPassword,
+  ChangePasswordData,
 } from "../../api/user/userAPI";
 import "../../styles/pages/admin/userTable.scss";
 
@@ -19,6 +21,13 @@ const AdminUserPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState<ChangePasswordData>({ currentPassword: "", newPassword: "" });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  // Lấy user hiện tại từ localStorage hoặc context nếu có
+  const currentAdminId = localStorage.getItem("userId");
 
   useEffect(() => {
     setLoading(true);
@@ -69,6 +78,40 @@ const AdminUserPage: React.FC = () => {
     setUsers(data);
     setLoading(false);
     setTimeout(() => setToast(null), 2000);
+  };
+
+  const handlePasswordChange = (field: keyof ChangePasswordData, value: string) => {
+    setPasswordData((prev) => ({ ...prev, [field]: value }));
+  };
+  const handleChangePassword = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !confirmPassword) {
+      alert("Vui lòng điền đầy đủ thông tin!");
+      return;
+    }
+    if (passwordData.newPassword !== confirmPassword) {
+      alert("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      alert("Mật khẩu mới phải có ít nhất 6 ký tự!");
+      return;
+    }
+    try {
+      setChangingPassword(true);
+      const result = await changeAdminPassword(passwordData);
+      if (result.success) {
+        alert(result.message);
+        setShowChangePasswordModal(false);
+        setPasswordData({ currentPassword: "", newPassword: "" });
+        setConfirmPassword("");
+      } else {
+        alert(result.message || "Có lỗi xảy ra khi đổi mật khẩu!");
+      }
+    } catch (error: any) {
+      alert(error?.response?.data?.message || "Có lỗi xảy ra khi đổi mật khẩu!");
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   return (
@@ -231,6 +274,57 @@ const AdminUserPage: React.FC = () => {
                 }
               >
                 {selectedUser.isBlocked ? "Mở khóa" : "Khóa"}
+              </button>
+              {/* Nút đổi mật khẩu chỉ cho admin tự đổi */}
+              {selectedUser.role === "admin" && currentAdminId === selectedUser._id && (
+                <button className="btn-change-password" onClick={() => setShowChangePasswordModal(true)}>
+                  Đổi mật khẩu
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal đổi mật khẩu admin */}
+      {showChangePasswordModal && (
+        <div className="user-modal-overlay" onClick={() => setShowChangePasswordModal(false)}>
+          <div className="user-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span>ĐỔI MẬT KHẨU ADMIN</span>
+            </div>
+            <div className="modal-body">
+              <div className="modal-row">
+                <label>Mật khẩu hiện tại</label>
+                <input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
+                  placeholder="Nhập mật khẩu hiện tại"
+                />
+              </div>
+              <div className="modal-row">
+                <label>Mật khẩu mới</label>
+                <input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
+                  placeholder="Nhập mật khẩu mới"
+                />
+              </div>
+              <div className="modal-row">
+                <label>Xác nhận mật khẩu mới</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Nhập lại mật khẩu mới"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowChangePasswordModal(false)}>Hủy</button>
+              <button className="btn-save" onClick={handleChangePassword} disabled={changingPassword}>
+                {changingPassword ? "Đang đổi..." : "Đổi mật khẩu"}
               </button>
             </div>
           </div>

@@ -20,9 +20,11 @@ class OrderService {
   }
 
   static async create(data) {
-    // ✅ KHỞI TẠO CÁC FLAG INVENTORY
+    // Sinh orderNumber duy nhất
+    const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
     const orderData = {
       ...data,
+      orderNumber,
       inventory_reserved: false,
       inventory_confirmed: false,
       inventory_released: false

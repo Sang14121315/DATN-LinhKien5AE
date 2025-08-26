@@ -44,6 +44,14 @@ export const changePassword = async (
   return response.data;
 };
 
+// Đổi mật khẩu admin (chính mình)
+export const changeAdminPassword = async (
+  data: ChangePasswordData
+): Promise<{ success: boolean; message: string }> => {
+  const response = await axios.put("/admin/change-password", data);
+  return response.data;
+};
+
 // Đăng ký
 export const registerUser = async (data: {
   name: string;

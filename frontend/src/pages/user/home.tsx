@@ -96,6 +96,20 @@ const HomePage: React.FC = () => {
     return isNaN(n) ? 0 : n;
   };
 
+  // Thêm component hiển thị sao
+  const StarRating: React.FC<{ rating?: number }> = ({ rating }) => {
+    if (!rating || rating <= 0) return null;
+    const fullStars = Math.floor(rating);
+    const halfStar = rating - fullStars >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    return (
+      <div style={{ color: '#FFD700', fontSize: '1.5em', margin: '8px 0 4px 0', display: 'flex', alignItems: 'center' }}>
+        <span>{'★'.repeat(fullStars)}{halfStar ? '½' : ''}{'☆'.repeat(emptyStars)}</span>
+        <span style={{ color: '#333', marginLeft: 8, fontSize: '0.9em' }}>{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -374,6 +388,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                 : product.brand_id}
             </p>
             <h4 className="product-name">{product.name}</h4>
+            {product.average_rating > 0 && <StarRating rating={product.average_rating} />}
             <div className="price-block">
               <div className="price-left">
                 {getSaleValue(product.sale) > 0 && product.price > 0 ? (
@@ -450,6 +465,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                 : product.brand_id}
             </p>
             <h4 className="product-name">{product.name}</h4>
+            <StarRating rating={product.average_rating || 0} />
             <div className="price-block">
               <div className="price-left">
                 {getSaleValue(product.sale) > 0 && product.price > 0 ? (
@@ -535,6 +551,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                             : product.brand_id}
                         </p>
                         <h4 className="product-name">{product.name}</h4>
+                        {product.average_rating > 0 && <StarRating rating={product.average_rating} />}
                         <div className="price-block">
                           <div className="price-left">
                             {getSaleValue(product.sale) > 0 && product.price > 0 ? (
