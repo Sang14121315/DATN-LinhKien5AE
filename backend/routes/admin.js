@@ -137,4 +137,7 @@ router.get("/admin-emails", auth, adminAuth, async (req, res) => {
   });
 });
 
+// Đổi mật khẩu cho admin (chính mình)
+router.put("/change-password", auth, adminAuth, userController.changeAdminPassword);
+
 module.exports = router;

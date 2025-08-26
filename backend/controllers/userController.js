@@ -310,6 +310,52 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+// Đổi mật khẩu cho admin (chỉ cho phép admin tự đổi)
+exports.changeAdminPassword = async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Chỉ admin mới được đổi mật khẩu admin" });
+    }
+    const { currentPassword, newPassword } = req.body;
+    // Validation schema giống user
+    const changePasswordSchema = Joi.object({
+      currentPassword: Joi.string().required().messages({
+        "any.required": "Mật khẩu hiện tại là bắt buộc",
+        "string.empty": "Mật khẩu hiện tại không được để trống",
+      }),
+      newPassword: Joi.string()
+        .min(6)
+        .max(50)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+        .required()
+        .messages({
+          "string.min": "Mật khẩu mới phải có ít nhất 6 ký tự",
+          "string.max": "Mật khẩu mới không được quá 50 ký tự",
+          "string.pattern.base":
+            "Mật khẩu mới phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số",
+          "any.required": "Mật khẩu mới là bắt buộc",
+          "string.empty": "Mật khẩu mới không được để trống",
+        }),
+    });
+    const { error } = changePasswordSchema.validate(req.body);
+    if (error)
+      return res.status(400).json({ message: error.details[0].message });
+    const result = await UserService.changePassword(
+      req.user.id,
+      currentPassword,
+      newPassword
+    );
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Error changing admin password" });
+  }
+};
+
 // Lấy thông tin điểm, cấp bậc, tổng chi tiêu
 exports.getLoyaltyInfo = async (req, res) => {
   try {
