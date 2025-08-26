@@ -32,16 +32,14 @@ const translateStatus = (status: string): string => {
 const PurchasePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const { orders, updateOrderStatus } = useOrders(); // Giả định updateOrderStatus có trong context
+  const { orders, updateOrderStatus } = useOrders();
   const { clearCart, addToCart } = useCart();
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Đã xử lý search realtime qua filter phía trên
   };
 
-  // Filter orders by tab and search
   const filteredOrders = orders
     .filter(order => {
       if (activeTab === "all") return true;
@@ -50,22 +48,16 @@ const PurchasePage: React.FC = () => {
     .filter(order => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.trim().toLowerCase();
-      // Check order ID
       if (order._id.toLowerCase().includes(q)) return true;
-      // Check customer name
       if (order.customer?.name && order.customer.name.toLowerCase().includes(q)) return true;
-      // Check product names
       if (order.items && order.items.some(item => typeof item.name === 'string' && item.name.toLowerCase().includes(q))) return true;
       return false;
     })
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  // Handler for reordering
   const handleReorder = async (order: Order) => {
     await clearCart();
-    // Add all items from the order to cart sequentially, fetching full product info
     for (const item of order.items) {
-      // Ensure product_id is always a string
       let productId: string = '';
       if (typeof item.product_id === 'string') {
         productId = item.product_id;
@@ -89,7 +81,6 @@ const PurchasePage: React.FC = () => {
     navigate("/cart");
   };
 
-  // Handler for canceling order
   const handleCancelOrder = async (orderId: string) => {
     try {
       await updateOrderStatus(orderId, "canceled");
@@ -99,10 +90,25 @@ const PurchasePage: React.FC = () => {
     }
   };
 
+  // Sửa handler để chuyển hướng đến productDetail với orderId
+  const handleReviewOrder = (order: Order) => {
+    if (order.items && order.items.length > 0) {
+      const productId = typeof order.items[0].product_id === "string" 
+        ? order.items[0].product_id 
+        : (order.items[0].product_id as { _id: string })?._id || "";
+      if (productId) {
+        navigate(`/product/${productId}?orderId=${order._id}`);
+      } else {
+        alert("Không tìm thấy sản phẩm trong đơn hàng!");
+      }
+    } else {
+      alert("Đơn hàng không có sản phẩm để đánh giá!");
+    }
+  };
+
   return (
     <div className="purchase-page">
       <div className="purchase-container">
-        {/* Top Navigation Tabs */}
         <div className="purchase-tabs">
           {TABS.map((tab) => (
             <button
@@ -115,7 +121,6 @@ const PurchasePage: React.FC = () => {
           ))}
         </div>
 
-        {/* Search Section */}
         <div className="search-section">
           <form className="search-form" onSubmit={handleSearch}>
             <div className="search-input-wrapper">
@@ -131,7 +136,6 @@ const PurchasePage: React.FC = () => {
           </form>
         </div>
 
-        {/* Main Content - Order List */}
         <div className="purchase-content">
           {filteredOrders.length === 0 ? (
             <div className="empty-state">
@@ -179,9 +183,14 @@ const PurchasePage: React.FC = () => {
                     <button className="reorder-btn" onClick={() => handleReorder(order)}>
                       Mua lần nữa
                     </button>
-                    { ["pending", "confirmed", "processing"].includes(order.status) && (
+                    {["pending", "confirmed", "processing"].includes(order.status) && (
                       <button className="cancel-btn" onClick={() => handleCancelOrder(order._id)}>
                         Hủy đơn hàng
+                      </button>
+                    )}
+                    {order.status === "completed" && (
+                      <button className="review-btn" onClick={() => handleReviewOrder(order)}>
+                        Nhận xét
                       </button>
                     )}
                   </div>

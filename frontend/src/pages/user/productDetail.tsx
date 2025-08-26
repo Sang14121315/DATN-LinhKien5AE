@@ -398,8 +398,8 @@ const ProductDetail: React.FC = () => {
 
   if (!product) return <div>Đang tải sản phẩm...</div>;
 
-  const discountPercent = product.sale ? Math.round((1 - 0.66) * 100) : 0;
-  const priceAfterSale = product.sale ? product.price * 0.66 : product.price;
+  const discountPercent = product.sale && product.price > 0 ? Math.round((product.sale / product.price) * 100) : 0;
+  const priceAfterSale = product.sale && product.sale > 0 ? product.price - product.sale : product.price;
 
   // ✅ Sử dụng stockInfo nếu có, fallback về product.stock
   const availableStock = stockInfo?.available_stock ?? product.stock;
@@ -458,14 +458,10 @@ const ProductDetail: React.FC = () => {
           </div>
 
           <div className="price-section">
-            <div className="discount-price">
-              {formatCurrency(priceAfterSale)}
-            </div>
-            {product.sale && (
+            <div className="discount-price">{formatCurrency(priceAfterSale)}</div>
+            {product.sale && product.sale > 0 && (
               <>
-                <div className="original-price">
-                  {formatCurrency(product.price)}
-                </div>
+                <div className="original-price">{formatCurrency(product.price)}</div>
                 <div className="discount-percent">-{discountPercent}%</div>
               </>
             )}

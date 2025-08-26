@@ -15,7 +15,7 @@ export interface Product {
   stock: number;
   img_url: string;
   category_id: string | ObjectIdRef;
-  sale?: boolean;
+  sale?: number;
   view?: number;
   hot?: boolean;
   coupons_id?: string | ObjectIdRef;
