@@ -1,5 +1,6 @@
 const ProductService = require('../services/productService');
-const Product = require('../models/Product'); // ✅ THÊM
+const Product = require('../models/Product');
+const Review = require('../models/Review'); // ✅ THÊM IMPORT REVIEW MODEL
 const Joi = require('joi');
 
 const productSchema = Joi.object({
@@ -20,7 +21,7 @@ const productSchema = Joi.object({
 
 exports.getProducts = async (req, res) => {
   try {
-    const { name, category_id, brand_id, minPrice, maxPrice, sale, hot, sort } = req.query;
+    const { name, category_id, brand_id, minPrice, maxPrice, sale, hot, sort, includeReviews } = req.query;
     const filters = {};
     if (name) filters.name = new RegExp(name, 'i');
     if (category_id) filters.category_id = category_id;
@@ -47,6 +48,26 @@ exports.getProducts = async (req, res) => {
       };
     });
     
+    // ✅ THÊM THÔNG TIN ĐÁNH GIÁ NẾU CÓ YÊU CẦU
+    if (includeReviews === 'true') {
+      const productsWithReviews = await Promise.all(
+        productsWithAvailableStock.map(async (product) => {
+          const reviews = await Review.find({ product_id: product._id });
+          const averageRating = reviews.length > 0 
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+            : 0;
+          
+          return {
+            ...product,
+            averageRating: Math.round(averageRating * 10) / 10, // Làm tròn 1 chữ số thập phân
+            reviewCount: reviews.length
+          };
+        })
+      );
+      
+      return res.json(productsWithReviews);
+    }
+    
     res.json(productsWithAvailableStock);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Error fetching products' });
@@ -55,15 +76,30 @@ exports.getProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
   try {
+    const { includeReviews } = req.query;
     const product = await ProductService.getById(req.params.id);
     
     // ✅ THÊM THÔNG TIN AVAILABLE_STOCK CHO SẢN PHẨM ĐƠN LẺ
     const availableStock = product.stock - (product.reserved_stock || 0);
-    const productWithAvailableStock = {
+    let productWithAvailableStock = {
       ...product._doc,
       available_stock: availableStock,
       is_available: availableStock > 0
     };
+    
+    // ✅ THÊM THÔNG TIN ĐÁNH GIÁ NẾU CÓ YÊU CẦU
+    if (includeReviews === 'true') {
+      const reviews = await Review.find({ product_id: req.params.id });
+      const averageRating = reviews.length > 0 
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+        : 0;
+      
+      productWithAvailableStock = {
+        ...productWithAvailableStock,
+        averageRating: Math.round(averageRating * 10) / 10,
+        reviewCount: reviews.length
+      };
+    }
     
     res.json(productWithAvailableStock);
   } catch (error) {
@@ -115,7 +151,7 @@ exports.deleteProduct = async (req, res) => {
 
 exports.searchProducts = async (req, res) => {
   try {
-    const { query, minPrice, maxPrice, sort } = req.query;
+    const { query, minPrice, maxPrice, sort, includeReviews } = req.query;
     const filters = {};
     if (query) filters.name = new RegExp(query, 'i');
     if (minPrice || maxPrice) filters.price = {};
@@ -141,6 +177,26 @@ exports.searchProducts = async (req, res) => {
         is_available: availableStock > 0
       };
     });
+
+    // ✅ THÊM THÔNG TIN ĐÁNH GIÁ NẾU CÓ YÊU CẦU
+    if (includeReviews === 'true') {
+      const productsWithReviews = await Promise.all(
+        productsWithAvailableStock.map(async (product) => {
+          const reviews = await Review.find({ product_id: product._id });
+          const averageRating = reviews.length > 0 
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+            : 0;
+          
+          return {
+            ...product,
+            averageRating: Math.round(averageRating * 10) / 10,
+            reviewCount: reviews.length
+          };
+        })
+      );
+      
+      return res.json(productsWithReviews);
+    }
 
     res.json(productsWithAvailableStock);
   } catch (error) {
@@ -224,5 +280,24 @@ exports.getInventoryInfo = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Error fetching inventory info' });
+  }
+};
+
+// ✅ THÊM API MỚI: Lấy thông tin đánh giá sản phẩm
+exports.getProductRatingInfo = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    const reviews = await Review.find({ product_id });
+    
+    const averageRating = reviews.length > 0 
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+      : 0;
+    
+    res.json({
+      averageRating: Math.round(averageRating * 10) / 10,
+      reviewCount: reviews.length
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error fetching rating info' });
   }
 };
