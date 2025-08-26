@@ -5,9 +5,8 @@ import {
   updateProduct,
   createProduct,
   deleteProduct,
-  Product,
 } from "@/api/productAPI";
-import { fetchCategories, Category } from "@/api/categoryAPI";
+import { fetchCategories, fetchParentCategoriesForDropdown, Category } from "@/api/categoryAPI";
 import { fetchAllBrands } from "@/api/brandAPI";
 import { fetchProductTypes } from "@/api/productTypeAPI";
 import "@/styles/pages/admin/productDetail.scss";
@@ -16,6 +15,8 @@ interface Brand {
   _id: string;
   name: string;
 }
+
+// Parent categories reuse Category type
 
 interface ProductFormData {
   name: string;
@@ -26,13 +27,12 @@ interface ProductFormData {
   category_id: string;
   brand_id: string;
   product_type_id: string;
-  sale: number; // số tiền giảm giá
+  sale: number;
   created_at: string;
   status: string;
   img_url?: string;
 }
 
-// Hàm xử lý đường dẫn ảnh
 const getImageUrl = (url?: string): string => {
   if (!url) return "";
   if (url.startsWith("http")) return url;
@@ -43,17 +43,20 @@ const getImageUrl = (url?: string): string => {
 };
 
 const ProductForm: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
 
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingChildCategories, setLoadingChildCategories] = useState(false);
+  const [parentCategories, setParentCategories] = useState<Category[]>([]);
+  const [childCategories, setChildCategories] = useState<Category[]>([]);
+  const [selectedParent, setSelectedParent] = useState<string>("");
   const [brands, setBrands] = useState<Brand[]>([]);
   const [defaultProductTypeId, setDefaultProductTypeId] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   const [product, setProduct] = useState<ProductFormData>({
     name: "",
@@ -70,32 +73,26 @@ const ProductForm: React.FC = () => {
     status: "Đã duyệt",
   });
 
-  // Load dữ liệu filter
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [cats, brs, productTypes] = await Promise.all([
-          fetchCategories({}),
+        setLoading(true);
+        setError(null);
+        const [parents, brs, productTypes] = await Promise.all([
+          fetchParentCategoriesForDropdown(),
           fetchAllBrands({}),
           fetchProductTypes(),
         ]);
-        setCategories(cats);
-        setBrands(brs);
-        // Lấy ID của product type đầu tiên làm mặc định
-        if (productTypes.length > 0) {
+        console.log("Parent categories loaded:", parents);
+        setParentCategories(parents && Array.isArray(parents) ? parents : []);
+        setBrands(brs && Array.isArray(brs) ? brs : []);
+        if (productTypes && Array.isArray(productTypes) && productTypes.length > 0) {
           setDefaultProductTypeId(productTypes[0]._id);
         }
-      } catch (error) {
-        console.error("Lỗi khi load dữ liệu:", error);
-      }
-    };
 
-    fetchData();
-
-    if (isEditMode && id) {
-      setLoading(true);
-      getProductById(id)
-        .then((res: Product) => {
+        if (isEditMode && id) {
+          const res = await getProductById(id);
+          console.log("Product data loaded:", res);
           setProduct({
             name: res.name || "",
             slug: res.slug || "",
@@ -123,14 +120,57 @@ const ProductForm: React.FC = () => {
           if (res.img_url) {
             setImagePreview(getImageUrl(res.img_url));
           }
-        })
-        .catch(() => {
-          alert("Không thể load thông tin sản phẩm");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
+
+          if (res.category_id) {
+            const categories = await fetchCategories({});
+            console.log("All categories loaded:", categories);
+            const selectedCategory = categories.find(cat => cat._id === res.category_id);
+            if (selectedCategory) {
+              console.log("Selected category:", selectedCategory);
+              if (selectedCategory.parent) {
+                const parentId = typeof selectedCategory.parent === "object"
+                  ? selectedCategory.parent._id
+                  : selectedCategory.parent || "";
+                console.log("Setting selected parent:", parentId);
+                setSelectedParent(parentId);
+                try {
+                  setLoadingChildCategories(true);
+                  console.log(`Fetching child categories for parentId: ${parentId}`);
+                  const children = await fetchCategories({ parent: parentId });
+                  console.log("Child categories loaded:", children);
+                  setChildCategories(children && Array.isArray(children) ? children : []);
+                } catch (childError) {
+                  console.error("Lỗi khi tải danh mục con:", childError);
+                  setChildCategories([]);
+                  setError("Không thể tải danh mục con");
+                } finally {
+                  setLoadingChildCategories(false);
+                }
+              } else {
+                setSelectedParent("");
+                console.log("No parent, setting childCategories to selected category");
+                setChildCategories([selectedCategory]);
+                setProduct(prev => ({ ...prev, category_id: selectedCategory._id || "" }));
+              }
+            } else {
+              setSelectedParent("");
+              setChildCategories([]);
+              setError("Danh mục của sản phẩm không tồn tại trong hệ thống");
+            }
+          }
+        } else {
+          setChildCategories([]);
+        }
+      } catch (error: unknown) {
+        console.error("Lỗi khi load dữ liệu:", error);
+        const message = (error as { message?: string })?.message || "Không thể tải dữ liệu sản phẩm";
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [id]);
 
   const handleInputChange = (
@@ -141,10 +181,39 @@ const ProductForm: React.FC = () => {
     const { name, value } = e.target;
     if (name === "price" || name === "stock" || name === "sale") {
       const numValue = parseFloat(value);
-      if (numValue < 0) return;
+      if (isNaN(numValue) || numValue < 0) return;
       setProduct({ ...product, [name]: numValue });
     } else {
       setProduct({ ...product, [name]: value });
+    }
+  };
+
+  const handleParentChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const parentId = e.target.value;
+    console.log(`Selected parent category: ${parentId}`);
+    setSelectedParent(parentId);
+    setProduct(prev => ({ ...prev, category_id: "" }));
+    setError(null);
+    try {
+      setLoadingChildCategories(true);
+      if (parentId) {
+        console.log(`Fetching child categories for parentId: ${parentId}`);
+        const children = await fetchCategories({ parent: parentId });
+        console.log("Child categories received:", children);
+        setChildCategories(children && Array.isArray(children) ? children : []);
+        if (!children || children.length === 0) {
+          setError(`Danh mục cha "${getParentName(parentId)}" không có danh mục con`);
+        }
+      } else {
+        setChildCategories([]);
+      }
+    } catch (error: unknown) {
+      console.error("Lỗi khi tải danh mục con:", error);
+      const message = (error as { message?: string })?.message || "Lỗi không xác định";
+      setError(`Không thể tải danh mục con: ${message}`);
+      setChildCategories([]);
+    } finally {
+      setLoadingChildCategories(false);
     }
   };
 
@@ -172,12 +241,17 @@ const ProductForm: React.FC = () => {
       return;
     }
 
-    // Validate required fields
     if (!product.name.trim()) {
       alert("Vui lòng nhập tên sản phẩm!");
       return;
     }
-    if (!product.category_id) {
+    // Nếu danh mục cha không có danh mục con, cho phép dùng danh mục cha làm category
+    const effectiveCategoryId =
+      product.category_id && product.category_id.trim() !== ""
+        ? product.category_id
+        : (selectedParent && childCategories.length === 0 ? selectedParent : "");
+
+    if (!effectiveCategoryId) {
       alert("Vui lòng chọn danh mục!");
       return;
     }
@@ -194,33 +268,23 @@ const ProductForm: React.FC = () => {
       return;
     }
 
-    // Generate slug if empty
-    if (!product.slug || product.slug.trim() === "") {
-      product.slug = generateSlug(product.name);
-    }
-
     const formData = new FormData();
-    
-    // Add all required fields
     formData.append("name", product.name);
-    formData.append("slug", product.slug);
+    formData.append("slug", product.slug || generateSlug(product.name));
     formData.append("description", product.description || "");
     formData.append("price", product.price.toString());
     formData.append("stock", product.stock.toString());
-    formData.append("category_id", product.category_id);
+    formData.append("category_id", effectiveCategoryId);
     formData.append("brand_id", product.brand_id);
-    // Tự động gán product_type_id mặc định hoặc giữ nguyên nếu đang edit
     if (isEditMode && product.product_type_id) {
       formData.append("product_type_id", product.product_type_id);
     } else if (defaultProductTypeId) {
       formData.append("product_type_id", defaultProductTypeId);
     } else {
-      // Fallback nếu không có product type nào
       formData.append("product_type_id", "65f1234567890abcdef12345");
     }
     formData.append("sale", product.sale.toString());
 
-    // Add image
     if (imageFile) {
       formData.append("image", imageFile);
     } else if (product.img_url && product.img_url.trim() !== "") {
@@ -238,7 +302,7 @@ const ProductForm: React.FC = () => {
       navigate("/admin/products");
     } catch (error: unknown) {
       console.error("Lỗi:", error);
-      const errorMessage = error instanceof Error ? error.message : "Thao tác thất bại!";
+      const errorMessage = (error as { message?: string })?.message || "Thao tác thất bại!";
       alert(errorMessage);
     }
   };
@@ -255,155 +319,31 @@ const ProductForm: React.FC = () => {
     }
   };
 
+  const getParentName = (parentId: string) => {
+    if (!parentId) return "Không có danh mục cha";
+    const found = parentCategories.find(p => p._id === parentId);
+    return found ? found.name : "Không xác định";
+  };
+
   return (
-    <div className="containerr">
+    <div className="category-detail-page">
       <h2>{isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm mới"}</h2>
       {loading && (
-        <div className="loading">Đang tải dữ liệu...</div>
+        <div className="message">Đang tải dữ liệu...</div>
+      )}
+      {error && (
+        <div className="error-message" style={{ color: "red", marginBottom: "10px" }}>
+          {error}
+        </div>
       )}
 
-      <div className="form-container">
-        <div className="form-section">
-          <label>Tên sản phẩm: </label>
-          <input
-            name="name"
-            value={product.name}
-            onChange={handleInputChange}
-            placeholder="Nhập tên sản phẩm"
-          />
-
-          <label>Mô tả:</label>
-          <textarea
-            name="description"
-            value={product.description}
-            onChange={handleInputChange}
-            placeholder="Nhập mô tả sản phẩm"
-          />
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Danh mục: </label>
-              <select
-                name="category_id"
-                value={product.category_id}
-                onChange={handleInputChange}
-              >
-                <option value="">-- Chọn danh mục --</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Thương hiệu: </label>
-              <select
-                name="brand_id"
-                value={product.brand_id}
-                onChange={handleInputChange}
-              >
-                <option value="">-- Chọn thương hiệu --</option>
-                {brands.map((b) => (
-                  <option key={b._id} value={b._id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Giá: </label>
-              <input
-                type="number"
-                name="price"
-                value={product.price}
-                onChange={handleInputChange}
-                min="0"
-                step="0.01"
-                placeholder="Nhập giá sản phẩm"
-              />
-            </div>
-            <div className="form-group">
-              <label>Số lượng: </label>
-              <input
-                type="number"
-                name="stock"
-                value={product.stock}
-                onChange={handleInputChange}
-                min="0"
-                step="1"
-                placeholder="Nhập số lượng"
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Giảm giá (VNĐ):</label>
-              <input
-                type="number"
-                name="sale"
-                value={product.sale}
-                onChange={handleInputChange}
-                min="0"
-                max={product.price}
-                placeholder="Nhập số tiền giảm giá"
-              />
-              {product.price > 0 && product.sale > 0 && (
-                <div style={{ color: 'green', marginTop: 4 }}>
-                  Giảm {((product.sale / product.price) * 100).toFixed(2)}%
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="buttons">
-            <button className="btn btn-primary" onClick={handleSubmit}>
-              {isEditMode ? "CẬP NHẬT" : "THÊM"}
-            </button>
-            <button className="btn btn-secondary" onClick={() => navigate(-1)}>
-              QUAY LẠI
-            </button>
-            {isEditMode && (
-              <button className="btn btn-danger" onClick={handleDelete}>
-                XÓA
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="image-section">
-          <div className="upload-box">
-            <p>Ảnh sản phẩm {isEditMode ? "(tùy chọn)" : "(bắt buộc)"}</p>
-            <label htmlFor="image-upload" className="upload-label">
-              <input
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                style={{ display: "none" }}
-              />
-              <button type="button" className="upload-btn">
-                {imageFile ? "Thay đổi ảnh" : "Chọn ảnh"}
-              </button>
-            </label>
-          </div>
-
-          <div className="upload-preview">
+      <div className="detail-wrapper">
+      <div className="image-upload-box">
+          <p>Ảnh sản phẩm {isEditMode ? "(tùy chọn)" : "(bắt buộc)"}</p>
+          <label className="image-box">
             {imagePreview ? (
               <div className="upload-item">
-                <div className="upload-thumb">
-                  <img
-                    src={imagePreview}
-                    alt="preview"
-                    onError={(e) => {
-                      e.currentTarget.src = "/images/no-image.png";
-                    }}
-                  />
-                </div>
+                <img src={imagePreview} alt="Preview" />
                 {isEditMode && imageFile && (
                   <button
                     type="button"
@@ -418,10 +358,200 @@ const ProductForm: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="upload-placeholder">
-                Chưa có ảnh được chọn
+              <div className="image-placeholder">
+                <span>Chưa có ảnh được chọn</span>
               </div>
             )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              hidden
+            />
+            <button type="button">
+              {imageFile ? "Thay đổi ảnh" : "Chọn ảnh"}
+            </button>
+          </label>
+        </div>
+
+        <div className="info-box">
+          <div className="row-flex">
+            <label className="half-width">
+              Tên sản phẩm
+              <input
+                type="text"
+                name="name"
+                value={product.name}
+                onChange={handleInputChange}
+                placeholder="Nhập tên sản phẩm"
+              />
+            </label>
+            <label className="half-width">
+              Ngày tạo
+              <input
+                type="text"
+                value={
+                  product.created_at
+                    ? new Date(product.created_at).toLocaleDateString("vi-VN")
+                    : ""
+                }
+                disabled
+              />
+            </label>
+          </div>
+
+          <div className="row-flex">
+            <label className="half-width">
+              Danh mục cha
+              <select
+                name="parentCategory"
+                value={selectedParent}
+                onChange={handleParentChange}
+              >
+                <option value="">-- Chọn danh mục cha --</option>
+                {parentCategories.map(parent => (
+                  <option key={parent._id} value={parent._id}>
+                    {parent.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="half-width">
+              Danh mục
+              <select
+                name="category_id"
+                value={product.category_id}
+                onChange={handleInputChange}
+                disabled={loadingChildCategories}
+              >
+                <option value="">-- Chọn danh mục --</option>
+                {loadingChildCategories ? (
+                  <option value="" disabled>Đang tải danh mục con...</option>
+                ) : childCategories.length > 0 ? (
+                  childCategories.map(cat => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>Không có danh mục con</option>
+                )}
+              </select>
+              {!selectedParent && (
+                <small className="helper-text">
+                  Vui lòng chọn danh mục cha trước
+                </small>
+              )}
+              {selectedParent && childCategories.length === 0 && !loadingChildCategories && (
+                <small className="helper-text">
+                  Không có danh mục con cho danh mục cha "{getParentName(selectedParent)}"
+                </small>
+              )}
+              {selectedParent && product.category_id && !loadingChildCategories && (
+                <small className="helper-text">
+                  Danh mục con của "{getParentName(selectedParent)}"
+                </small>
+              )}
+            </label>
+          </div>
+
+          <div className="row-flex">
+            <label className="half-width">
+              Thương hiệu
+              <select
+                name="brand_id"
+                value={product.brand_id}
+                onChange={handleInputChange}
+              >
+                <option value="">-- Chọn thương hiệu --</option>
+                {brands.map(b => (
+                  <option key={b._id} value={b._id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="half-width">
+              Giá (VNĐ)
+              <input
+                type="number"
+                name="price"
+                value={product.price}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                placeholder="Nhập giá sản phẩm"
+              />
+            </label>
+          </div>
+
+          <div className="row-flex">
+            <label className="half-width">
+              Số lượng
+              <input
+                type="number"
+                name="stock"
+                value={product.stock}
+                onChange={handleInputChange}
+                min="0"
+                step="1"
+                placeholder="Nhập số lượng"
+              />
+            </label>
+            <label className="half-width">
+              Giảm giá (VNĐ)
+              <input
+                type="number"
+                name="sale"
+                value={product.sale}
+                onChange={handleInputChange}
+                min="0"
+                max={product.price}
+                placeholder="Nhập số tiền giảm giá"
+              />
+              {product.price > 0 && product.sale > 0 && (
+                <small className="helper-text success">
+                  Giảm {((product.sale / product.price) * 100).toFixed(2)}%
+                </small>
+              )}
+            </label>
+          </div>
+
+          <label>
+            Slug (URL)
+            <input
+              type="text"
+              name="slug"
+              value={product.slug}
+              onChange={handleInputChange}
+              placeholder="auto-generated từ tên"
+            />
+            <small className="helper-text">Tự động tạo từ tên sản phẩm</small>
+          </label>
+
+          <label>
+            Mô tả
+            <textarea
+              name="description"
+              value={product.description}
+              onChange={handleInputChange}
+              rows={8}
+              placeholder="Mô tả về sản phẩm này..."
+            />
+          </label>
+
+          <div className="actions">
+            <button className="update" onClick={handleSubmit}>
+              {isEditMode ? "CẬP NHẬT" : "THÊM MỚI"}
+            </button>
+            {isEditMode && (
+              <button className="delete" onClick={handleDelete}>
+                XÓA
+              </button>
+            )}
+            <button className="back" onClick={() => navigate(-1)}>
+              QUAY LẠI
+            </button>
           </div>
         </div>
       </div>
