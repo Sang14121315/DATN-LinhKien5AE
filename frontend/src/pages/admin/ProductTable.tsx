@@ -2,19 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '@/styles/pages/admin/products.scss';
 
-import { Product, fetchAllProducts, ProductQueryParams, formatCurrency } from '@/api/productAPI';
-import { fetchCategories } from '@/api/categoryAPI';
-import { fetchAllBrands } from '@/api/brandAPI';
+import { Product, fetchAllProducts, ProductQueryParams, formatCurrency, ProductListResponse } from '@/api/productAPI';
+import { fetchCategories, Category } from '@/api/categoryAPI';
+import { fetchAllBrands, Brand } from '@/api/brandAPI';
 import { fetchAllProductTypes } from '@/api/productTypeAPI';
 
 const ProductTable: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [types, setTypes] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [/* types */, setTypes] = useState<unknown[]>([]);
   const [filters, setFilters] = useState<ProductQueryParams>({});
   const [search, setSearch] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [/* error */, setError] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -33,11 +33,10 @@ const ProductTable: React.FC = () => {
     try {
       const data = await fetchAllProducts({ ...filters, name: search });
       let productList: Product[] = [];
-
-      if (Array.isArray((data as any)?.products)) {
-        productList = (data as any).products;
-      } else if (Array.isArray(data)) {
-        productList = data;
+      if (Array.isArray(data as unknown as Product[])) {
+        productList = data as unknown as Product[];
+      } else if (Array.isArray((data as unknown as ProductListResponse)?.products)) {
+        productList = (data as unknown as ProductListResponse).products;
       }
 
       // Nếu vừa cập nhật/thêm sản phẩm thì đưa nó lên đầu
@@ -93,14 +92,14 @@ const ProductTable: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleSortByPrice = () => {
-    setFilters(prev => ({
-      ...prev,
-      sortBy: 'price',
-      order: prev.order === 'asc' ? 'desc' : 'asc',
-    }));
-    setCurrentPage(1);
-  };
+  // const handleSortByPrice = () => {
+  //   setFilters(prev => ({
+  //     ...prev,
+  //     sortBy: 'price',
+  //     order: prev.order === 'asc' ? 'desc' : 'asc',
+  //   }));
+  //   setCurrentPage(1);
+  // };
 
   const paginated = products.slice(
     (currentPage - 1) * itemsPerPage,
@@ -116,8 +115,8 @@ const ProductTable: React.FC = () => {
         <div className="filter-group">
           <select onChange={e => handleFilterChange('category_id', e.target.value)}>
             <option value="">📂 Danh mục</option>
-            {categories.map((cat: any) => (
-              <option key={cat._id} value={cat._id}>{cat.name}</option>
+            {categories.map((cat: Category) => (
+              <option key={cat._id || cat.slug} value={cat._id || ''}>{cat.name}</option>
             ))}
           </select>
 
@@ -125,7 +124,7 @@ const ProductTable: React.FC = () => {
 
           <select onChange={e => handleFilterChange('brand_id', e.target.value)}>
             <option value="">🔁 Thương hiệu</option>
-            {brands.map((brand: any) => (
+            {brands.map((brand: Brand) => (
               <option key={brand._id} value={brand._id}>{brand.name}</option>
             ))}
           </select>
@@ -150,7 +149,8 @@ const ProductTable: React.FC = () => {
         <thead>
           <tr>
             <th>Sản phẩm</th>
-            <th>Giá</th>
+            <th>Giá gốc</th>
+            <th>Giá giảm</th>
             <th>Ngày</th>
             <th>Số lượng</th>
             <th>Danh mục</th>
@@ -172,11 +172,16 @@ const ProductTable: React.FC = () => {
                   <span>{product.name}</span>
                 </td>
                 <td>{formatCurrency(product.price)}</td>
+                <td>
+                  {product.sale && product.sale > 0 && product.price > 0
+                    ? formatCurrency(Math.max(product.price - product.sale, 0))
+                    : '—'}
+                </td>
                 <td>{product.created_at ? new Date(product.created_at).toLocaleDateString('vi-VN') : '—'}</td>
                 <td>{product.stock}</td>
-                <td>{(product.category_id as any)?.name || '—'}</td>
+                <td>{(product.category_id as { _id: string; name: string } | string as unknown as { name?: string })?.name || '—'}</td>
                 
-                <td>{(product.brand_id as any)?.name || '—'}</td>
+                <td>{(product.brand_id as { _id: string; name: string } | string as unknown as { name?: string })?.name || '—'}</td>
                 <td><span className="status approved">Đã duyệt</span></td>
                 <td>
                   <button className="view-btn" onClick={() => navigate(`/admin/products/${product._id}/form`)}>

@@ -8,33 +8,59 @@
   }
 
   .filters {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-
-  .filter-group {
     display: flex;
     align-items: center;
-    gap: 12px; // khoảng cách giữa các filter
-  }
-
-  .add-button {
-    margin-left: 20px;
-    padding: 8px 18px;
-    border: 1px solid #00b894;
-    background: #fff;
-    color: #00b894;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    background-color: #f5f7fa; /* Màu nền từ hình ảnh */
+    padding: 10px 15px; /* Thêm padding để tạo không gian xung quanh */
     border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+  
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 12px; /* Khoảng cách giữa các filter */
+  
+      select,
+      input {
+        padding: 8px 12px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #fff;
+        width: 200px; /* Chiều rộng cố định cho desktop */
+        box-sizing: border-box;
+  
+        &:focus {
+          outline: none;
+          border-color: #00b894;
+          box-shadow: 0 0 5px rgba(0, 184, 148, 0.3);
+        }
+      }
+  
+      input {
+        width: 250px; /* Chiều rộng lớn hơn cho ô tìm kiếm */
+      }
+    }
+  
+    .add-button {
+      margin-left: 20px;
+      padding: 8px 18px;
+      border: 1px solid #00b894;
+      background: #fff;
+      color: #00b894;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap; /* Ngăn chữ bị ngắt dòng */
+  
+      &:hover {
+        background: #00b894;
+        color: #fff;
+      }
+    }
   }
-  .add-button:hover {
-    background: #00b894;
-    color: #fff;
-  }
-}
 
 @media (max-width: 900px) {
   .filters {
