@@ -4,7 +4,7 @@ import Sidebar from "@/components/admin/Sidebar";
 import "@/styles/layouts/admin.layout.scss";
 import Footer from "@/components/admin/Footer";
 import Header from "@/components/admin/Header";
-import AdminChatboxWidget from "@/components/admin/AdminChatboxWidget";
+// removed AdminChatboxWidget
 
 const AdminLayout: React.FC = () => {
   return (
@@ -16,7 +16,7 @@ const AdminLayout: React.FC = () => {
         <Outlet />
          <Footer/>
       </main>
-      <AdminChatboxWidget />
+      {/* chatbox removed */}
     </div>
   );
 };
