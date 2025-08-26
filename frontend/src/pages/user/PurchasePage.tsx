@@ -183,15 +183,16 @@ const PurchasePage: React.FC = () => {
                     <button className="reorder-btn" onClick={() => handleReorder(order)}>
                       Mua lần nữa
                     </button>
-                    {["pending", "confirmed", "processing"].includes(order.status) && (
+                    {["pending", "confirmed", "processing"].includes(order.status) ? (
                       <button className="cancel-btn" onClick={() => handleCancelOrder(order._id)}>
                         Hủy đơn hàng
                       </button>
-                    )}
-                    {order.status === "completed" && (
+                    ) : order.status === "completed" ? (
                       <button className="review-btn" onClick={() => handleReviewOrder(order)}>
                         Nhận xét
                       </button>
+                    ) : (
+                      <div className="placeholder-btn"></div>
                     )}
                   </div>
                 </div>

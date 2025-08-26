@@ -36,8 +36,8 @@
 
       .search-input {
         flex: 0 1 auto;
-        min-width: 200px;
-        max-width: 300px;
+        min-width: 280px;
+        max-width: 350px;
 
         .ant-input {
           height: 36px;
@@ -70,33 +70,32 @@
       }
 
       .rating-filter {
-        min-width: 120px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
 
-        .ant-select {
-          .ant-select-selector {
-            height: 36px;
-            border-radius: 6px;
-            border: none;
-            background: #ffffff;
-            box-shadow: none;
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            outline: none;
-            font-size: 13px;
-            line-height: 1.4;
+        .filter-button {
+          height: 36px;
+          border-radius: 6px;
+          border: none;
+          background: #ffffff;
+          box-shadow: none;
+          padding: 8px 12px;
+          outline: none;
+          font-size: 13px;
+          line-height: 1.4;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: #6c757d;
+
+          &:hover {
+            background: #f8f9fa;
+            color: #495057;
           }
 
-          &.ant-select-focused .ant-select-selector {
-            border: none;
-            box-shadow: none;
-            outline: none;
-          }
-
-          &:hover .ant-select-selector {
-            border: none;
-            box-shadow: none;
-            outline: none;
+          &.active {
+            background: #20c997;
+            color: white;
           }
         }
       }

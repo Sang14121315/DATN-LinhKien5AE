@@ -205,51 +205,137 @@
     gap: 10px;
     margin-top: 10px;
 
-    .reorder-btn {
-      padding: 6px 12px;
+    .reorder-btn,
+    .cancel-btn,
+    .review-btn {
+      flex: 0 0 130px !important;
+      width: 130px !important;
+      height: 36px !important;
+      padding: 8px 16px !important;
       background-color: #007BFF;
       color: #FFFFFF;
       border: none;
-      border-radius: 4px;
-      font-size: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.2s ease;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      box-sizing: border-box !important;
+      min-width: 130px !important;
+      max-width: 130px !important;
+    }
+
+    .reorder-btn {
+      background-color: #007BFF;
 
       &:hover {
         background-color: #0056b3;
+        transform: translateY(-1px);
       }
     }
 
     .cancel-btn {
-      padding: 6px 12px;
-      background-color: #666;
-      color: #FFFFFF;
-      border: none;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      background-color: #6c757d;
 
       &:hover {
-        background-color: #444444;
+        background-color: #5a6268;
+        transform: translateY(-1px);
       }
     }
 
     .review-btn {
-      padding: 6px 12px;
-      background-color: #28A745; // Xanh lá cho nút nhận xét
-      color: #FFFFFF;
-      border: none;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      background-color: #28A745;
 
       &:hover {
-        background-color: #218838; // Xanh lá đậm hơn khi hover
+        background-color: #218838;
+        transform: translateY(-1px);
       }
     }
+
+    .placeholder-btn {
+      width: 130px !important;
+      height: 36px !important;
+      visibility: hidden;
+    }
   }
+}
+
+// Force button sizing with highest specificity
+.purchase-page .purchase-container .purchase-content .order-list .order-card .button-group button,
+.purchase-page .purchase-container .purchase-content .order-list .order-card .button-group .reorder-btn,
+.purchase-page .purchase-container .purchase-content .order-list .order-card .button-group .cancel-btn,
+.purchase-page .purchase-container .purchase-content .order-list .order-card .button-group .review-btn {
+  flex: 0 0 130px !important;
+  width: 130px !important;
+  min-width: 130px !important;
+  max-width: 130px !important;
+  height: 36px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+// Nuclear option - force everything with !important
+.purchase-page * .button-group * {
+  flex: 0 0 130px !important;
+  width: 130px !important;
+  min-width: 130px !important;
+  max-width: 130px !important;
+  height: 36px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+// Target specific button classes with maximum specificity
+.purchase-page .purchase-container .purchase-content .order-list .order-card .button-group .reorder-btn,
+.purchase-page .purchase-container .purchase-content .order-list .order-card .button-group .cancel-btn,
+.purchase-page .purchase-container .purchase-content .order-list .order-card .button-group .review-btn {
+  flex: 0 0 130px !important;
+  width: 130px !important;
+  min-width: 130px !important;
+  max-width: 130px !important;
+  height: 36px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+// Force all buttons in the entire purchase page
+.purchase-page button[class*="btn"],
+.purchase-page button[class*="reorder"],
+.purchase-page button[class*="cancel"],
+.purchase-page button[class*="review"] {
+  flex: 0 0 130px !important;
+  width: 130px !important;
+  min-width: 130px !important;
+  max-width: 130px !important;
+  height: 36px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
 }
 
 // Responsive Design
@@ -311,7 +397,7 @@
       .reorder-btn,
       .cancel-btn,
       .review-btn {
-        width: 100%;
+        width: 100% !important;
       }
     }
   }

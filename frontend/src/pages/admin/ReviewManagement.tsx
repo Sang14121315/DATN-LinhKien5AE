@@ -98,26 +98,50 @@ const ReviewManagement: React.FC = () => {
 
       <div className="search-filter-section">
         <div className="search-filter-container">
+          <div className="rating-filter">
+            <button
+              className={`filter-button ${filterRating === 0 ? 'active' : ''}`}
+              onClick={() => setFilterRating(0)}
+            >
+              Tất cả
+            </button>
+            <button
+              className={`filter-button ${filterRating === 5 ? 'active' : ''}`}
+              onClick={() => setFilterRating(5)}
+            >
+              5 sao
+            </button>
+            <button
+              className={`filter-button ${filterRating === 4 ? 'active' : ''}`}
+              onClick={() => setFilterRating(4)}
+            >
+              4 sao
+            </button>
+            <button
+              className={`filter-button ${filterRating === 3 ? 'active' : ''}`}
+              onClick={() => setFilterRating(3)}
+            >
+              3 sao
+            </button>
+            <button
+              className={`filter-button ${filterRating === 2 ? 'active' : ''}`}
+              onClick={() => setFilterRating(2)}
+            >
+              2 sao
+            </button>
+            <button
+              className={`filter-button ${filterRating === 1 ? 'active' : ''}`}
+              onClick={() => setFilterRating(1)}
+            >
+              1 sao
+            </button>
+          </div>
           <div className="search-input">
             <Input
               placeholder="Tìm theo tên, email, sản phẩm, nội dung..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               allowClear
-            />
-          </div>
-          <div className="rating-filter">
-            <Select
-              value={filterRating}
-              onChange={setFilterRating}
-              options={[
-                { value: 0, label: 'Tất cả' },
-                { value: 5, label: '5 sao' },
-                { value: 4, label: '4 sao' },
-                { value: 3, label: '3 sao' },
-                { value: 2, label: '2 sao' },
-                { value: 1, label: '1 sao' },
-              ]}
             />
           </div>
           <div className="total-count">
