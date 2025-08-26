@@ -216,31 +216,10 @@ const LoginPage: React.FC = () => {
     <div className="register-layout-new">
       <div className="register-left-column">
         <div className="register-header-modern">
-          <div className="header-badge">
-            <span className="badge-text">🎉 Mới</span>
-          </div>
           <h1 className="main-title">
             Chào mừng bạn đến với
             <span className="brand-highlight"> 5AE Linh Kiện</span>
           </h1>
-          <p className="subtitle">
-            Nơi kết nối cộng đồng công nghệ với những sản phẩm chất lượng cao
-          </p>
-        </div>
-
-        <div className="stats-container">
-          <div className="stat-card">
-            <div className="stat-number">100+</div>
-            <div className="stat-label">Sản phẩm đa dạng</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">24/7</div>
-            <div className="stat-label">Hỗ trợ khách hàng</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">100%</div>
-            <div className="stat-label">Chính hãng</div>
-          </div>
         </div>
 
         <div className="features-showcase">
@@ -250,7 +229,7 @@ const LoginPage: React.FC = () => {
             </div>
             <div className="feature-content">
               <h3>Giao hàng siêu tốc</h3>
-              <p>Nhận hàng trong vòng 2-4 giờ tại Hà Nội</p>
+              <p>Nhận hàng trong vòng 2-4 giờ tại Hồ Chí Minh</p>
             </div>
           </div>
 
@@ -275,22 +254,7 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="trust-section">
-          <div className="trust-title">Được tin tưởng bởi</div>
-          <div className="trust-logos">
-            <div className="trust-logo">🏢</div>
-            <div className="trust-logo">🎓</div>
-            <div className="trust-logo">🏭</div>
-            <div className="trust-logo">💻</div>
-          </div>
-        </div>
-
         <div className="cta-section">
-          <div className="cta-text">
-            <h3>Bắt đầu hành trình ngay hôm nay!</h3>
-            <p>Tham gia cùng chúng tôi để trải nghiệm dịch vụ tốt nhất</p>
-          </div>
-
           {isMobile && (
             <div className="mobile-cta">
               <Link to="/register" className="btn btn-outline">
