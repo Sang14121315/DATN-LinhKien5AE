@@ -82,7 +82,7 @@ const SearchResult: React.FC = () => {
     return `http://localhost:5000/uploads/products/${url}`;
   };
 
-  // Thêm component StarRating
+  // Component StarRating
   const StarRating: React.FC<{ rating?: number }> = ({ rating }) => {
     if (!rating || rating <= 0) return null;
     const fullStars = Math.floor(rating);
@@ -119,6 +119,7 @@ const SearchResult: React.FC = () => {
           <Row gutter={[16, 16]} className="product-grid">
             {products.length > 0 ? (
               products.map((product) => {
+                const isFavorite = favorites.some((f) => f._id === product._id);
                 return (
                   <Col xs={12} sm={8} md={6} lg={6} key={product._id}>
                     <div className="product-card">
@@ -134,7 +135,8 @@ const SearchResult: React.FC = () => {
                           : product.brand_id}
                       </p>
                       <h4 className="product-name">{product.name}</h4>
-                      {product.average_rating > 0 && <StarRating rating={product.average_rating} />}
+                      {product.averageRating && product.averageRating > 0 && <StarRating rating={product.averageRating} />}
+                      
                       <div className="price-block">
                         <div className="price-left">
                           {product.sale ? (
@@ -153,41 +155,6 @@ const SearchResult: React.FC = () => {
                           )}
                         </div>
 
-                        {product.sale && (
-                          <div className="discount-percent">-34%</div>
-                        )}
-                      </div>
-                      {product.sale && product.price && (
-                        <div className="discount-percent">
-                          -{Math.round((product.sale / product.price) * 100)}%
-                        </div>
-                      )}
-                      <button
-                        className="add-to-cart-btnn"
-                        onClick={() =>
-                          addToCart({
-                            _id: product._id,
-                            name: product.name,
-                            price: product.price,
-                            img_url: product.img_url,
-                            quantity: 1,
-                          })
-                        }
-                      >
-                        <FaShoppingCart className="cart-icon" />
-                        <span className="btn-text">Thêm vào giỏ</span>
-                      </button>
-                      <button
-                        className="favorite-icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFavoriteClick(product);
-                        }}
-                      >
-                        {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                      </button>
-
-
                         {product.sale && product.price > 0 && (
                           <div className="discount-percent">
                             -{Math.round((product.sale / product.price) * 100)}%
@@ -203,6 +170,7 @@ const SearchResult: React.FC = () => {
                               _id: product._id,
                               name: product.name,
                               price: product.price,
+                              sale: product.sale && product.sale > 0 ? product.sale : 0,
                               img_url: product.img_url,
                               quantity: 1,
                             })
@@ -222,7 +190,6 @@ const SearchResult: React.FC = () => {
                           {isFavorite ? <FaHeart /> : <FaRegHeart />}
                         </button>
                       </div>
-
                     </div>
                   </Col>
                 );
@@ -238,13 +205,6 @@ const SearchResult: React.FC = () => {
     </div>
   );
 };
-
-
-
-export default SearchResult;
-
-
-
 
 export default SearchResult;
 

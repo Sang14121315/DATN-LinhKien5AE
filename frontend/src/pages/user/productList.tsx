@@ -383,18 +383,19 @@ const ProductListPage: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        <button
-                                                    className="add-to-cart-btnn"
-                                                    onClick={() =>
-                                                      addToCart({
-                                                        _id: product._id,
-                                                        name: product.name,
-                                                        price: product.price,
-                                                        img_url: product.img_url,
-                                                        quantity: 1,
-                                                      })
-                                                    }
-                                                  >
+                                                <button
+                          className="add-to-cart-btnn"
+                          onClick={() =>
+                            addToCart({
+                              _id: product._id,
+                              name: product.name,
+                              price: product.price,
+                              sale: product.sale && product.sale > 0 ? product.sale : 0,
+                              img_url: product.img_url,
+                              quantity: 1,
+                            })
+                          }
+                        >
                                                     <FaShoppingCart className="cart-icon" />
                                                     <span className="btn-text">Thêm vào giỏ</span>
                                                   </button>

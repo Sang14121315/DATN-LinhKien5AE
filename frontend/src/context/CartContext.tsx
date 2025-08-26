@@ -12,10 +12,10 @@ import { useAuth } from './AuthContext';
 import LoginNotification from '@/components/LoginNotification';
 
 interface CartItem {
-  
   _id: string;
   name: string;
   price: number;
+  sale?: number;
   img_url: string;
   quantity: number;
 }
@@ -46,7 +46,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const totalPrice = cartItems.reduce((total, item) => {
+    const finalPrice = item.sale && item.sale > 0 ? item.price - item.sale : item.price;
+    return total + finalPrice * item.quantity;
+  }, 0);
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const loadCart = async () => {
@@ -79,6 +82,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           _id: item._id,
           name: item.name,
           price: item.price,
+          sale: item.sale || 0,
           img_url: item.img_url || '',
           quantity: item.quantity || 1
         };

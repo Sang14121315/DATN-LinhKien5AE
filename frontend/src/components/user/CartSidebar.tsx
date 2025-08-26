@@ -55,7 +55,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             <FaShoppingCart className="cart-icon" />
             <h3>Giỏ hàng của tôi</h3>
           </div>
-          <span className="item-count">({cartItems.length})</span>
+          <span className="item-count">({cartItems.reduce((total, item) => total + item.quantity, 0)})</span>
         </div>
         <button className="close-btn" onClick={onClose}>
           <FaTimes />
@@ -99,8 +99,15 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                     <h4 className="item-name" title={item.name}>
                       {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
                     </h4>
-                    <p className="item-price">{item.price.toLocaleString()} đ</p>
-                    <p className="item-total">Tổng: {(item.price * item.quantity).toLocaleString()} đ</p>
+                    <p className="item-price">
+                      {item.sale && item.sale > 0 ? 
+                        `${(item.price - item.sale).toLocaleString()} đ` : 
+                        `${item.price.toLocaleString()} đ`
+                      }
+                    </p>
+                    <p className="item-total">
+                      Tổng: {((item.sale && item.sale > 0 ? item.price - item.sale : item.price) * item.quantity).toLocaleString()} đ
+                    </p>
                   </div>
                   <div className="item-actions">
                     <div className="quantity-controls">

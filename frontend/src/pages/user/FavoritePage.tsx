@@ -88,7 +88,14 @@ const FavoritePage: React.FC = () => {
                   <FaTrash className="button-icon" /> Bỏ yêu thích
                 </button>
                 <button
-                  onClick={() => addToCart({ ...fav, quantity: 1 })}
+                  onClick={() => addToCart({ 
+                    _id: fav._id,
+                    name: fav.name,
+                    price: fav.price,
+                    sale: 0,
+                    img_url: fav.img_url,
+                    quantity: 1 
+                  })}
                   className="add-to-cart-button"
                 >
                   <FaShoppingCart className="button-icon" /> Thêm giỏ

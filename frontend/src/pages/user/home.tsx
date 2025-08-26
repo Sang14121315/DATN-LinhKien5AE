@@ -410,6 +410,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                     _id: product._id,
                     name: product.name,
                     price: product.price,
+                    sale: product.sale && product.sale > 0 ? product.sale : 0,
                     img_url: product.img_url,
                     quantity: 1,
                   })
@@ -491,6 +492,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                     _id: product._id,
                     name: product.name,
                     price: product.price,
+                    sale: product.sale && product.sale > 0 ? product.sale : 0,
                     img_url: product.img_url,
                     quantity: 1,
                   })

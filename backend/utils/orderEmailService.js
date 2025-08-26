@@ -28,22 +28,22 @@ const buildProductsHtml = (items = []) => {
       ?.map(
         (item) => `
       <tr>
-        <td style="padding:10px;border:1px solid #eee;width:72px;">
+        <td style="padding:12px;border:1px solid #e5e7eb;width:80px;vertical-align:top;">
           <img src="${
             item.img_url || "https://via.placeholder.com/64?text=No+Image"
-          }" alt="${item.name}" width="64" height="64" style="display:block;border-radius:6px;object-fit:cover;max-width:64px;max-height:64px;">
+          }" alt="${item.name}" width="64" height="64" style="display:block;border-radius:8px;object-fit:cover;max-width:64px;max-height:64px;border:1px solid #f3f4f6;">
         </td>
-        <td style="padding:10px;border:1px solid #eee;">
-          <div style="font-size:14px;color:#111;line-height:1.4;">${item.name}</div>
+        <td style="padding:12px;border:1px solid #e5e7eb;vertical-align:top;">
+          <div style="font-size:14px;color:#111827;line-height:1.5;font-weight:500;">${item.name}</div>
         </td>
-        <td align="center" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
-          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#1e3a8a;font-size:12px;">${item.quantity}</span>
+        <td align="center" style="padding:12px;border:1px solid #e5e7eb;white-space:nowrap;vertical-align:top;">
+          <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:#dbeafe;color:#1e40af;font-size:13px;font-weight:600;min-width:24px;">${item.quantity}</span>
         </td>
-        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
-          <div style="font-size:14px;color:#111;">${formatVnd(item.price)} VNĐ</div>
+        <td align="right" style="padding:12px;border:1px solid #e5e7eb;white-space:nowrap;vertical-align:top;">
+          <div style="font-size:14px;color:#374151;font-weight:500;">${formatVnd(item.price)} VNĐ</div>
         </td>
-        <td align="right" style="padding:10px;border:1px solid #eee;white-space:nowrap;">
-          <div style="font-weight:600;color:#111;">${formatVnd(
+        <td align="right" style="padding:12px;border:1px solid #e5e7eb;white-space:nowrap;vertical-align:top;">
+          <div style="font-weight:700;color:#111827;font-size:14px;">${formatVnd(
             (item.price || 0) * (item.quantity || 0)
           )} VNĐ</div>
         </td>
@@ -53,14 +53,14 @@ const buildProductsHtml = (items = []) => {
       .join("") || "";
 
   return `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;border:1px solid #eee;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
       <thead>
-        <tr>
-          <th align="left" style="padding:10px;border:1px solid #eee;background:#fafafa;font-size:12px;color:#555;width:72px;">Ảnh</th>
-          <th align="left" style="padding:10px;border:1px solid #eee;background:#fafafa;font-size:12px;color:#555;">Sản phẩm</th>
-          <th align="center" style="padding:10px;border:1px solid #eee;background:#fafafa;font-size:12px;color:#555;white-space:nowrap;">SL</th>
-          <th align="right" style="padding:10px;border:1px solid #eee;background:#fafafa;font-size:12px;color:#555;white-space:nowrap;">Đơn giá</th>
-          <th align="right" style="padding:10px;border:1px solid #eee;background:#fafafa;font-size:12px;color:#555;white-space:nowrap;">Thành tiền</th>
+        <tr style="background:#f9fafb;">
+          <th align="left" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;width:80px;font-weight:600;">Ảnh</th>
+          <th align="left" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;font-weight:600;">Sản phẩm</th>
+          <th align="center" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;white-space:nowrap;font-weight:600;">SL</th>
+          <th align="right" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;white-space:nowrap;font-weight:600;">Đơn giá</th>
+          <th align="right" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;white-space:nowrap;font-weight:600;">Thành tiền</th>
         </tr>
       </thead>
       <tbody>
@@ -90,8 +90,8 @@ const buildTotalsHtml = (orderData) => {
     .map(
       (l) => `
       <tr>
-        <td style="padding:6px 0;color:#555;">${l.label}</td>
-        <td align="right" style="padding:6px 0;${l.bold ? "font-weight:700;color:#111;" : ""}">${
+        <td style="padding:8px 0;color:#374151;font-size:14px;">${l.label}</td>
+        <td align="right" style="padding:8px 0;${l.bold ? "font-weight:700;color:#111827;font-size:16px;" : "font-weight:500;color:#374151;font-size:14px;"}">${
           (l.value < 0 ? "- " : "") + formatVnd(Math.abs(l.value))
         } VNĐ</td>
       </tr>`
@@ -99,7 +99,7 @@ const buildTotalsHtml = (orderData) => {
     .join("");
 
   return `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;">
       ${rows}
     </table>
   `;
@@ -129,6 +129,49 @@ const buildProductsPlainList = (items = []) => {
     <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:12px;color:#0f172a;background:#f8fafc;border:1px solid #eef2f7;border-radius:10px;padding:12px;white-space:pre-wrap;line-height:1.6;">
       ${lines || 'Không có sản phẩm'}
     </div>
+  `;
+};
+
+// Tạo bảng sản phẩm đơn giản không có ảnh
+const buildSimpleProductsTable = (items = []) => {
+  const rows =
+    items
+      ?.map(
+        (item) => `
+      <tr>
+        <td style="padding:12px;border:1px solid #e5e7eb;vertical-align:top;">
+          <div style="font-size:14px;color:#111827;line-height:1.5;font-weight:500;">${item.name}</div>
+        </td>
+        <td align="center" style="padding:12px;border:1px solid #e5e7eb;white-space:nowrap;vertical-align:top;">
+          <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:#dbeafe;color:#1e40af;font-size:13px;font-weight:600;min-width:24px;">${item.quantity}</span>
+        </td>
+        <td align="right" style="padding:12px;border:1px solid #e5e7eb;white-space:nowrap;vertical-align:top;">
+          <div style="font-size:14px;color:#374151;font-weight:500;">${formatVnd(item.price)} VNĐ</div>
+        </td>
+        <td align="right" style="padding:12px;border:1px solid #e5e7eb;white-space:nowrap;vertical-align:top;">
+          <div style="font-weight:700;color:#111827;font-size:14px;">${formatVnd(
+            (item.price || 0) * (item.quantity || 0)
+          )} VNĐ</div>
+        </td>
+      </tr>
+    `
+      )
+      .join("") || "";
+
+  return `
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+      <thead>
+        <tr style="background:#f9fafb;">
+          <th align="left" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;font-weight:600;">Sản phẩm</th>
+          <th align="center" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;white-space:nowrap;font-weight:600;">SL</th>
+          <th align="right" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;white-space:nowrap;font-weight:600;">Đơn giá</th>
+          <th align="right" style="padding:12px;border:1px solid #e5e7eb;font-size:13px;color:#374151;white-space:nowrap;font-weight:600;">Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
   `;
 };
 
@@ -217,7 +260,7 @@ const sendOrderConfirmationEmail = async (orderData) => {
     <p style=\"margin:0 0 10px;\">Xin chào <strong>${orderData.customer.name}</strong>,</p>
     <p style=\"margin:0 0 16px;\">Cảm ơn bạn đã đặt hàng tại <strong>${emailConfig.from.name}</strong>. Chúng tôi đã nhận được đơn hàng của bạn và <strong>Đã xác nhận</strong>.</p>
     ${renderSectionCard('📋', 'Thông tin đơn hàng:', infoTable)}
-    ${renderSectionCard('📦', 'Danh sách sản phẩm:', buildProductsPlainList(orderData.items))}
+    ${renderSectionCard('📦', 'Danh sách sản phẩm:', buildSimpleProductsTable(orderData.items))}
     ${renderSectionCard('📍', 'Địa chỉ giao hàng:', `
       <div><strong>Người nhận:</strong> ${orderData.customer.name}</div>
       <div><strong>Số điện thoại:</strong> ${orderData.customer.phone}</div>
@@ -274,20 +317,20 @@ const sendOrderStatusUpdateEmail = async (orderData, oldStatus, newStatus) => {
     <p style="margin:0 0 12px;">Trạng thái đơn hàng đã thay đổi: <strong>${getStatusText(
       oldStatus
     )}</strong> ➜ <strong>${getStatusText(newStatus)}</strong></p>
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 12px;">
-      <tr>
-        <td style="padding:6px 0;">Mã đơn hàng:</td>
-        <td align="right" style="padding:6px 0;">#${orderData._id}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;">Ngày đặt:</td>
-        <td align="right" style="padding:6px 0;">${new Date(orderData.created_at).toLocaleString("vi-VN")}</td>
-      </tr>
-    </table>
-    <h3 style="margin:16px 0 8px;font-size:16px;color:#111;">Sản phẩm</h3>
-    ${productsHtml}
-    <h3 style="margin:16px 0 8px;font-size:16px;color:#111;">Tổng kết</h3>
-    ${buildTotalsHtml(orderData)}
+    ${renderSectionCard('📋', 'Thông tin đơn hàng:', `
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="padding:6px 0;">Mã đơn hàng:</td>
+          <td align="right" style="padding:6px 0;">#${orderData._id}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">Ngày đặt:</td>
+          <td align="right" style="padding:6px 0;">${new Date(orderData.created_at).toLocaleString("vi-VN")}</td>
+        </tr>
+      </table>
+    `)}
+    ${renderSectionCard('📦', 'Danh sách sản phẩm:', buildSimpleProductsTable(orderData.items))}
+    ${renderSectionCard('💰', 'Tổng kết:', buildTotalsHtml(orderData))}
   `;
   const html = wrapEmail(
     `🔔 Cập nhật đơn hàng #${orderData._id}`,
@@ -333,46 +376,46 @@ const sendOrderNotificationToAdmin = async (orderData) => {
   const productsHtml = buildProductsHtml(orderData.items);
 
   const htmlInner = `
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 12px;">
-      <tr>
-        <td style="padding:6px 0;">Mã đơn hàng:</td>
-        <td align="right" style="padding:6px 0;">#${orderData._id}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;">Ngày đặt:</td>
-        <td align="right" style="padding:6px 0;">${new Date(
-          orderData.created_at
-        ).toLocaleString("vi-VN")}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;">Khách hàng:</td>
-        <td align="right" style="padding:6px 0;">${orderData.customer.name}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;">Điện thoại:</td>
-        <td align="right" style="padding:6px 0;">${orderData.customer.phone}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;">Email:</td>
-        <td align="right" style="padding:6px 0;">${orderData.customer.email || "Không có"}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;">Địa chỉ:</td>
-        <td align="right" style="padding:6px 0;">${orderData.customer.address}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 0;">Hình thức thanh toán:</td>
-        <td align="right" style="padding:6px 0;">${
-          orderData.payment_method === "cod"
-            ? "Thanh toán khi nhận hàng"
-            : "Chuyển khoản ngân hàng"
-        }</td>
-      </tr>
-    </table>
-    <h3 style="margin:16px 0 8px;font-size:16px;color:#111;">Sản phẩm</h3>
-    ${productsHtml}
-    <h3 style="margin:16px 0 8px;font-size:16px;color:#111;">Tổng kết</h3>
-    ${buildTotalsHtml(orderData)}
+    ${renderSectionCard('📋', 'Thông tin đơn hàng:', `
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="padding:6px 0;">Mã đơn hàng:</td>
+          <td align="right" style="padding:6px 0;">#${orderData._id}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">Ngày đặt:</td>
+          <td align="right" style="padding:6px 0;">${new Date(
+            orderData.created_at
+          ).toLocaleString("vi-VN")}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">Khách hàng:</td>
+          <td align="right" style="padding:6px 0;">${orderData.customer.name}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">Điện thoại:</td>
+          <td align="right" style="padding:6px 0;">${orderData.customer.phone}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">Email:</td>
+          <td align="right" style="padding:6px 0;">${orderData.customer.email || "Không có"}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">Địa chỉ:</td>
+          <td align="right" style="padding:6px 0;">${orderData.customer.address}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">Hình thức thanh toán:</td>
+          <td align="right" style="padding:6px 0;">${
+            orderData.payment_method === "cod"
+              ? "Thanh toán khi nhận hàng"
+              : "Chuyển khoản ngân hàng"
+          }</td>
+        </tr>
+      </table>
+    `)}
+    ${renderSectionCard('📦', 'Danh sách sản phẩm:', buildSimpleProductsTable(orderData.items))}
+    ${renderSectionCard('💰', 'Tổng kết:', buildTotalsHtml(orderData))}
     <p style="margin:16px 0 0;"><a style="color:#2563eb;text-decoration:none;" href="${
       (process.env.FRONTEND_URL || "http://localhost:5173") +
       "/admin/orders/" +

@@ -103,7 +103,6 @@ const ReviewManagement: React.FC = () => {
               placeholder="Tìm theo tên, email, sản phẩm, nội dung..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              prefix={<FaSearch style={{ color: '#9ca3af' }} />}
               allowClear
             />
           </div>

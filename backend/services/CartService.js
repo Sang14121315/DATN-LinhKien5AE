@@ -11,7 +11,7 @@ class CartService {
     if (!cart) {
       cart = await Cart.create({
         user_id: userId,
-        items: [{ product_id, quantity, price: product.price }]
+        items: [{ product_id, quantity, price: product.price, sale: product.sale || 0 }]
       });
     } else {
       const itemIndex = cart.items.findIndex(
@@ -21,8 +21,9 @@ class CartService {
       if (itemIndex > -1) {
         cart.items[itemIndex].quantity += quantity;
         cart.items[itemIndex].price = product.price;
+        cart.items[itemIndex].sale = product.sale || 0;
       } else {
-        cart.items.push({ product_id, quantity, price: product.price });
+        cart.items.push({ product_id, quantity, price: product.price, sale: product.sale || 0 });
       }
 
       cart.updated_at = Date.now();
@@ -36,7 +37,7 @@ class CartService {
     try {
       const cart = await Cart.findOne({ user_id: userId }).populate({
         path: 'items.product_id',
-        select: '_id name price img_url'
+        select: '_id name price sale img_url'
       });
 
       if (!cart) {
@@ -50,6 +51,7 @@ class CartService {
           _id: item.product_id._id,
           name: item.product_id.name,
           price: item.product_id.price,
+          sale: item.product_id.sale || 0,
           img_url: item.product_id.img_url,
           quantity: item.quantity
         }));
@@ -77,6 +79,7 @@ class CartService {
     } else {
       cart.items[itemIndex].quantity = quantity;
       cart.items[itemIndex].price = product.price;
+      cart.items[itemIndex].sale = product.sale || 0;
     }
 
     cart.updated_at = Date.now();
