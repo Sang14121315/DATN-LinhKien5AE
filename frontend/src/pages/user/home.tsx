@@ -16,18 +16,16 @@ const HomePage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [hotProducts, setHotProducts] = useState<Product[]>([]);
   const [saleProducts, setSaleProducts] = useState<Product[]>([]);
-  const [bestSellerProducts, setBestSellerProducts] = useState<Product[]>([]);
+  // Removed bestSellerProducts unused state to simplify hot products section
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
-  const [currentProductIndex, setCurrentProductIndex] = useState(0);
-  const [allCategoryProducts, setAllCategoryProducts] = useState<Product[]>([]);
-  const [currentSaleIndex, setCurrentSaleIndex] = useState(0);
+  const [currentHotIndex, setCurrentHotIndex] = useState(0);
+  // Removed unused sale index state
   const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [selectedBrand, setSelectedBrand] = useState("all");
+  const [selectedBrand] = useState("all");
 
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -80,8 +78,9 @@ const HomePage: React.FC = () => {
           img_url: product.img_url,
         });
       }
-    } catch (error: any) {
-      console.error("Lỗi khi cập nhật yêu thích:", error.response?.data || error.message);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: unknown }; message?: string };
+      console.error("Lỗi khi cập nhật yêu thích:", err.response?.data || err.message);
     }
   };
 
@@ -103,20 +102,24 @@ const HomePage: React.FC = () => {
         setCategories(hierarchyData); // Sử dụng hierarchyData để có children
         setHotProducts(homeData.hotProducts);
         setSaleProducts(homeData.saleProducts);
-        setBestSellerProducts(homeData.bestSellerProducts);
+        // bestSellerProducts not used on this page currently
 
         const allCategoryProducts: Record<string, Product[]> = {};
-        const productPromises = hierarchyData.map((category) =>
-          fetchFilteredProducts({ category_id: category._id, limit: 5 }).then((res) => ({
-            categoryId: category._id,
+        const validCategories = hierarchyData.filter((c) => Boolean(c._id));
+        const productPromises = validCategories.map((category) =>
+          fetchFilteredProducts({ category_id: category._id as string }).then((res) => ({
+            categoryId: category._id as string,
             products: res,
           }))
         );
         const results = await Promise.all(productPromises);
         results.forEach(({ categoryId, products }) => {
-          allCategoryProducts[categoryId] = products;
+          allCategoryProducts[categoryId as string] = products;
         });
         setProductsByCategory(allCategoryProducts);
+
+        // Khởi tạo hot-products hiển thị từ hotProducts
+        setCurrentHotIndex(0);
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu trang chủ:', error);
       }
@@ -131,58 +134,18 @@ useEffect(() => {
       const brandData = await fetchAllBrands();
       setBrands(brandData);
     } catch (error) {
-      console.error("Lỗi khi tải thương hiệu:", error);
+      console.error("Lỗi khi tải thương hiệu:", error as unknown);
     }
   };
   fetchBrands();
 }, []);
 
-useEffect(() => {
-  const fetchProductsByCategory = async () => {
-    try {
-      let filteredProducts: Product[];
-      if (selectedCategory === 'all') {
-        filteredProducts = hotProducts;
-      } else {
-        filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
-      }
-      setAllCategoryProducts(filteredProducts);
-      setCategoryProducts(filteredProducts.slice(0, 5));
-      setCurrentProductIndex(0);
-    } catch (error) {
-      console.error('Lỗi khi lọc sản phẩm theo danh mục:', error);
-      setAllCategoryProducts(hotProducts);
-      setCategoryProducts(hotProducts.slice(0, 5));
-      setCurrentProductIndex(0);
-    }
-  };
-
-  fetchProductsByCategory();
-}, [selectedCategory, hotProducts]);
+// Removed category-based state syncing for hot products
 
 
   useEffect(() => {
-    const fetchProductsByCategory = async () => {
-      try {
-        let filteredProducts: Product[];
-        if (selectedCategory === 'all') {
-          filteredProducts = hotProducts;
-        } else {
-          filteredProducts = await fetchFilteredProducts({ category_id: selectedCategory });
-        }
-        setAllCategoryProducts(filteredProducts);
-        setCategoryProducts(filteredProducts.slice(0, 5));
-        setCurrentProductIndex(0);
-      } catch (error) {
-        console.error('Lỗi khi lọc sản phẩm theo danh mục:', error);
-        setAllCategoryProducts(hotProducts);
-        setCategoryProducts(hotProducts.slice(0, 5));
-        setCurrentProductIndex(0);
-      }
-    };
-
-    fetchProductsByCategory();
-  }, [selectedCategory, hotProducts]);
+    setCurrentHotIndex(0);
+  }, [hotProducts]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -204,35 +167,17 @@ useEffect(() => {
     setCurrentSlide(index);
   };
 
-  const nextProducts = () => {
-    const nextIndex = currentProductIndex + 5;
-    if (nextIndex < allCategoryProducts.length) {
-      setCurrentProductIndex(nextIndex);
-      setCategoryProducts(allCategoryProducts.slice(nextIndex, nextIndex + 5));
-    }
+  const nextHot = () => {
+    const nextIndex = currentHotIndex + 5;
+    if (nextIndex < hotProducts.length) setCurrentHotIndex(nextIndex);
   };
 
-  const prevProducts = () => {
-    const prevIndex = currentProductIndex - 5;
-    if (prevIndex >= 0) {
-      setCurrentProductIndex(prevIndex);
-      setCategoryProducts(allCategoryProducts.slice(prevIndex, prevIndex + 5));
-    }
+  const prevHot = () => {
+    const prevIndex = currentHotIndex - 5;
+    if (prevIndex >= 0) setCurrentHotIndex(prevIndex);
   };
 
-  const nextSaleProducts = () => {
-    const nextIndex = currentSaleIndex + 4;
-    if (nextIndex < saleProducts.length) {
-      setCurrentSaleIndex(nextIndex);
-    }
-  };
-
-  const prevSaleProducts = () => {
-    const prevIndex = currentSaleIndex - 4;
-    if (prevIndex >= 0) {
-      setCurrentSaleIndex(prevIndex);
-    }
-  };
+  // Sale carousel navigation not used in UI currently
 
   const toggleDropdown = (categoryId: string) => {
     setOpenDropdown(openDropdown === categoryId ? null : categoryId);
@@ -244,44 +189,11 @@ const getBrandImageUrl = (brand: Brand): string => {
     if (brand.logo_url.startsWith("/uploads")) return `http://localhost:5000${brand.logo_url}`;
     return `http://localhost:5000/uploads/brands/${brand.logo_url}`;
   }
-  if (brand.logo_data) {
-    return brand.logo_data;
-  }
+  // Removed usage of logo_data to satisfy Brand type
   return "/public/assets/default_brand_logo.png";
 };
 
-  const renderProductItem = (product: Product) => (
-    <div key={product._id} className="product-item">
-      <img
-        src={`${getImageUrl(product.img_url)}?v=${Date.now()}`}
-        alt={product.name}
-        onClick={() => navigate(`/product/${product._id}`)}
-        style={{ cursor: 'pointer' }}
-      />
-      <div className="product-name">{product.name}</div>
-      <div>
-        <span className="price">{product.price ? formatCurrency(product.price) : 'Giá không khả dụng'}</span>
-        {product.sale && <span className="discount">-20%</span>}
-      </div>
-      {product.sale && product.price && (
-        <div className="old-price">{formatCurrency(product.price * 1.2)}</div>
-      )}
-      <button
-        className="add-to-cart"
-        onClick={() =>
-          addToCart({
-            _id: product._id,
-            name: product.name,
-            price: product.price,
-            img_url: product.img_url,
-            quantity: 1,
-          })
-        }
-      >
-        Thêm vào giỏ
-      </button>
-    </div>
-  );
+  // renderProductItem no longer used
 
   return (
     <div className="home-page">
@@ -436,14 +348,14 @@ const getBrandImageUrl = (brand: Brand): string => {
   <div className="product-carousel">
     <button
       className="carousel-arrow prev"
-      onClick={prevProducts}
-      disabled={currentProductIndex === 0}
+      onClick={prevHot}
+      disabled={currentHotIndex === 0}
     >
       ‹
     </button>
     <div className="product-list">
-      {categoryProducts.length > 0 ? (
-        categoryProducts.map((product) => (
+      {hotProducts.length > 0 ? (
+        hotProducts.slice(currentHotIndex, currentHotIndex + 5).map((product) => (
           <div className="product-card" key={product._id}>
             <img
               src={getImageUrl(product.img_url)}
@@ -510,8 +422,8 @@ const getBrandImageUrl = (brand: Brand): string => {
     </div>
     <button
       className="carousel-arrow next"
-      onClick={nextProducts}
-      disabled={currentProductIndex + 5 >= allCategoryProducts.length}
+      onClick={nextHot}
+      disabled={currentHotIndex + 5 >= hotProducts.length}
     >
       ›
     </button>
@@ -525,7 +437,7 @@ const getBrandImageUrl = (brand: Brand): string => {
   <div className="product-carousel">
     <div className="product-list">
       {saleProducts.length > 0 ? (
-        saleProducts.slice(currentSaleIndex, currentSaleIndex + 5).map((product) => (
+        saleProducts.slice(0, 5).map((product) => (
           <div className="product-card" key={product._id}>
             <img
               src={getImageUrl(product.img_url)}
@@ -600,8 +512,8 @@ const getBrandImageUrl = (brand: Brand): string => {
             <div className="workstation-section">
               <div className="right-products">
                 <div className="product-grid">
-                  {(productsByCategory[category._id] || []).length > 0 ? (
-                    (productsByCategory[category._id] || []).slice(0, 5).map((product) => (
+                  {(productsByCategory[category._id as string] || []).length > 0 ? (
+                    (productsByCategory[category._id as string] || []).slice(0, 5).map((product: Product) => (
                       <div className="product-card" key={product._id}>
                         <img
                           src={getImageUrl(product.img_url)}
