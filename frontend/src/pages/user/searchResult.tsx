@@ -141,46 +141,40 @@ const SearchResult: React.FC = () => {
                           )}
                         </div>
 
-                        {product.sale && (
-                          <div className="discount-percent">-34%</div>
+                        {product.sale && product.price > 0 && (
+                          <div className="discount-percent">
+                            -{Math.round((product.sale / product.price) * 100)}%
+                          </div>
                         )}
                       </div>
 
-                      )}
-                    </div>
-                    {product.sale > 0 && product.price > 0 && (
-                      <div className="discount-percent">
-                        -{Math.round((product.sale / product.price) * 100)}%
+                      <div className="action-buttons">
+                        <button
+                          className="add-to-cart-btn"
+                          onClick={() =>
+                            addToCart({
+                              _id: product._id,
+                              name: product.name,
+                              price: product.price,
+                              img_url: product.img_url,
+                              quantity: 1,
+                            })
+                          }
+                        >
+                          <FaShoppingCart className="cart-icon" />
+                          <span className="btn-text">Thêm vào giỏ</span>
+                        </button>
+
+                        <button
+                          className="favorite-icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFavoriteClick(product);
+                          }}
+                        >
+                          {isFavorite ? <FaHeart /> : <FaRegHeart />}
+                        </button>
                       </div>
-                    )}
-                  </div>
-
-
-                      <button
-                        className="add-to-cart-btnn"
-                        onClick={() =>
-                          addToCart({
-                            _id: product._id,
-                            name: product.name,
-                            price: product.price,
-                            img_url: product.img_url,
-                            quantity: 1,
-                          })
-                        }
-                      >
-                        <FaShoppingCart className="cart-icon" />
-                        <span className="btn-text">Thêm vào giỏ</span>
-                      </button>
-                      
-                      <button
-                        className="favorite-icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFavoriteClick(product);
-                        }}
-                      >
-                        {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                      </button>
                     </div>
                   </Col>
                 );
@@ -197,10 +191,4 @@ const SearchResult: React.FC = () => {
   );
 };
 
-
 export default SearchResult;
-
-export default SearchResult;
-
-
-
