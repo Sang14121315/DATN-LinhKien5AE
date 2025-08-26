@@ -140,10 +140,21 @@ const SearchResult: React.FC = () => {
                             </div>
                           )}
                         </div>
+
                         {product.sale && (
                           <div className="discount-percent">-34%</div>
                         )}
                       </div>
+
+                      )}
+                    </div>
+                    {product.sale > 0 && product.price > 0 && (
+                      <div className="discount-percent">
+                        -{Math.round((product.sale / product.price) * 100)}%
+                      </div>
+                    )}
+                  </div>
+
 
                       <button
                         className="add-to-cart-btnn"
@@ -186,4 +197,10 @@ const SearchResult: React.FC = () => {
   );
 };
 
+
 export default SearchResult;
+
+export default SearchResult;
+
+
+
