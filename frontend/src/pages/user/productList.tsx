@@ -16,13 +16,187 @@ import { Category, fetchCategoriesHierarchy } from "@/api/user/categoryAPI";
 // Thêm component hiển thị sao
 const StarRating: React.FC<{ rating?: number }> = ({ rating }) => {
   if (!rating || rating <= 0) return null;
+  
   const fullStars = Math.floor(rating);
   const halfStar = rating - fullStars >= 0.5;
   const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+  
   return (
-    <div style={{ color: '#FFD700', fontSize: '1.5em', margin: '8px 0 4px 0', display: 'flex', alignItems: 'center' }}>
-      <span>{'★'.repeat(fullStars)}{halfStar ? '½' : ''}{'☆'.repeat(emptyStars)}</span>
-      <span style={{ color: '#333', marginLeft: 8, fontSize: '0.9em' }}>{rating.toFixed(1)}</span>
+    <div className="star-rating">
+      <div className="star-container">
+        {/* Full stars */}
+        <span className="star-full">{'★'.repeat(fullStars)}</span>
+        
+        {/* Half star */}
+        {halfStar && (
+          <span className="star-half">
+            <span className="star-background">★</span>
+            <span className="star-overlay">★</span>
+          </span>
+        )}
+        
+        {/* Empty stars */}
+        <span className="star-empty">{'★'.repeat(emptyStars)}</span>
+      </div>
+      <span className="rating-number">{rating.toFixed(1)}</span>
+    </div>
+  );
+};
+
+// Component Range Slider tùy chỉnh
+const PriceRangeSlider: React.FC<{
+  minValue: number;
+  maxValue: number;
+  min: number;
+  max: number;
+  onChange: (min: number, max: number) => void;
+}> = ({ minValue, maxValue, min, max, onChange }) => {
+  const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
+  const [formattedMinValue, setFormattedMinValue] = useState<string>(minValue.toString());
+  const [formattedMaxValue, setFormattedMaxValue] = useState<string>(maxValue.toString());
+
+  // Hàm định dạng số với dấu chấm ngăn cách phần nghìn
+  const formatNumberWithDots = (value: number): string => {
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  // Cập nhật giá trị định dạng khi minValue hoặc maxValue thay đổi
+  useEffect(() => {
+    setFormattedMinValue(formatNumberWithDots(minValue));
+    setFormattedMaxValue(formatNumberWithDots(maxValue));
+  }, [minValue, maxValue]);
+
+  // Xử lý giá trị nhập vào từ ô input
+  const parseInputValue = (value: string, defaultValue: number): number => {
+    // Loại bỏ dấu chấm và các ký tự không phải số
+    const cleanValue = value.replace(/[^0-9]/g, '');
+    if (!cleanValue) {
+      alert('Vui lòng nhập số hợp lệ');
+      return defaultValue; // Trả về giá trị mặc định (minValue hoặc maxValue)
+    }
+    return parseInt(cleanValue, 10);
+  };
+
+  const formatCurrency = (amount: number): string => {
+    if (amount >= 1000000) {
+      return `${(amount / 1000000).toFixed(amount % 1000000 === 0 ? 0 : 1)}tr `;
+    } else if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}k `;
+    }
+    return formatNumberWithDots(amount);
+  };
+
+  const getPercentage = (value: number) => {
+    return ((value - min) / (max - min)) * 100;
+  };
+
+  const getValueFromPercentage = (percentage: number) => {
+    return Math.round(min + (percentage / 100) * (max - min));
+  };
+
+  const handleMouseDown = (type: 'min' | 'max') => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(type);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+
+    const slider = document.querySelector('.price-slider-track') as HTMLElement;
+    if (!slider) return;
+
+    const rect = slider.getBoundingClientRect();
+    const percentage = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const newValue = getValueFromPercentage(percentage);
+
+    requestAnimationFrame(() => {
+      if (isDragging === 'min') {
+        const newMin = Math.min(newValue, maxValue - 1000);
+        onChange(newMin, maxValue);
+      } else if (isDragging === 'max') {
+        const newMax = Math.max(newValue, minValue + 1000);
+        onChange(minValue, newMax);
+      }
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(null);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, minValue, maxValue]);
+
+  return (
+    <div className="price-range-slider">
+      <div className="price-inputs">
+        <div className="price-input-group">
+          <input
+            type="text"
+            value={formattedMinValue}
+            onChange={(e) => {
+              const rawValue = e.target.value;
+              setFormattedMinValue(rawValue);
+              const value = parseInputValue(rawValue, minValue);
+              const newMin = Math.max(min, Math.min(value, maxValue - 1000));
+              onChange(newMin, maxValue);
+            }}
+            onBlur={() => setFormattedMinValue(formatNumberWithDots(minValue))}
+            className="price-input"
+          />
+          <span className="price-unit">đ</span>
+        </div>
+        <div className="price-input-group">
+          <input
+            type="text"
+            value={formattedMaxValue}
+            onChange={(e) => {
+              const rawValue = e.target.value;
+              setFormattedMaxValue(rawValue);
+              const value = parseInputValue(rawValue, maxValue);
+              const newMax = Math.min(max, Math.max(value, minValue + 1000));
+              onChange(minValue, newMax);
+            }}
+            onBlur={() => setFormattedMaxValue(formatNumberWithDots(maxValue))}
+            className="price-input"
+          />
+          <span className="price-unit">đ</span>
+        </div>
+      </div>
+
+      <div className="price-slider-container">
+        <div className="price-slider-track">
+          <div
+            className="price-slider-range"
+            style={{
+              left: `${getPercentage(minValue)}%`,
+              width: `${getPercentage(maxValue) - getPercentage(minValue)}%`
+            }}
+          />
+          <div
+            className="price-slider-thumb price-slider-thumb-min"
+            style={{ left: `${getPercentage(minValue)}%` }}
+            onMouseDown={handleMouseDown('min')}
+          />
+          <div
+            className="price-slider-thumb price-slider-thumb-max"
+            style={{ left: `${getPercentage(maxValue)}%` }}
+            onMouseDown={handleMouseDown('max')}
+          />
+        </div>
+        <div className="price-slider-labels">
+          <span>{formatCurrency(min)}đ</span>
+          <span>{formatCurrency(max)}đ</span>
+        </div>
+      </div>
     </div>
   );
 };
@@ -35,8 +209,14 @@ const ProductListPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
-  const [selectedPrice, setSelectedPrice] = useState("all");
-  const [sortOrder, setSortOrder] = useState<string | null>("newest"); // Mặc định sắp xếp theo mới nhất
+  
+  // Thay đổi từ selectedPrice thành minPrice và maxPrice
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(1000000);
+  const PRICE_MIN = 0;
+  const PRICE_MAX = 1000000;
+  
+  const [sortOrder, setSortOrder] = useState<string | null>("newest");
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -93,8 +273,9 @@ const ProductListPage: React.FC = () => {
         const parsed = JSON.parse(saved);
         setSelectedCategory(parsed.category || "all");
         setSelectedBrand(parsed.brand || "all");
-        setSelectedPrice(parsed.price || "all");
-        setSortOrder(parsed.sortOrder || "newest"); // Load sort order từ session
+        setMinPrice(parsed.minPrice || PRICE_MIN);
+        setMaxPrice(parsed.maxPrice || PRICE_MAX);
+        setSortOrder(parsed.sortOrder || "newest");
         setTimeout(() => window.scrollTo(0, parsed.scroll || 0), 50);
       }
     }
@@ -108,12 +289,10 @@ const ProductListPage: React.FC = () => {
     
     switch (order) {
       case "newest":
-        // Sắp xếp theo createdAt hoặc _id (MongoDB ObjectId chứa timestamp)
         sortedProducts.sort((a, b) => {
           if (a.createdAt && b.createdAt) {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           }
-          // Fallback: sử dụng _id để sắp xếp (ObjectId mới hơn có giá trị lớn hơn)
           return (b._id || "").localeCompare(a._id || "");
         });
         break;
@@ -135,7 +314,6 @@ const ProductListPage: React.FC = () => {
         sortedProducts.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
         break;
       default:
-        // Mặc định sắp xếp theo mới nhất
         sortedProducts.sort((a, b) => {
           if (a.createdAt && b.createdAt) {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -157,10 +335,11 @@ const ProductListPage: React.FC = () => {
 
         if (selectedCategory !== "all") filters.category_id = selectedCategory;
         if (selectedBrand !== "all") filters.brand_id = selectedBrand;
-        if (selectedPrice !== "all") {
-          const [min, max] = selectedPrice.split("-").map(Number);
-          filters.minPrice = min;
-          filters.maxPrice = max;
+        
+        // Sử dụng minPrice và maxPrice thay vì selectedPrice
+        if (minPrice > PRICE_MIN || maxPrice < PRICE_MAX) {
+          filters.minPrice = minPrice;
+          filters.maxPrice = maxPrice;
         }
 
         const productData = await fetchFilteredProducts(filters);
@@ -174,7 +353,7 @@ const ProductListPage: React.FC = () => {
     };
 
     fetchProducts();
-  }, [selectedCategory, selectedBrand, selectedPrice, sortOrder, filtersInitialized]);
+  }, [selectedCategory, selectedBrand, minPrice, maxPrice, sortOrder, filtersInitialized]);
 
   // Lưu filters vào sessionStorage khi thay đổi
   useEffect(() => {
@@ -184,13 +363,14 @@ const ProductListPage: React.FC = () => {
         JSON.stringify({
           category: selectedCategory,
           brand: selectedBrand,
-          price: selectedPrice,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
           sortOrder: sortOrder,
           scroll: 0,
         })
       );
     }
-  }, [selectedCategory, selectedBrand, selectedPrice, sortOrder, filtersInitialized]);
+  }, [selectedCategory, selectedBrand, minPrice, maxPrice, sortOrder, filtersInitialized]);
 
   const handleFavoriteClick = async (product: Product) => {
     if (!user) {
@@ -200,7 +380,7 @@ const ProductListPage: React.FC = () => {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error("No token found");
+      console.error("Không tìm thấy token");
       navigate("/login");
       return;
     }
@@ -240,7 +420,6 @@ const ProductListPage: React.FC = () => {
     return `http://localhost:5000/uploads/products/${url}`;
   };
 
-  // Function để lấy URL cho brand logo
   const getBrandImageUrl = (brand: Brand): string => {
     if (brand.logo_url) {
       if (brand.logo_url.startsWith('http')) return brand.logo_url;
@@ -257,8 +436,8 @@ const ProductListPage: React.FC = () => {
     <Menu onClick={(e) => setSortOrder(e.key as string)}>
       <Menu.Item key="newest">Mới nhất</Menu.Item>
       <Menu.Item key="oldest">Cũ nhất</Menu.Item>
-      <Menu.Item key="high-to-low">Giá cao - thấp</Menu.Item>
-      <Menu.Item key="low-to-high">Giá thấp - cao</Menu.Item>
+      <Menu.Item key="high-to-low">Giá cao đến thấp</Menu.Item>
+      <Menu.Item key="low-to-high">Giá thấp đến cao</Menu.Item>
       <Menu.Item key="rating">Đánh giá cao nhất</Menu.Item>
     </Menu>
   );
@@ -267,8 +446,8 @@ const ProductListPage: React.FC = () => {
     switch (sortOrder) {
       case "newest": return "Mới nhất";
       case "oldest": return "Cũ nhất";
-      case "high-to-low": return "Giá cao - thấp";
-      case "low-to-high": return "Giá thấp - cao";
+      case "high-to-low": return "Giá cao đến thấp";
+      case "low-to-high": return "Giá thấp đến cao";
       case "rating": return "Đánh giá cao nhất";
       default: return "Mới nhất";
     }
@@ -276,6 +455,11 @@ const ProductListPage: React.FC = () => {
 
   const toggleDropdown = (categoryId: string) => {
     setOpenDropdown(openDropdown === categoryId ? null : categoryId);
+  };
+
+  const handlePriceRangeChange = (min: number, max: number) => {
+    setMinPrice(min);
+    setMaxPrice(max);
   };
 
   return (
@@ -331,28 +515,17 @@ const ProductListPage: React.FC = () => {
                   ))}
                 </ul>
               </div>
+              
+              {/* Thay thế price-filter bằng price-range-slider */}
               <div className="price-filter">
                 <h3>KHOẢNG GIÁ</h3>
-                {[
-                  ["all", "Tất cả"],
-                  ["0-10000", "Dưới 10.000đ"],
-                  ["10000-30000", "10k — 30k"],
-                  ["30000-50000", "30k — 50k"],
-                  ["50000-100000", "50k — 100k"],
-                  ["100000-200000", "100k — 200k"],
-                  ["200000-999999999", "Trên 200k"],
-                ].map(([value, label]) => (
-                  <label className="price-radio" key={value}>
-                    <input
-                      type="radio"
-                      name="price"
-                      value={value}
-                      checked={selectedPrice === value}
-                      onChange={() => setSelectedPrice(value)}
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
+                <PriceRangeSlider
+                  minValue={minPrice}
+                  maxValue={maxPrice}
+                  min={PRICE_MIN}
+                  max={PRICE_MAX}
+                  onChange={handlePriceRangeChange}
+                />
               </div>
             </div>
 
@@ -423,7 +596,8 @@ const ProductListPage: React.FC = () => {
                               JSON.stringify({
                                 category: selectedCategory,
                                 brand: selectedBrand,
-                                price: selectedPrice,
+                                minPrice: minPrice,
+                                maxPrice: maxPrice,
                                 sortOrder: sortOrder,
                                 scroll: window.scrollY,
                               })

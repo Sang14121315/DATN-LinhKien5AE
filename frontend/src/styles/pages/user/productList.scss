@@ -21,7 +21,7 @@
 
   .sidebar {
     width: 250px;
-    background: #F5F5F5;
+    background: white;
     padding: 15px;
     border-radius: 6px;
     flex-shrink: 0;
@@ -70,6 +70,7 @@
         // Custom scrollbar styling
         &::-webkit-scrollbar {
           width: 6px;
+          display: none;
         }
         
         &::-webkit-scrollbar-track {
@@ -153,10 +154,112 @@
           color: #444444;
           font-size: 16px;
           font-weight: bold;
-          margin-bottom: 10px;
+          margin-bottom: 15px;
           border-bottom: 1px solid #E0E0E0;
           padding-bottom: 5px;
           text-transform: uppercase;
+        }
+
+        // Styles cho Price Range Slider
+        .price-range-slider {
+          .price-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+
+            .price-input-group {
+              flex: 1;
+              position: relative;
+              display: flex;
+              align-items: center;
+              border: 1px solid #E0E0E0;
+              border-radius: 4px;
+              padding: 8px 10px;
+              background: white;
+
+              .price-input {
+                border: none;
+                outline: none;
+                width: 100%;
+                font-size: 14px;
+                color: #444444;
+                background: transparent;
+                text-align: right;
+
+                &::-webkit-outer-spin-button,
+                &::-webkit-inner-spin-button {
+                  -webkit-appearance: none;
+                  margin: 0;
+                }
+
+                &[type=number] {
+                  -moz-appearance: textfield;
+                }
+              }
+
+              .price-unit {
+                font-size: 12px;
+                color: #666666;
+                margin-left: 4px;
+              }
+
+              &:focus-within {
+                border-color: #007BFF;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+              }
+            }
+          }
+
+          .price-slider-container {
+            width: 220px;
+            margin-left: auto; /* Căn giữa theo chiều ngang */
+  margin-right: auto;
+            .price-slider-track {
+              position: relative;
+              height: 6px;
+              background: #E0E0E0;
+              border-radius: 3px;
+              margin: 10px 0;
+
+              .price-slider-range {
+                position: absolute;
+                height: 100%;
+                background: #007BFF;
+                border-radius: 3px;
+              }
+
+              .price-slider-thumb {
+                position: absolute;
+                width: 15px;
+                height: 15px;
+                background: white;
+                border: 2px solid #007BFF;
+                border-radius: 50%;
+                cursor: pointer;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                // transition: all 0.1s ease;
+                z-index: 2;
+
+                &:hover {
+                  transform: translate(-50%, -50%) scale(1.1);
+                  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+                }
+
+                &:active {
+                  transform: translate(-50%, -50%) scale(1.15);
+                }
+              }
+            }
+
+            .price-slider-labels {
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: #666666;
+              margin-top: 8px;
+            }
+          }
         }
       }
     }
@@ -347,8 +450,6 @@
           margin-bottom: 10px;
         }
 
-        
-
         .product-brand {
           font-size: 12px;
           color: #666666;
@@ -405,77 +506,77 @@
         }
 
         .add-to-cart-btnn {
-      background: #39b6ff;
-      color: white;
-      border: 1px solid #39b6ff;
-      border-radius: 50px;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      overflow: hidden;
-      padding: 0;
-      position: relative;
-      white-space: nowrap;
+          background: #39b6ff;
+          color: white;
+          border: 1px solid #39b6ff;
+          border-radius: 50px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          overflow: hidden;
+          padding: 0;
+          position: relative;
+          white-space: nowrap;
 
-      .cart-icon {
-        color: white;
-        font-size: 16px;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        transition: all 0.3s ease;
-      }
+          .cart-icon {
+            color: white;
+            font-size: 16px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.3s ease;
+          }
 
-      .btn-text {
-        opacity: 0;
-        width: 0;
-        transition: all 0.3s ease;
-        margin-left: 0;
-      }
+          .btn-text {
+            opacity: 0;
+            width: 0;
+            transition: all 0.3s ease;
+            margin-left: 0;
+          }
 
-      &:hover {
-        width: 145px;
-        justify-content: flex-start;
-        padding-left: 40px;
+          &:hover {
+            width: 145px;
+            justify-content: flex-start;
+            padding-left: 40px;
 
-        .cart-icon {
-          left: 12px;
-          transform: translateX(0);
+            .cart-icon {
+              left: 12px;
+              transform: translateX(0);
+            }
+
+            .btn-text {
+              opacity: 1;
+              width: auto;
+              margin-left: 8px;
+            }
+          }
         }
 
-        .btn-text {
-          opacity: 1;
-          width: auto;
-          margin-left: 8px;
+        .favorite-icon {
+          position: absolute;
+          top: 358px;
+          right: 15px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 32px;
+          color: #666666;
+          transition: color 0.2s;
+          z-index: 10;
+
+          &:hover {
+            color: red;
+            transform: scale(1.1);
+          }
+
+          svg {
+            fill: currentColor;
+          }
         }
-      }
-    }
-
-    .favorite-icon {
-      position: absolute;
-      top: 358px;
-      right: 15px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 32px;
-      color: #666666;
-      transition: color 0.2s;
-      z-index: 10;
-
-      &:hover {
-        color: red;
-        transform: scale(1.1);
-      }
-
-      svg {
-        fill: currentColor;
-      }
-    }
       }
     }
 
@@ -484,6 +585,7 @@
       justify-content: center;
       margin-top: 20px;
       gap: 8px;
+      padding-right: 280px;
 
       button {
         padding: 6px 12px;
@@ -516,6 +618,7 @@
     }
   }
 
+  // Xóa bỏ price-radio styles vì không còn sử dụng
   .price-radio {
     display: flex;
     align-items: center;
@@ -543,5 +646,50 @@
     &:hover {
       background-color: #F0F0F0;
     }
+  }
+}
+
+.star-rating {
+  color: #FFD700;
+  font-size: 1.5em;
+  margin: 8px 0 4px 0;
+  display: flex;
+  align-items: center;
+
+  .star-container {
+    display: flex;
+    align-items: center;
+
+    .star-half {
+      position: relative;
+      display: inline-block;
+
+      .star-background {
+        color: #ddd;
+      }
+
+      .star-overlay {
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+        width: 50%;
+        color: #FFD700;
+      }
+    }
+
+    .star-empty {
+      color: #ddd;
+    }
+
+    .star-full {
+      color: #FFD700;
+    }
+  }
+
+  .rating-number {
+    color: #333;
+    margin-left: 8px;
+    font-size: 0.9em;
   }
 }
