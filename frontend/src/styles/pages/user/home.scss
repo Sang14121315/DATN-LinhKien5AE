@@ -9,6 +9,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    height: 400px;
     display: flex;
     gap: 15px;
   }
@@ -17,21 +18,8 @@ body {
     margin-bottom: 40px;
   }
 
-  /* =========== SIDEBAR TOGGLE =========== */
-  .sidebar-toggle {
-    display: none;
-    background: #39b6ff;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 18px;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 1000;
-  }
+
+  
 
   
   /* =========== SIDEBAR =========== */
@@ -59,6 +47,8 @@ body {
       padding-left: 0;
       list-style: none;
       margin: 0;
+      max-height: 320px;
+      overflow-y: auto;
 
       li {
         padding: 10px 15px;
@@ -135,7 +125,7 @@ body {
   overflow: hidden;
   position: relative;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  height: 510px;         /* khung cố định */
+  height: 400px;         /* khung cố định */
   width: 100%;
 
   .slider-container {
@@ -237,6 +227,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 400px;
 }
 
 .promo-banner {
@@ -513,9 +504,164 @@ body {
   }
 }
 
+/* =========== FLASH SALE =========== */
+.flash-sale {
+  max-width: 1200px;
+  margin: 20px auto;
+  background: #0d6efd10;
+  border-radius: 12px;
+  padding: 16px;
+
+  .fs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #0d6efd;
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 14px;
+
+    .timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      .box {
+        background: #fff;
+        color: #0d6efd;
+        min-width: 44px;
+        text-align: center;
+        padding: 6px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+      }
+      span { font-weight: 700; }
+    }
+
+    .fs-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .fs-date-pill {
+      background: #ffffffcc;
+      color: #0d6efd;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      min-width: 60px;
+      text-align: center;
+    }
+  }
+
+  .fs-tab {
+    margin-top: 10px;
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #e3e9f0;
+    color: #0d6efd;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+
+  .fs-track-wrapper {
+    position: relative;
+    margin-top: 12px;
+  }
+
+  .fs-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #0d6efd;
+    color: #fff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(13,110,253,0.35);
+    &.left { left: -16px; }
+    &.right { right: -16px; }
+
+    &:disabled {
+      background: #b9d0ff;
+      cursor: not-allowed;
+      box-shadow: none;
+      opacity: 0.7;
+    }
+  }
+
+  .fs-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 4px;
+
+    /* đảm bảo nhiều thẻ hiển thị thay vì 1 thẻ kéo dãn */
+    .product-card {
+      flex: 0 0 225px; /* chiều rộng cố định mỗi card cho track ngang */
+      width: 260px;
+    }
+
+    &::-webkit-scrollbar { height: 8px; }
+    &::-webkit-scrollbar-thumb { background: #c9d6ea; border-radius: 6px; }
+  }
+}
+
+.separator-banner {
+  max-width: 1200px;
+  margin: 20px auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  padding: 6px 0;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(13,110,253,0.08) 50%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+  img {
+    width: 100%;
+    height: auto; /* giữ nguyên tỉ lệ, không cắt */
+    object-fit: contain; /* đảm bảo không cắt ảnh nếu container cố định chiều cao */
+    display: block;
+    background: transparent;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.02);
+  }
+}
+
 /* =========== DÙNG CHUNG STYLE PRODUCT CARD =========== */
 .hot-products .product-card,
-.km-products .product-card {
+.km-products .product-card,
+.flash-sale .product-card {
   background: white;
   border-radius: 8px;
   padding: 15px;
@@ -599,6 +745,7 @@ body {
       padding: 3px 6px;
       border-radius: 4px;
     }
+
   }
 
   .action-buttons {
@@ -681,6 +828,8 @@ body {
     }
   }
 }
+
+/* removed glowPulse */
 
 
   /* =========== WORKSTATION SECTION =========== */
@@ -907,191 +1056,378 @@ body {
   }
 
   /* =========== RESPONSIVE =========== */
-  @media (max-width: 1024px) {
-    .home-page-container {
-      flex-direction: column;
-    }
-
-    .sidebar {
-      width: 100%;
-      max-height: 0;
-      overflow: hidden;
-      transform: translateY(-100%);
-      position: fixed;
-      top: 60px;
-      left: 0;
-      z-index: 999;
-      background: #fff;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-
-      &.open {
-        max-height: 80vh;
-        transform: translateY(0);
-        overflow-y: auto;
-      }
-    }
-
-    .sidebar-toggle {
-      display: block;
-    }
-
-    .content-right {
-      width: 100%;
-    }
-
-    #qc-gh .workstation-section {
-      flex-direction: column;
-    }
-
-    .hot-products .product-list,
-    .km-products .product-list {
-      width: 100%;
-    }
-
-    .promo-banners {
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    }
-
-    .promo-banner img {
-      height: 100px;
-    }
+  /* =========== RESPONSIVE =========== */
+@media (max-width: 1024px) {
+  .home-page-container {
+    flex-direction: column;
+    height: auto;
+    padding: 0 15px;
   }
 
-  @media (max-width: 768px) {
-    body {
-      padding: 10px;
+  .sidebar {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    transform: translateY(-100%);
+    position: fixed;
+    top: 60px;
+    left: 0;
+    z-index: 999;
+    background: #fff;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    &.open {
+      max-height: 80vh;
+      transform: translateY(0);
+      overflow-y: auto;
     }
 
-    .home-page-container {
-      padding: 0 10px;
+    .dropdown-header {
+      background: #39b6ff;
+      color: white;
+      padding: 12px 15px;
+      margin: -15px -15px 15px -15px;
+      border-radius: 8px 8px 0 0;
     }
 
-    .hot-products,
-    .km-products {
-      padding: 10px;
-    }
+    .dropdown-content {
+      max-height: 300px;
+      overflow-y: auto;
 
-    .hot-product-card {
-      min-width: 160px;
-      max-width: 160px;
-      height: 280px;
-
-      .product-image {
-        height: 80px;
-      }
-
-      .product-info {
-        .product-name {
-          font-size: 11px;
-          height: 28px;
-        }
-
-        .price-section {
-          .current-price {
-            font-size: 12px;
-          }
-
-          .original-price {
-            font-size: 10px;
-          }
-        }
-
-        .installment-info {
-          font-size: 8px;
-          height: 18px;
-        }
-      }
-    }
-
-    #qc-gh .wrapper .workstation-section .right-products .product-grid {
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    }
-
-    .product-card {
-      min-height: 360px;
-
-      img {
-        height: 140px;
-      }
-
-      .product-name {
+      li {
+        padding: 8px 15px;
         font-size: 14px;
-        min-height: 36px;
-      }
 
-      .price-block {
-        .discount-price {
-          font-size: 16px;
-        }
+        .child-category-list {
+          padding-left: 15px;
 
-        .original-price {
-          font-size: 12px;
-        }
-
-        .discount-percent {
-          top: 240px;
-          font-size: 12px;
+          li {
+            padding: 6px 15px;
+            font-size: 13px;
+          }
         }
       }
     }
   }
 
-  @media (max-width: 480px) {
-    .hot-products .hot-sale-header {
-      flex-direction: column;
-      align-items: flex-start;
+  .sidebar-toggle {
+    display: block;
+  }
 
-      .category-filters {
-        width: 100%;
-        justify-content: flex-start;
-      }
+  .content-right {
+    width: 100%;
+  }
+
+  #qc-gh .workstation-section {
+    flex-direction: column;
+  }
+
+  .hot-products .product-list,
+  .km-products .product-list {
+    width: 100%;
+  }
+
+  .promo-banners {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    flex-direction: row;
+    height: auto;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .promo-banner {
+    flex: 1;
+    height: 100px;
+  }
+
+  .promo-banner img {
+    height: 100px;
+  }
+
+  .hero-banner {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .main-banner {
+    height: 300px;
+    flex: none;
+  }
+  /* Deals section: 4 -> 2 columns on tablet and below */
+  .deals-section {
+    .wrapper {
+      .deal-grid { grid-template-columns: repeat(2, 1fr); }
     }
+  }
+}
 
-    .hot-product-card {
-      min-width: 140px;
-      max-width: 140px;
-      height: 260px;
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
 
-      .product-image {
-        height: 70px;
-      }
-    }
+  .home-page-container {
+    padding: 0 10px;
+  }
 
-    .promo-banners {
-      grid-template-columns: 1fr;
-    }
+  .hot-products,
+  .km-products {
+    padding: 10px;
+  }
 
-    .promo-banner img {
+  .hot-product-card {
+    min-width: 160px;
+    max-width: 160px;
+    height: 280px;
+
+    .product-image {
       height: 80px;
     }
 
-    .product-card {
-      min-height: 320px;
-
-      img {
-        height: 120px;
-      }
-
+    .product-info {
       .product-name {
-        font-size: 12px;
-        min-height: 32px;
+        font-size: 11px;
+        height: 28px;
       }
 
-      .price-block {
-        .discount-price {
-          font-size: 14px;
+      .price-section {
+        .current-price {
+          font-size: 12px;
         }
 
         .original-price {
           font-size: 10px;
         }
+      }
 
-        .discount-percent {
-          top: 220px;
-          font-size: 10px;
+      .installment-info {
+        font-size: 8px;
+        height: 18px;
+      }
+    }
+  }
+
+  #qc-gh .wrapper .workstation-section .right-products .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .product-card {
+    min-height: 360px;
+
+    img {
+      height: 140px;
+    }
+
+    .product-name {
+      font-size: 14px;
+      min-height: 36px;
+    }
+
+    .price-block {
+      .discount-price {
+        font-size: 16px;
+      }
+
+      .original-price {
+        font-size: 12px;
+      }
+
+      .discount-percent {
+        top: 240px;
+        font-size: 12px;
+      }
+    }
+  }
+
+  #banner {
+    .main-banner {
+      height: 250px;
+    }
+
+    .slider-arrow {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+
+      &.prev {
+        left: 5px;
+      }
+
+      &.next {
+        right: 5px;
+      }
+    }
+
+    .slider-dots {
+      bottom: 10px;
+
+      .dot {
+        width: 10px;
+        height: 10px;
+      }
+    }
+
+    .promo-banners {
+      flex-wrap: wrap;
+    }
+
+    .promo-banner {
+      flex-basis: calc(50% - 5px);
+      height: 90px;
+
+      &:last-child {
+        flex-basis: 100%;
+        margin-top: 10px;
+      }
+    }
+
+    .sidebar {
+      .dropdown-content {
+        max-height: 250px;
+
+        li {
+          padding: 8px 12px;
         }
       }
     }
   }
+}
+
+@media (max-width: 480px) {
+  .hot-products .hot-sale-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .category-filters {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  .hot-product-card {
+    min-width: 140px;
+    max-width: 140px;
+    height: 260px;
+
+    .product-image {
+      height: 70px;
+    }
+  }
+
+  .promo-banners {
+    grid-template-columns: 1fr;
+  }
+
+  .promo-banner {
+    height: 70px;
+    flex-basis: 100%;
+
+    &:not(:last-child) {
+      margin-bottom: 5px;
+    }
+  }
+
+  .promo-banner img {
+    height: 80px;
+  }
+
+  .product-card {
+    min-height: 320px;
+
+    img {
+      height: 120px;
+    }
+
+    .product-name {
+      font-size: 12px;
+      min-height: 32px;
+    }
+
+    .price-block {
+      .discount-price {
+        font-size: 14px;
+      }
+
+      .original-price {
+        font-size: 10px;
+      }
+
+      .discount-percent {
+        top: 220px;
+        font-size: 10px;
+      }
+    }
+  }
+
+  #banner {
+    .main-banner {
+      height: 200px;
+    }
+
+    .slider-arrow {
+      width: 35px;
+      height: 35px;
+      font-size: 16px;
+    }
+
+    .sidebar {
+      .dropdown-header {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .dropdown-content {
+        max-height: 200px;
+
+        li {
+          padding: 7px 10px;
+          font-size: 13px;
+        }
+      }
+    }
+  }
+}
+
+.deals-section {
+  .wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 20px;
+
+    h2 {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0 12px;
+      color: #2c3e50;
+    }
+
+    .deal-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+
+      .deal-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform .25s ease, box-shadow .25s ease;
+
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+        }
+
+        img {
+          width: 100%;
+          height: 140px;
+          object-fit: cover;
+          display: block;
+        }
+      }
+    }
+  }
+}
 }

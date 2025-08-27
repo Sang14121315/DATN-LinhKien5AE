@@ -39,7 +39,6 @@ const ProductTable: React.FC = () => {
         productList = (data as unknown as ProductListResponse).products;
       }
 
-      // Nếu vừa cập nhật/thêm sản phẩm thì đưa nó lên đầu
       const { state } = location;
       if (state?.updatedProduct || state?.newProduct) {
         const updated = state.updatedProduct || state.newProduct;
@@ -47,10 +46,8 @@ const ProductTable: React.FC = () => {
           updated,
           ...productList.filter(p => p._id !== updated._id)
         ];
-        // Xóa state để tránh thêm lặp
         navigate(location.pathname, { replace: true, state: {} });
       } else {
-        // Mặc định sort mới nhất lên đầu
         productList.sort((a, b) => {
           return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
         });
@@ -92,15 +89,6 @@ const ProductTable: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // const handleSortByPrice = () => {
-  //   setFilters(prev => ({
-  //     ...prev,
-  //     sortBy: 'price',
-  //     order: prev.order === 'asc' ? 'desc' : 'asc',
-  //   }));
-  //   setCurrentPage(1);
-  // };
-
   const paginated = products.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -119,8 +107,6 @@ const ProductTable: React.FC = () => {
               <option key={cat._id || cat.slug} value={cat._id || ''}>{cat.name}</option>
             ))}
           </select>
-
-          
 
           <select onChange={e => handleFilterChange('brand_id', e.target.value)}>
             <option value="">🔁 Thương hiệu</option>
@@ -155,6 +141,7 @@ const ProductTable: React.FC = () => {
             <th>Số lượng</th>
             <th>Danh mục</th>
             <th>Thương hiệu</th>
+            <th>Hot</th>
             <th>Trạng thái</th>
             <th>Chức năng</th>
           </tr>
@@ -180,8 +167,8 @@ const ProductTable: React.FC = () => {
                 <td>{product.created_at ? new Date(product.created_at).toLocaleDateString('vi-VN') : '—'}</td>
                 <td>{product.stock}</td>
                 <td>{(product.category_id as { _id: string; name: string } | string as unknown as { name?: string })?.name || '—'}</td>
-                
                 <td>{(product.brand_id as { _id: string; name: string } | string as unknown as { name?: string })?.name || '—'}</td>
+                <td>{(product as unknown as { hot?: boolean }).hot ? '✔️' : '—'}</td>
                 <td><span className="status approved">Đã duyệt</span></td>
                 <td>
                   <button className="view-btn" onClick={() => navigate(`/admin/products/${product._id}/form`)}>

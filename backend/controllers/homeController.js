@@ -6,14 +6,14 @@ exports.getHomeData = async (req, res) => {
   try {
     const saleProducts = await ProductService.getAll(
       { sale: { $gt: 0 } },
-      8,
+      50,
       { updated_at: -1, created_at: -1 } // ưu tiên sản phẩm được cập nhật gần nhất, sau đó mới nhất
     );
 
     const hotProducts = await ProductService.getAll(
       { hot: true },
-      8,
-      { updated_at: -1, created_at: -1 } // ưu tiên sản phẩm được cập nhật gần nhất, sau đó mới nhất
+      50,
+      { created_at: -1, updated_at: -1 } // ưu tiên sản phẩm mới thêm; nếu cùng ngày thì ưu tiên cập nhật gần nhất
     );
 
     const bestSellerProducts = await ProductService.getAll(
