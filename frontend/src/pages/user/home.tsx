@@ -462,7 +462,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                 : product.brand_id}
             </p>
             <h4 className="product-name">{product.name}</h4>
-            <StarRating rating={product.averageRating || 0} />
+            {product.averageRating && product.averageRating > 0 ? <StarRating rating={product.averageRating} /> : null}
             <div className="price-block">
               <div className="price-left">
                 {getSaleValue(product.sale) > 0 && product.price > 0 ? (
@@ -517,6 +517,11 @@ const getBrandImageUrl = (brand: Brand): string => {
   </div>
 </section>
 
+<section className="separator-banner" onClick={() => navigate(`/product/${hotProducts[0]?._id || ''}`)} style={{ cursor: hotProducts.length ? 'pointer' : 'default' }}>
+  <img src="/public/img/test1.jpg" alt="Separator" />
+</section>
+
+
 <section className="flash-sale hot-products as-flash">
   <div className="fs-header">
     <div className="fs-title">🔥 SẢN PHẨM HOT</div>
@@ -539,7 +544,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                 : product.brand_id}
             </p>
             <h4 className="product-name">{product.name}</h4>
-            {product.averageRating && product.averageRating > 0 && <StarRating rating={product.averageRating} />}
+            {product.averageRating && product.averageRating > 0 ? <StarRating rating={product.averageRating} /> : null}
             <div className="price-block">
               <div className="price-left">
                 {getSaleValue(product.sale) > 0 && product.price > 0 ? (
@@ -630,7 +635,7 @@ const getBrandImageUrl = (brand: Brand): string => {
                             : product.brand_id}
                         </p>
                         <h4 className="product-name">{product.name}</h4>
-                        {product.averageRating && product.averageRating > 0 && <StarRating rating={product.averageRating} />}
+                        {product.averageRating && product.averageRating > 0 ? <StarRating rating={product.averageRating} /> : null}
                         <div className="price-block">
                           <div className="price-left">
                             {getSaleValue(product.sale) > 0 && product.price > 0 ? (
@@ -695,7 +700,7 @@ const getBrandImageUrl = (brand: Brand): string => {
         <div className="wrapper">
           <h2>ƯU ĐÃI SẢN PHẨM</h2>
           <div className="deal-grid">
-            {["/img/bn1.png","/img/sl1.webp","/img/sl2.png","/img/r2.jpg"].map((src, idx) => (
+            {["/img/sp1.jpg","/img/sp2.jpg","/img/sp3.jpg","/img/sp4.jpg"].map((src, idx) => (
               <div className="deal-card" key={`prod-deal-${idx}`} onClick={navigateToRandomProduct} style={{ cursor: 'pointer' }}>
                 <img src={src} alt={`Ưu đãi sản phẩm ${idx+1}`} />
               </div>
@@ -704,7 +709,7 @@ const getBrandImageUrl = (brand: Brand): string => {
 
           <h2>ƯU ĐÃI THƯƠNG HIỆU</h2>
           <div className="deal-grid">
-            {["/img/r3.webp","/img/r4.jpg","/img/r5.png","/img/bn1.png"].map((src, idx) => (
+            {["/img/th3.jpg","/img/th1.png","/img/th2.png","/img/th4.jpg"].map((src, idx) => (
               <div className="deal-card" key={`brand-deal-${idx}`} onClick={navigateToRandomProduct} style={{ cursor: 'pointer' }}>
                 <img src={src} alt={`Ưu đãi thương hiệu ${idx+1}`} />
               </div>
