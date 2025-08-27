@@ -28,6 +28,7 @@ interface ProductFormData {
   brand_id: string;
   product_type_id: string;
   sale: number;
+  hot?: boolean;
   created_at: string;
   status: string;
   img_url?: string;
@@ -69,6 +70,7 @@ const ProductForm: React.FC = () => {
     brand_id: "",
     product_type_id: "",
     sale: 0,
+    hot: false,
     created_at: "",
     status: "Đã duyệt",
   });
@@ -113,6 +115,7 @@ const ProductForm: React.FC = () => {
                 ? res.product_type_id._id
                 : res.product_type_id || "",
             sale: res.sale || 0,
+            hot: Boolean((res as unknown as { hot?: boolean }).hot),
             created_at: res.created_at || "",
             status: "Đã duyệt",
           });
@@ -284,6 +287,7 @@ const ProductForm: React.FC = () => {
       formData.append("product_type_id", "65f1234567890abcdef12345");
     }
     formData.append("sale", product.sale.toString());
+    formData.append("hot", String(Boolean(product.hot)));
 
     if (imageFile) {
       formData.append("image", imageFile);
@@ -517,17 +521,26 @@ const ProductForm: React.FC = () => {
             </label>
           </div>
 
-          <label>
-            Slug (URL)
-            <input
-              type="text"
-              name="slug"
-              value={product.slug}
-              onChange={handleInputChange}
-              placeholder="auto-generated từ tên"
-            />
-            <small className="helper-text">Tự động tạo từ tên sản phẩm</small>
-          </label>
+          <div className="row-flex">
+            <label className="half-width">
+              Slug (URL)
+              <input
+                type="text"
+                name="slug"
+                value={product.slug}
+                onChange={handleInputChange}
+                placeholder="auto-generated từ tên"
+              />
+              <small className="helper-text">Tự động tạo từ tên sản phẩm</small>
+            </label>
+            <label className="half-width">
+              Sản phẩm HOT
+              <select name="hot" value={product.hot ? 'true' : 'false'} onChange={handleInputChange}>
+                <option value="false">Không</option>
+                <option value="true">Có</option>
+              </select>
+            </label>
+          </div>
 
           <label>
             Mô tả

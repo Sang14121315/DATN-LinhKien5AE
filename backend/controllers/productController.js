@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const Review = require('../models/Review'); // ✅ THÊM IMPORT REVIEW MODEL
 const Joi = require('joi');
 
+
 const productSchema = Joi.object({
   slug: Joi.string().required(),
   name: Joi.string().required(),

@@ -1,5 +1,6 @@
 .products-page {
   padding: 20px;
+  margin-left: 10px; /* Để tránh bị che bởi sidebar trên desktop */
 
   h1 {
     font-size: 24px;
@@ -12,15 +13,15 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
-    background-color: #f5f7fa; /* Màu nền từ hình ảnh */
-    padding: 10px 15px; /* Thêm padding để tạo không gian xung quanh */
+    background-color: #f5f7fa;
+    padding: 10px 15px;
     border-radius: 6px;
-  
+
     .filter-group {
       display: flex;
       align-items: center;
-      gap: 12px; /* Khoảng cách giữa các filter */
-  
+      gap: 12px;
+
       select,
       input {
         padding: 8px 12px;
@@ -28,21 +29,21 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         background-color: #fff;
-        width: 200px; /* Chiều rộng cố định cho desktop */
+        width: 200px;
         box-sizing: border-box;
-  
+
         &:focus {
           outline: none;
           border-color: #00b894;
           box-shadow: 0 0 5px rgba(0, 184, 148, 0.3);
         }
       }
-  
+
       input {
-        width: 250px; /* Chiều rộng lớn hơn cho ô tìm kiếm */
+        width: 250px;
       }
     }
-  
+
     .add-button {
       margin-left: 20px;
       padding: 8px 18px;
@@ -53,8 +54,8 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s, color 0.2s;
-      white-space: nowrap; /* Ngăn chữ bị ngắt dòng */
-  
+      white-space: nowrap;
+
       &:hover {
         background: #00b894;
         color: #fff;
@@ -62,20 +63,31 @@
     }
   }
 
-@media (max-width: 900px) {
-  .filters {
-    flex-direction: column;
-    align-items: stretch;
-    .filter-group {
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .add-button {
-      margin: 10px 0 0 0;
-      width: 100%;
+  @media (max-width: 900px) {
+    margin-left: 0;
+    padding: 10px;
+
+    .filters {
+      flex-direction: column;
+      align-items: stretch;
+
+      .filter-group {
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+
+        select,
+        input {
+          width: 100%;
+        }
+      }
+
+      .add-button {
+        margin: 10px 0 0 0;
+        width: 100%;
+      }
     }
   }
-}
 
   table {
     width: 100%;
@@ -150,6 +162,23 @@
     }
   }
 
+  @media (max-width: 600px) {
+    table {
+      display: block;
+      overflow-x: auto;
+
+      th,
+      td {
+        min-width: 120px;
+      }
+    }
+
+    .view-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+  }
+
   .view-btn {
     background-color: #fff0f0;
     color: #cc0000;
@@ -206,12 +235,23 @@
       }
     }
   }
+
+  @media (max-width: 600px) {
+    .pagination {
+      flex-direction: column;
+      gap: 10px;
+
+      .pages {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+  }
 }
 
-// Thêm styles cho notification và highlight
 .notification {
   animation: slideIn 0.3s ease;
-  
+
   button {
     &:hover {
       opacity: 0.8;
@@ -230,7 +270,6 @@
   }
 }
 
-// Highlight animation cho sản phẩm
 tr[style*="background-color: rgb(255, 243, 205)"] {
   animation: highlightPulse 2s ease-in-out;
 }
