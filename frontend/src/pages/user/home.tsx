@@ -428,6 +428,9 @@ const getBrandImageUrl = (brand: Brand): string => {
   </div>
 </section>
 
+<section className="separator-banner" onClick={() => navigate(`/product/${hotProducts[0]?._id || ''}`)} style={{ cursor: hotProducts.length ? 'pointer' : 'default' }}>
+  <img src="/public/img/test.png" alt="Separator" />
+</section>
 
 <section className="flash-sale">
   <div className="fs-header">
@@ -441,7 +444,6 @@ const getBrandImageUrl = (brand: Brand): string => {
     <div className="fs-title">⚡ FLASH SALE 10H MỖI NGÀY</div>
     <div className="fs-date-pill">{new Date().getDate()}/{new Date().getMonth()+1}</div>
   </div>
-  <div className="fs-tab">Flash sale</div>
   <div className="fs-track-wrapper">
     <button className="fs-arrow left" onClick={scrollSaleLeft} disabled={!canScrollLeft}>‹</button>
     <div className="fs-track" ref={saleListRef}>
@@ -592,9 +594,7 @@ const getBrandImageUrl = (brand: Brand): string => {
   </div>
 </section>
 
-<section className="separator-banner" onClick={() => navigate(`/product/${hotProducts[0]?._id || ''}`)} style={{ cursor: hotProducts.length ? 'pointer' : 'default' }}>
-  <img src="/public/img/test.png" alt="Separator" />
-</section>
+
 
 
       {categories.slice(0, 4).map((category) => (
