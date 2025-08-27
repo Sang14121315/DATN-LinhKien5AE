@@ -124,3 +124,17 @@ exports.canUserReviewProduct = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+// ✅ Controller mới: Kiểm tra user đã đánh giá sản phẩm từ đơn hàng cụ thể chưa
+exports.checkIfUserReviewedProductFromOrder = async (req, res) => {
+  try {
+    const { orderId, productId } = req.params;
+    const userId = req.user.id;
+    
+    const isReviewed = await ReviewService.checkIfUserReviewedProductFromOrder(userId, orderId, productId);
+    res.json({ isReviewed });
+  } catch (error) {
+    console.error('Error checking review status:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

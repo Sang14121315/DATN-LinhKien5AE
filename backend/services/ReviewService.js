@@ -162,6 +162,39 @@ class ReviewService {
     const unreviewedOrders = await this.getUnreviewedOrderDetails(userId, productId);
     return unreviewedOrders.length > 0;
   }
+
+  // ✅ Phương thức mới: Kiểm tra user đã đánh giá sản phẩm từ đơn hàng cụ thể chưa
+  static async checkIfUserReviewedProductFromOrder(userId, orderId, productId) {
+    try {
+      const orderIdObj = new mongoose.Types.ObjectId(orderId);
+      const productIdObj = new mongoose.Types.ObjectId(productId);
+      
+      // Tìm OrderDetail từ orderId và productId
+      const orderDetail = await OrderDetail.findOne({
+        product_id: productIdObj
+      }).populate({
+        path: 'order_id',
+        match: { _id: orderIdObj, user_id: userId },
+        select: '_id user_id'
+      });
+      
+      // Nếu không tìm thấy OrderDetail hợp lệ, return false
+      if (!orderDetail || !orderDetail.order_id) {
+        return false;
+      }
+      
+      // Kiểm tra xem có review cho OrderDetail này không
+      const review = await Review.findOne({
+        user_id: userId,
+        order_detail_id: orderDetail._id
+      });
+      
+      return !!review;
+    } catch (error) {
+      console.error('Error in checkIfUserReviewedProductFromOrder:', error);
+      return false;
+    }
+  }
 }
 
 module.exports = ReviewService;

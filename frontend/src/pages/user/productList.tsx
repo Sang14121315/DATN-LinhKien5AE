@@ -36,10 +36,10 @@ const ProductListPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState("all");
-  const [sortOrder, setSortOrder] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<string | null>("newest"); // Mặc định sắp xếp theo mới nhất
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null); // Track open dropdown
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const [searchParams] = useSearchParams();
 
@@ -76,30 +76,76 @@ const ProductListPage: React.FC = () => {
 
   // Load filters từ URL hoặc sessionStorage
   useEffect(() => {
-  const categoryFromUrl = searchParams.get("category");
-  const brandFromUrl = searchParams.get("brand");
+    const categoryFromUrl = searchParams.get("category");
+    const brandFromUrl = searchParams.get("brand");
 
-  if (categoryFromUrl) {
-    setSelectedCategory(categoryFromUrl);
-  }
-  if (brandFromUrl) {
-    setSelectedBrand(brandFromUrl);
-  }
-
-  // Nếu không có gì trong URL thì fallback từ sessionStorage
-  if (!categoryFromUrl && !brandFromUrl) {
-    const saved = sessionStorage.getItem("productFilters");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setSelectedCategory(parsed.category || "all");
-      setSelectedBrand(parsed.brand || "all");
-      setSelectedPrice(parsed.price || "all");
-      setTimeout(() => window.scrollTo(0, parsed.scroll || 0), 50);
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
     }
-  }
+    if (brandFromUrl) {
+      setSelectedBrand(brandFromUrl);
+    }
 
-  setFiltersInitialized(true);
-}, [searchParams]);
+    // Nếu không có gì trong URL thì fallback từ sessionStorage
+    if (!categoryFromUrl && !brandFromUrl) {
+      const saved = sessionStorage.getItem("productFilters");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setSelectedCategory(parsed.category || "all");
+        setSelectedBrand(parsed.brand || "all");
+        setSelectedPrice(parsed.price || "all");
+        setSortOrder(parsed.sortOrder || "newest"); // Load sort order từ session
+        setTimeout(() => window.scrollTo(0, parsed.scroll || 0), 50);
+      }
+    }
+
+    setFiltersInitialized(true);
+  }, [searchParams]);
+
+  // Hàm sắp xếp sản phẩm
+  const sortProducts = (productList: Product[], order: string | null) => {
+    let sortedProducts = [...productList];
+    
+    switch (order) {
+      case "newest":
+        // Sắp xếp theo createdAt hoặc _id (MongoDB ObjectId chứa timestamp)
+        sortedProducts.sort((a, b) => {
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          // Fallback: sử dụng _id để sắp xếp (ObjectId mới hơn có giá trị lớn hơn)
+          return (b._id || "").localeCompare(a._id || "");
+        });
+        break;
+      case "oldest":
+        sortedProducts.sort((a, b) => {
+          if (a.createdAt && b.createdAt) {
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          }
+          return (a._id || "").localeCompare(b._id || "");
+        });
+        break;
+      case "high-to-low":
+        sortedProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case "low-to-high":
+        sortedProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case "rating":
+        sortedProducts.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
+        break;
+      default:
+        // Mặc định sắp xếp theo mới nhất
+        sortedProducts.sort((a, b) => {
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
+          return (b._id || "").localeCompare(a._id || "");
+        });
+    }
+    
+    return sortedProducts;
+  };
 
   // Lọc và sắp xếp sản phẩm theo bộ lọc
   useEffect(() => {
@@ -118,12 +164,8 @@ const ProductListPage: React.FC = () => {
         }
 
         const productData = await fetchFilteredProducts(filters);
-        let sortedProducts = [...productData];
-        if (sortOrder === "high-to-low") {
-          sortedProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
-        } else if (sortOrder === "low-to-high") {
-          sortedProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
-        }
+        const sortedProducts = sortProducts(productData, sortOrder);
+        
         setProducts(sortedProducts);
         setCurrentPage(1);
       } catch (error) {
@@ -132,6 +174,22 @@ const ProductListPage: React.FC = () => {
     };
 
     fetchProducts();
+  }, [selectedCategory, selectedBrand, selectedPrice, sortOrder, filtersInitialized]);
+
+  // Lưu filters vào sessionStorage khi thay đổi
+  useEffect(() => {
+    if (filtersInitialized) {
+      sessionStorage.setItem(
+        "productFilters",
+        JSON.stringify({
+          category: selectedCategory,
+          brand: selectedBrand,
+          price: selectedPrice,
+          sortOrder: sortOrder,
+          scroll: 0,
+        })
+      );
+    }
   }, [selectedCategory, selectedBrand, selectedPrice, sortOrder, filtersInitialized]);
 
   const handleFavoriteClick = async (product: Product) => {
@@ -197,10 +255,24 @@ const ProductListPage: React.FC = () => {
 
   const sortMenu = (
     <Menu onClick={(e) => setSortOrder(e.key as string)}>
+      <Menu.Item key="newest">Mới nhất</Menu.Item>
+      <Menu.Item key="oldest">Cũ nhất</Menu.Item>
       <Menu.Item key="high-to-low">Giá cao - thấp</Menu.Item>
       <Menu.Item key="low-to-high">Giá thấp - cao</Menu.Item>
+      <Menu.Item key="rating">Đánh giá cao nhất</Menu.Item>
     </Menu>
   );
+
+  const getSortLabel = (sortOrder: string | null) => {
+    switch (sortOrder) {
+      case "newest": return "Mới nhất";
+      case "oldest": return "Cũ nhất";
+      case "high-to-low": return "Giá cao - thấp";
+      case "low-to-high": return "Giá thấp - cao";
+      case "rating": return "Đánh giá cao nhất";
+      default: return "Mới nhất";
+    }
+  };
 
   const toggleDropdown = (categoryId: string) => {
     setOpenDropdown(openDropdown === categoryId ? null : categoryId);
@@ -264,10 +336,10 @@ const ProductListPage: React.FC = () => {
                 {[
                   ["all", "Tất cả"],
                   ["0-10000", "Dưới 10.000đ"],
-                  ["10000-30000", "10k – 30k"],
-                  ["30000-50000", "30k – 50k"],
-                  ["50000-100000", "50k – 100k"],
-                  ["100000-200000", "100k – 200k"],
+                  ["10000-30000", "10k — 30k"],
+                  ["30000-50000", "30k — 50k"],
+                  ["50000-100000", "50k — 100k"],
+                  ["100000-200000", "100k — 200k"],
                   ["200000-999999999", "Trên 200k"],
                 ].map(([value, label]) => (
                   <label className="price-radio" key={value}>
@@ -329,7 +401,7 @@ const ProductListPage: React.FC = () => {
               </h2>
               <Dropdown overlay={sortMenu} trigger={['click']}>
                 <a className="sort-button" onClick={(e) => e.preventDefault()}>
-                  Sắp xếp <DownOutlined />
+                  {getSortLabel(sortOrder)} <DownOutlined />
                 </a>
               </Dropdown>
             </div>
@@ -352,6 +424,7 @@ const ProductListPage: React.FC = () => {
                                 category: selectedCategory,
                                 brand: selectedBrand,
                                 price: selectedPrice,
+                                sortOrder: sortOrder,
                                 scroll: window.scrollY,
                               })
                             );
@@ -359,7 +432,6 @@ const ProductListPage: React.FC = () => {
                           }}
                         />
 
-                        
                         <p className="product-brand">
                           {typeof product.brand_id === "object" ? product.brand_id.name : product.brand_id}
                         </p>
@@ -383,7 +455,7 @@ const ProductListPage: React.FC = () => {
                             </div>
                           )}
                         </div>
-                                                <button
+                        <button
                           className="add-to-cart-btnn"
                           onClick={() =>
                             addToCart({
@@ -396,18 +468,18 @@ const ProductListPage: React.FC = () => {
                             })
                           }
                         >
-                                                    <FaShoppingCart className="cart-icon" />
-                                                    <span className="btn-text">Thêm vào giỏ</span>
-                                                  </button>
-                                                  <button
-                                                    className="favorite-icon"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleFavoriteClick(product);
-                                                    }}
-                                                  >
-                                                    {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
-                                                  </button>
+                          <FaShoppingCart className="cart-icon" />
+                          <span className="btn-text">Thêm vào giỏ</span>
+                        </button>
+                        <button
+                          className="favorite-icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFavoriteClick(product);
+                          }}
+                        >
+                          {favorites.some((f) => f._id === product._id) ? <FaHeart /> : <FaRegHeart />}
+                        </button>
                       </div>
                     </Col>
                   );

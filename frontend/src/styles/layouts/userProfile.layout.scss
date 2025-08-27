@@ -21,6 +21,9 @@
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   height: fit-content;
+  position: sticky;
+    top: 120px;
+    z-index: 100;
 
   .user-info {
     display: flex;
