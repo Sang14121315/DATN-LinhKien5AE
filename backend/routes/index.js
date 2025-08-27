@@ -192,6 +192,7 @@ router.put('/review/update/:review_id', auth, reviewController.updateReview);
 // New routes for enhanced review functionality
 router.get('/review/user-latest/:product_id', auth, reviewController.getUserLatestReviewForProduct);
 router.get('/review/can-review/:product_id', auth, reviewController.canUserReviewProduct);
+router.get('/review/check-reviewed/:orderId/:productId', auth, reviewController.checkIfUserReviewedProductFromOrder);
 
 // Review (admin)
 router.post("/review/admin-reply", auth, reviewController.adminReply);

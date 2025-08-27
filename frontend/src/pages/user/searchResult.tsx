@@ -11,6 +11,36 @@ import { useFavorite } from "@/context/FavoriteContext";
 import { useAuth } from "@/context/AuthContext";
 import "@/styles/pages/user/productList.scss";
 
+// Component StarRating - đồng bộ với productList
+const StarRating: React.FC<{ rating?: number }> = ({ rating }) => {
+  if (!rating || rating <= 0) return null;
+  
+  const fullStars = Math.floor(rating);
+  const halfStar = rating - fullStars >= 0.5;
+  const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+  
+  return (
+    <div className="star-rating">
+      <div className="star-container">
+        {/* Full stars */}
+        <span className="star-full">{'★'.repeat(fullStars)}</span>
+        
+        {/* Half star */}
+        {halfStar && (
+          <span className="star-half">
+            <span className="star-background">★</span>
+            <span className="star-overlay">★</span>
+          </span>
+        )}
+        
+        {/* Empty stars */}
+        <span className="star-empty">{'★'.repeat(emptyStars)}</span>
+      </div>
+      <span className="rating-number">{rating.toFixed(1)}</span>
+    </div>
+  );
+};
+
 const SearchResult: React.FC = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("query") || "";
@@ -82,20 +112,6 @@ const SearchResult: React.FC = () => {
     return `http://localhost:5000/uploads/products/${url}`;
   };
 
-  // Component StarRating
-  const StarRating: React.FC<{ rating?: number }> = ({ rating }) => {
-    if (!rating || rating <= 0) return null;
-    const fullStars = Math.floor(rating);
-    const halfStar = rating - fullStars >= 0.5;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-    return (
-      <div style={{ color: '#FFD700', fontSize: '1.5em', margin: '8px 0 4px 0', display: 'flex', alignItems: 'center' }}>
-        <span>{'★'.repeat(fullStars)}{halfStar ? '½' : ''}{'☆'.repeat(emptyStars)}</span>
-        <span style={{ color: '#333', marginLeft: 8, fontSize: '0.9em' }}>{rating.toFixed(1)}</span>
-      </div>
-    );
-  };
-
   return (
     <div className="product-page-container">
       <div className="product-layout">
@@ -135,14 +151,19 @@ const SearchResult: React.FC = () => {
                           : product.brand_id}
                       </p>
                       <h4 className="product-name">{product.name}</h4>
-                      {product.averageRating && product.averageRating > 0 && <StarRating rating={product.averageRating} />}
+                      
+                      {/* Fix: Sử dụng cả averageRating và average_rating để tương thích */}
+                      {((product.averageRating && product.averageRating > 0) || 
+                        (product.average_rating && product.average_rating > 0)) && (
+                        <StarRating rating={product.averageRating || product.average_rating} />
+                      )}
                       
                       <div className="price-block">
                         <div className="price-left">
-                          {product.sale ? (
+                          {product.sale && product.sale > 0 && product.price > 0 ? (
                             <>
                               <div className="discount-price">
-                                {formatCurrency(product.price * 0.66)}
+                                {formatCurrency(product.price - product.sale)}
                               </div>
                               <div className="original-price">
                                 {formatCurrency(product.price)}
@@ -155,41 +176,40 @@ const SearchResult: React.FC = () => {
                           )}
                         </div>
 
-                        {product.sale && product.price > 0 && (
+                        {product.sale && product.sale > 0 && product.price > 0 && 
+                         Math.round((product.sale / product.price) * 100) > 0 && (
                           <div className="discount-percent">
                             -{Math.round((product.sale / product.price) * 100)}%
                           </div>
                         )}
                       </div>
 
-                      <div className="action-buttons">
-                        <button
-                          className="add-to-cart-btn"
-                          onClick={() =>
-                            addToCart({
-                              _id: product._id,
-                              name: product.name,
-                              price: product.price,
-                              sale: product.sale && product.sale > 0 ? product.sale : 0,
-                              img_url: product.img_url,
-                              quantity: 1,
-                            })
-                          }
-                        >
-                          <FaShoppingCart className="cart-icon" />
-                          <span className="btn-text">Thêm vào giỏ</span>
-                        </button>
-
-                        <button
-                          className="favorite-icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFavoriteClick(product);
-                          }}
-                        >
-                          {isFavorite ? <FaHeart /> : <FaRegHeart />}
-                        </button>
-                      </div>
+                      <button
+                        className="add-to-cart-btnn"
+                        onClick={() =>
+                          addToCart({
+                            _id: product._id,
+                            name: product.name,
+                            price: product.price,
+                            sale: product.sale && product.sale > 0 ? product.sale : 0,
+                            img_url: product.img_url,
+                            quantity: 1,
+                          })
+                        }
+                      >
+                        <FaShoppingCart className="cart-icon" />
+                        <span className="btn-text">Thêm vào giỏ</span>
+                      </button>
+                      
+                      <button
+                        className="favorite-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFavoriteClick(product);
+                        }}
+                      >
+                        {isFavorite ? <FaHeart /> : <FaRegHeart />}
+                      </button>
                     </div>
                   </Col>
                 );
@@ -207,4 +227,3 @@ const SearchResult: React.FC = () => {
 };
 
 export default SearchResult;
-

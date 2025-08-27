@@ -109,8 +109,9 @@
 .purchase-content {
   min-height: 400px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 40px 20px;
   background: #FFFFFF;
 
@@ -146,6 +147,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .order-card {
@@ -212,6 +214,7 @@
       width: 130px !important;
       height: 36px !important;
       padding: 8px 16px !important;
+      margin-top: 10px;
       background-color: #007BFF;
       color: #FFFFFF;
       border: none;
@@ -262,6 +265,45 @@
       width: 130px !important;
       height: 36px !important;
       visibility: hidden;
+    }
+  }
+}
+
+// Pagination
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-right: 110px;
+
+  .pagination-btn {
+    padding: 8px 12px;
+    border: 1px solid #E0E0E0;
+    background: #FFFFFF;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: #007BFF;
+      color: #FFFFFF;
+      border-color: #007BFF;
+    }
+
+    &.active {
+      background: #007BFF;
+      color: #FFFFFF;
+      border-color: #007BFF;
+      font-weight: 600;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
     }
   }
 }
@@ -325,9 +367,9 @@
 .purchase-page button[class*="cancel"],
 .purchase-page button[class*="review"] {
   flex: 0 0 130px !important;
-  width: 130px !important;
-  min-width: 130px !important;
-  max-width: 130px !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  max-width: 50px !important;
   height: 36px !important;
   box-sizing: border-box !important;
   display: flex !important;
@@ -401,6 +443,15 @@
       }
     }
   }
+
+  .pagination {
+    gap: 6px;
+
+    .pagination-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+  }
 }
 
 @media (max-width: 480px) {
@@ -420,6 +471,15 @@
           }
         }
       }
+    }
+  }
+
+  .pagination {
+    gap: 4px;
+
+    .pagination-btn {
+      padding: 6px 8px;
+      font-size: 11px;
     }
   }
 }
