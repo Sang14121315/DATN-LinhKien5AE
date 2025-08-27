@@ -57,7 +57,7 @@ const CouponForm: React.FC = () => {
         discount_value: Number(formData.discount_value),
         min_order_value: Number(formData.min_order_value),
         max_uses: Number(formData.max_uses),
-        pointsRequired: Number(formData.pointsRequired),
+        pointsRequired: formData.pointsRequired ? Number(formData.pointsRequired) : 0,
         limitMonth: Number(formData.limitMonth),
         start_date: formData.start_date ? new Date(formData.start_date).toISOString() : undefined,
         end_date: formData.end_date ? new Date(formData.end_date).toISOString() : undefined,
@@ -207,9 +207,8 @@ const CouponForm: React.FC = () => {
             <input 
               name="pointsRequired" 
               type="number"
-              value={formData.pointsRequired}
+              value={formData.pointsRequired === 0 ? '' : formData.pointsRequired}
               onChange={handleChange}
-              required
               style={{
                 height: '40px',
                 padding: '0 16px',
@@ -222,6 +221,7 @@ const CouponForm: React.FC = () => {
                 margin: 0,
                 width: '100%'
               }}
+              placeholder="Để trống nếu không phải voucher đổi điểm"
             />
           </div>
           <div>
