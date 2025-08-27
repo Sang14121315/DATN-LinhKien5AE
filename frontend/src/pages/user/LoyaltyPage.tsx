@@ -8,6 +8,7 @@ import {
   redeemCoupon,
   Coupon,
   getUserCouponCountInMonth,
+  getMyCoupons,
 } from "@/api/user/userAPI";
 import { FaMedal, FaCoins, FaCrown, FaTicketAlt } from "react-icons/fa";
 import "@/styles/pages/user/loyalty.scss";
@@ -19,10 +20,12 @@ const LoyaltyPage: React.FC = () => {
   const [redeemingCouponId, setRedeemingCouponId] = useState<string | null>(null);
   const [couponList, setCouponList] = useState<Coupon[]>([]);
   const [couponRedeemCounts, setCouponRedeemCounts] = useState<{ [couponId: string]: number }>({});
+  const [myCoupons, setMyCoupons] = useState<Coupon[]>([]);
 
   useEffect(() => {
     fetchLoyalty();
     fetchCoupons();
+    fetchMyCoupons();
   }, []);
 
   useEffect(() => {
@@ -74,6 +77,15 @@ const LoyaltyPage: React.FC = () => {
     setCouponRedeemCounts(counts);
   };
 
+  const fetchMyCoupons = async () => {
+    try {
+      const coupons = await getMyCoupons();
+      setMyCoupons(coupons);
+    } catch {
+      setMyCoupons([]);
+    }
+  };
+
   const handleRedeemCoupon = async (couponId: string) => {
     setRedeemingCouponId(couponId);
     try {
@@ -90,7 +102,7 @@ const LoyaltyPage: React.FC = () => {
       alert(res.message || `Đã đổi điểm lấy coupon!`);
       fetchLoyalty();
       fetchCoupons();
-      // Sau khi đổi thành công, cập nhật lại số lượt
+      fetchMyCoupons(); // GỌI LẠI SAU KHI ĐỔI ĐIỂM
       if (coupon && coupon.limitMonth) {
         setCouponRedeemCounts(prev => ({ ...prev, [couponId]: (prev[couponId] || 0) + 1 }));
       }

@@ -128,11 +128,23 @@ const CheckoutPage: React.FC = () => {
       try {
         const myCoupons = await getMyCoupons();
         setRedeemedCoupons(myCoupons);
+        console.log('redeemedCoupons', myCoupons); // DEBUG: log ra để kiểm tra
       } catch (e) {
         setRedeemedCoupons([]);
       }
     };
     fetchRedeemedCoupons();
+
+    // Khi tab được focus lại (user quay lại trang), fetch lại voucher đã đổi
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchRedeemedCoupons();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -163,6 +175,18 @@ const CheckoutPage: React.FC = () => {
       setDiscount(0);
       setCouponCode("");
       return;
+    }
+
+    // Nếu là voucher cần điểm mà user chưa đổi điểm thì không cho áp dụng
+    if (selectedCoupon.pointsRequired > 0) {
+      const isRedeemed = redeemedCoupons.some(c => c.code === selectedCoupon.code);
+      if (!isRedeemed) {
+        alert('Bạn cần đổi điểm để sử dụng voucher này!');
+        setCoupon(null);
+        setDiscount(0);
+        setCouponCode("");
+        return;
+      }
     }
 
     try {
@@ -662,8 +686,9 @@ const CheckoutPage: React.FC = () => {
                             </div>
                           }
                         >
-                          {/* Mã giảm giá thông thường */}
+                          {/* Voucher không cần điểm (chỉ hiện khi đủ điều kiện tổng tiền) */}
                           {availableCoupons
+                            .filter(c => c.pointsRequired === 0)
                             .filter(c => {
                               const now = new Date();
                               const startDate = new Date(c.start_date);
@@ -682,7 +707,7 @@ const CheckoutPage: React.FC = () => {
                                 </div>
                               </Select.Option>
                             ))}
-                          {/* Mã đã đổi điểm (user-coupon) */}
+                          {/* Voucher đã đổi điểm (luôn hiện nếu user đã đổi, không cần điều kiện tổng tiền) */}
                           {redeemedCoupons
                             .filter(c => {
                               const now = new Date();
@@ -694,10 +719,12 @@ const CheckoutPage: React.FC = () => {
                             .map(c => (
                               <Select.Option key={c.code + '-redeemed'} value={c.code}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span>{c.code} <span style={{ color: '#1976d2', fontWeight: 600 }}>[Đã đổi điểm]</span></span>
-                                  <span style={{ fontSize: '12px', color: '#1976d2' }}>
-                                    Đổi bằng {c.pointsRequired} điểm
-                                  </span>
+                                  <span>{c.code}</span>
+                                  {c.min_order_value ? (
+                                    <span style={{ fontSize: '12px', color: '#666' }}>
+                                      Tối thiểu {c.min_order_value.toLocaleString()}₫
+                                    </span>
+                                  ) : null}
                                 </div>
                               </Select.Option>
                             ))}

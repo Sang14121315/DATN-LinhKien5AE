@@ -156,6 +156,26 @@ const getUserCouponCountInMonth = async (req, res) => {
   }
 };
 
+// Lấy danh sách voucher user đã đổi (chưa dùng)
+const getMyCoupons = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userCoupons = await UserCoupon.find({ userId }).populate('couponId');
+    const now = new Date();
+    const coupons = userCoupons
+      .map(uc => uc.couponId)
+      .filter(coupon =>
+        coupon &&
+        coupon.is_active !== false &&
+        new Date(coupon.start_date) <= now &&
+        new Date(coupon.end_date) >= now
+      );
+    res.json(coupons);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Lỗi lấy voucher đã đổi' });
+  }
+};
+
 module.exports = {
   getCoupons,
   getCouponById,
@@ -163,5 +183,6 @@ module.exports = {
   updateCoupon,
   deleteCoupon,
   redeemCoupon,
-  getUserCouponCountInMonth
+  getUserCouponCountInMonth,
+  getMyCoupons
 };

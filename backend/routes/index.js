@@ -100,6 +100,8 @@ router.put("/coupons/:id", couponController.updateCoupon);
 router.delete("/coupons/:id", couponController.deleteCoupon);
 router.post("/coupons/redeem", auth, couponController.redeemCoupon);
 router.get("/coupons/user-count-in-month/:couponId", auth, couponController.getUserCouponCountInMonth);
+// Thêm route lấy voucher đã đổi điểm
+router.get("/my-coupons", auth, couponController.getMyCoupons);
 
 // Orders
 router.get("/orders", auth, orderController.getOrders);
