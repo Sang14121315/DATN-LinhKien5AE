@@ -22,6 +22,15 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  const backendBase = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+  const resolveImageUrl = (url?: string) => {
+    if (!url || url.trim() === '') return '';
+    const normalized = url.startsWith('uploads') ? `/${url}` : url;
+    if (/^https?:\/\//i.test(normalized)) return normalized;
+    if (normalized.startsWith('/uploads')) return `${backendBase}${normalized}`;
+    return normalized;
+  };
+
   const handleCheckout = () => {
     if (!isAuthenticated) {
       alert("❗Vui lòng đăng nhập để đặt hàng!");
@@ -86,7 +95,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               <div className="cart-item" key={item._id}>
                 <div className="item-image">
                   <img 
-                    src={item.img_url || 'https://via.placeholder.com/60x60/f0f0f0/999999?text=SP'} 
+                    src={resolveImageUrl(item.img_url) || 'https://via.placeholder.com/60x60/f0f0f0/999999?text=SP'} 
                     alt={item.name}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;

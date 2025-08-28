@@ -10,6 +10,15 @@ const AdminOrderDetailPage: React.FC = () => {
   const [orderData, setOrderData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const backendBase = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+  const resolveImageUrl = (url?: string) => {
+    if (!url || url.trim() === '') return '';
+    const normalized = url.startsWith('uploads') ? `/${url}` : url;
+    if (/^https?:\/\//i.test(normalized)) return normalized;
+    if (normalized.startsWith('/uploads')) return `${backendBase}${normalized}`;
+    return normalized;
+  };
+
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -388,7 +397,7 @@ const AdminOrderDetailPage: React.FC = () => {
                           gap: '12px'
                         }}>
                           <img 
-                            src={item.img_url || '/no-image.png'} 
+                            src={resolveImageUrl(item.img_url) || '/no-image.png'} 
                             alt={item.name} 
                             onError={e => (e.currentTarget.src = '/no-image.png')}
                             style={{

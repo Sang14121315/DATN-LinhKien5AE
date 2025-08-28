@@ -43,6 +43,15 @@ const CheckoutPage: React.FC = () => {
   });
 
   const navigate = useNavigate();
+  const backendBase = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+  const resolveImageUrl = (url?: string) => {
+    if (!url || url.trim() === '') return '';
+    const normalized = url.startsWith('uploads') ? `/${url}` : url;
+    if (/^https?:\/\//i.test(normalized)) return normalized;
+    if (normalized.startsWith('/uploads')) return `${backendBase}${normalized}`;
+    return normalized;
+  };
+
 
   const [provinces, setProvinces] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
@@ -627,7 +636,7 @@ const CheckoutPage: React.FC = () => {
                             background: '#f8f9fa'
                           }}>
                             <img 
-                              src={item.img_url || '/img/sp1.png'} 
+                              src={resolveImageUrl(item.img_url) || '/img/sp1.png'} 
                               alt={item.name} 
                               style={{ 
                                 width: '100%', 

@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import "@/styles/pages/user/purchase.scss";
 import { fetchProductById } from "@/api/user/productAPI";
 import axios from "@/api/user/index";
+import { Modal, Button, Tag } from 'antd';
 
 const TABS = [
   { id: "all", label: "Tất cả" },
@@ -43,11 +44,22 @@ const PurchasePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus>({});
   const [loadingReviews, setLoadingReviews] = useState<string[]>([]); // Array of orderIds đang loading
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewModalOrder, setReviewModalOrder] = useState<Order | null>(null);
   const ordersPerPage = 5;
   const { orders, updateOrderStatus } = useOrders();
   const { clearCart, addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  const backendBase = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+  const resolveImageUrl = (url?: string) => {
+    if (!url || url.trim() === '') return '';
+    const normalized = url.startsWith('uploads') ? `/${url}` : url;
+    if (/^https?:\/\//i.test(normalized)) return normalized;
+    if (normalized.startsWith('/uploads')) return `${backendBase}${normalized}`;
+    return normalized;
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,26 +168,19 @@ const PurchasePage: React.FC = () => {
   };
 
   const handleReviewOrder = (order: Order) => {
-    if (order.items && order.items.length > 0) {
-      // Tìm product ĐẦU TIÊN CHƯA REVIEWED
-      const unreviewedItem = order.items.find(item => {
-        const productId = typeof item.product_id === "string" 
-          ? item.product_id 
-          : (item.product_id as { _id: string })?._id || "";
-        return productId && !reviewStatus[order._id]?.[productId];
-      });
-
-      if (unreviewedItem) {
-        const productId = typeof unreviewedItem.product_id === "string" 
-          ? unreviewedItem.product_id 
-          : (unreviewedItem.product_id as { _id: string })?._id || "";
-        navigate(`/product/${productId}?orderId=${order._id}`);
-      } else {
-        alert("Tất cả sản phẩm trong đơn hàng đã được đánh giá!");
-      }
-    } else {
+    if (!order.items || order.items.length === 0) {
       alert("Đơn hàng không có sản phẩm để đánh giá!");
+      return;
     }
+    setReviewModalOrder(order);
+    setReviewModalOpen(true);
+  };
+
+  const handleSelectProductToReview = (order: Order, productId: string, isReviewed: boolean) => {
+    setReviewModalOpen(false);
+    setReviewModalOrder(null);
+    // Điều hướng đến trang sản phẩm; nếu đã đánh giá, vẫn hiển thị sản phẩm đó
+    navigate(`/product/${productId}?orderId=${order._id}`);
   };
 
   // Check if order has any unreviewed products
@@ -262,7 +267,7 @@ const PurchasePage: React.FC = () => {
                         const productId = typeof item.product_id === "string" ? item.product_id : `item-${index}`;
                         const key = `${order._id}-${productId}-${index}`;
                         const imgSrc = item.img_url && item.img_url !== ""
-                          ? item.img_url
+                          ? resolveImageUrl(item.img_url)
                           : "/images/placeholder.png";
                         const altText = typeof item.name === "string" ? item.name : "Sản phẩm";
                         return (
@@ -327,6 +332,45 @@ const PurchasePage: React.FC = () => {
           )}
         </div>
       </div>
+      {/* Modal chọn sản phẩm để đánh giá */}
+      <Modal
+        open={reviewModalOpen}
+        onCancel={() => { setReviewModalOpen(false); setReviewModalOrder(null); }}
+        footer={null}
+        title="Chọn sản phẩm để đánh giá"
+        centered
+      >
+        {reviewModalOrder && (
+          <div style={{ display: 'grid', gap: 12 }}>
+            {(reviewModalOrder.items || []).map((item, index) => {
+              const productId = typeof item.product_id === 'string'
+                ? item.product_id
+                : (item.product_id as { _id?: string })?._id || '';
+              if (!productId) return null;
+              const isReviewed = !!reviewStatus[reviewModalOrder._id]?.[productId];
+              const imgSrc = item.img_url && item.img_url !== '' ? resolveImageUrl(item.img_url) : '/images/placeholder.png';
+              const name = typeof item.name === 'string' ? item.name : 'Sản phẩm';
+              return (
+                <div key={`${reviewModalOrder._id}-${productId}-${index}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #f0f0f0', borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <img src={imgSrc} alt={name} style={{ width: 56, height: 56, objectFit: 'contain', border: '1px solid #eee', borderRadius: 6 }} />
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{name}</div>
+                      <div style={{ fontSize: 12, color: '#666' }}>SL: {item.quantity} • Giá: {item.price.toLocaleString()} ₫</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {isReviewed ? <Tag color="green">Đã đánh giá</Tag> : <Tag color="blue">Chưa đánh giá</Tag>}
+                    <Button type={isReviewed ? 'default' : 'primary'} onClick={() => handleSelectProductToReview(reviewModalOrder, productId, isReviewed)}>
+                      {isReviewed ? 'Xem sản phẩm' : 'Đánh giá'}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

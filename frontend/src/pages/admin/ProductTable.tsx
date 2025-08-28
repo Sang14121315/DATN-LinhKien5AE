@@ -102,14 +102,14 @@ const ProductTable: React.FC = () => {
       <div className="filters">
         <div className="filter-group">
           <select onChange={e => handleFilterChange('category_id', e.target.value)}>
-            <option value="">📂 Danh mục</option>
+            <option value="">Danh mục</option>
             {categories.map((cat: Category) => (
               <option key={cat._id || cat.slug} value={cat._id || ''}>{cat.name}</option>
             ))}
           </select>
 
           <select onChange={e => handleFilterChange('brand_id', e.target.value)}>
-            <option value="">🔁 Thương hiệu</option>
+            <option value="">Thương hiệu</option>
             {brands.map((brand: Brand) => (
               <option key={brand._id} value={brand._id}>{brand.name}</option>
             ))}
@@ -172,7 +172,18 @@ const ProductTable: React.FC = () => {
                 <td><span className="status approved">Đã duyệt</span></td>
                 <td>
                   <button className="view-btn" onClick={() => navigate(`/admin/products/${product._id}/form`)}>
-                    👁️ Xem
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{ marginRight: 6 }}
+                    >
+                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="12" r="3" stroke="#e74c3c" strokeWidth="2"/>
+                    </svg>
+                    Xem
                   </button>
                 </td>
               </tr>
