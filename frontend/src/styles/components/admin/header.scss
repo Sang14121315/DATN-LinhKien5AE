@@ -44,7 +44,7 @@
         background-color: white;
         border: 1px solid #e5e7eb;
         border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         min-width: 210px;
         z-index: 200;
         left: auto;
@@ -90,7 +90,7 @@
   right: 80px;
   width: 320px;
   background: white;
-  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   border-radius: 6px;
   padding: 10px;
   z-index: 100;
@@ -156,14 +156,23 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .user-modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.25);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.25);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -172,7 +181,7 @@
 .user-modal {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   padding: 32px 32px 24px 32px;
   min-width: 400px;
   max-width: 440px;
@@ -183,7 +192,7 @@
   position: relative;
 }
 .user-modal .modal-header {
-  color: #2EC4B6;
+  color: #2ec4b6;
   font-weight: 700;
   font-size: 26px;
   text-transform: uppercase;
@@ -250,8 +259,29 @@
 }
 .user-modal .modal-footer .btn-save {
   min-width: 120px;
-  background: #2EC4B6;
+  background: #2ec4b6;
   color: #fff;
   font-weight: 700;
 }
 
+.user-modal .forgot-password-link {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+
+  button {
+    background: none;
+    border: none;
+    color: #00c37e;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #009d63;
+      text-decoration: none;
+    }
+  }
+}
