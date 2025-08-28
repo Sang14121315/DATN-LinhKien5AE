@@ -42,8 +42,6 @@ const EyeIcon = ({ isVisible }: { isVisible: boolean }) => (
   </svg>
 );
 
-const socket = io(import.meta.env.VITE_API_URL || "http://localhost:5000");
-
 const Header: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false); // notification
   const [dropdownOpen, setDropdownOpen] = useState(false); // admin
@@ -215,13 +213,6 @@ const Header: React.FC = () => {
     navigate("/login");
   };
 
-  const handleChangePassword = () => {
-    // Sử dụng logout function từ AuthContext để đảm bảo xóa đúng tất cả dữ liệu
-    logout();
-    // Navigate đến trang quên mật khẩu
-    navigate("/forgot-password");
-  };
-
   return (
     <header className="admin-header">
       <div className="right-section">
@@ -271,11 +262,6 @@ const Header: React.FC = () => {
               <div
                 className="dropdown-item"
                 onClick={handleChangePasswordClick}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleChangePassword();
-                }}
-
               >
                 <FaKey style={{ marginRight: 8 }} /> Đổi mật khẩu
               </div>
