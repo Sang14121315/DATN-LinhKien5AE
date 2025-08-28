@@ -148,7 +148,8 @@ const CheckoutPage: React.FC = () => {
   }, []);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal - discount;
+  const shippingFee = Number((import.meta as any).env?.VITE_DEFAULT_SHIPPING_FEE ?? 15000);
+  const total = subtotal - discount + shippingFee;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -849,7 +850,7 @@ const CheckoutPage: React.FC = () => {
                   </Row>
                   <Row justify="space-between" style={{ fontSize: '16px' }}>
                     <span>Phí vận chuyển:</span>
-                    <span>0 ₫</span>
+                    <span>{shippingFee.toLocaleString()} ₫</span>
                   </Row>
                   <Divider style={{ margin: '16px 0', borderColor: '#667eea' }} />
                   <Row justify="space-between">

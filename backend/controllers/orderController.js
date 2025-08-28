@@ -32,7 +32,8 @@ const orderSchema = Joi.object({
       img_url: Joi.string().allow('', null)
     })
   ).min(1).required(),
-  total: Joi.number().required()
+  // Cho phép client không gửi total; server sẽ tự tính
+  total: Joi.number().optional()
 });
 
 module.exports = {
@@ -137,7 +138,7 @@ module.exports = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ message: 'Bạn chưa đăng nhập' });
 
-      const { customer, payment_method, items, total, ward, district, city } = req.body;
+      const { customer, payment_method, items, total: clientTotal, ward, district, city } = req.body;
       const fullAddress = `${customer.address}, ${ward}, ${district}, ${city}`;
 
       // ✅ 1. KIỂM TRA STOCK TRƯỚC KHI TẠO ĐƠN HÀNG
@@ -158,11 +159,17 @@ module.exports = {
         }
       }
 
-      // ✅ 2. TẠO ĐƠN HÀNG
+      // ✅ 2. TÍNH TỔNG TIỀN + PHÍ VẬN CHUYỂN MẶC ĐỊNH
+      const subtotal = items.reduce((sum, it) => sum + (Number(it.price) * Number(it.quantity)), 0);
+      const defaultShipping = Number(process.env.DEFAULT_SHIPPING_FEE || 15000);
+      const computedTotal = subtotal + defaultShipping;
+
+      // ✅ 3. TẠO ĐƠN HÀNG
       const order = await OrderService.create({
         user_id: userId,
         payment_method,
-        total,
+        shipping_fee: defaultShipping,
+        total: computedTotal,
         status: 'pending',
         customer: {
           ...customer,
@@ -173,7 +180,7 @@ module.exports = {
         city
       });
 
-      // ✅ 3. TẠO ORDER DETAILS
+      // ✅ 4. TẠO ORDER DETAILS
       const detailDocs = items.map(item => ({
         order_id: order._id,
         product_id: item.product_id,
@@ -185,7 +192,7 @@ module.exports = {
 
       await OrderDetailService.createMany(detailDocs);
 
-      // ✅ 4. RESERVE STOCK CHO TẤT CẢ ITEMS
+      // ✅ 5. RESERVE STOCK CHO TẤT CẢ ITEMS
       console.log('🔄 Reserving stock for order:', order._id);
       try {
         for (const item of items) {
@@ -409,7 +416,7 @@ module.exports = {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ message: 'Bạn chưa đăng nhập' });
 
-      const { customer, payment_method, items, total, ward, district, city } = req.body;
+      const { customer, payment_method, items, total: clientTotal, ward, district, city } = req.body;
       const fullAddress = `${customer.address}, ${ward}, ${district}, ${city}`;
 
       // ✅ 1. KIỂM TRA STOCK TRƯỚC KHI TẠO ĐƠN HÀNG MOMO
@@ -430,11 +437,17 @@ module.exports = {
         }
       }
 
-      // ✅ 2. TẠO ĐƠN HÀNG MOMO
+      // ✅ 2. TÍNH TỔNG TIỀN + PHÍ VẬN CHUYỂN MẶC ĐỊNH (CHO MOMO)
+      const momoSubtotal = items.reduce((sum, it) => sum + (Number(it.price) * Number(it.quantity)), 0);
+      const momoDefaultShipping = Number(process.env.DEFAULT_SHIPPING_FEE || 15000);
+      const momoComputedTotal = momoSubtotal + momoDefaultShipping;
+
+      // ✅ 3. TẠO ĐƠN HÀNG MOMO
       const order = await OrderService.create({
         user_id: userId,
         payment_method,
-        total,
+        total: momoComputedTotal,
+        shipping_fee: momoDefaultShipping,
         status: 'pending',
         customer: {
           ...customer,
@@ -445,7 +458,7 @@ module.exports = {
         city
       });
 
-      // ✅ 3. TẠO ORDER DETAILS
+      // ✅ 4. TẠO ORDER DETAILS
       const detailDocs = items.map(item => ({
         order_id: order._id,
         product_id: item.product_id,
@@ -457,7 +470,7 @@ module.exports = {
 
       await OrderDetailService.createMany(detailDocs);
 
-      // ✅ 4. RESERVE STOCK CHO MOMO ORDER
+      // ✅ 5. RESERVE STOCK CHO MOMO ORDER
       console.log('🔄 Reserving stock for MoMo order:', order._id);
       try {
         for (const item of items) {
@@ -505,7 +518,7 @@ module.exports = {
       console.log('🔗 MoMo - IPN URL:', ipnUrl);
       console.log('🔗 MoMo - Order ID:', orderId);
       
-      const momoRes = await createMomoPayment(orderId, total, redirectUrl, ipnUrl);
+      const momoRes = await createMomoPayment(orderId, momoComputedTotal, redirectUrl, ipnUrl);
       
       console.log('🔗 MoMo - Response:', momoRes);
       

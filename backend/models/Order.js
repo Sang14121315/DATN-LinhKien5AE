@@ -20,6 +20,8 @@ const orderSchema = new mongoose.Schema({
   customer: customerSchema,
   items: [itemSchema], // Thêm trường items để lưu sản phẩm trong đơn hàng
   payment_method: { type: String, enum: ['cod', 'bank'], default: 'cod' },
+  // Phí vận chuyển mặc định
+  shipping_fee: { type: Number, default: 15000 },
   total: Number,
   orderNumber: { type: String, unique: true },
   // ✅ THÊM: Inventory management flags
