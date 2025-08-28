@@ -48,8 +48,8 @@ router.delete("/cart/clear", auth, cartController.clearCart);
 // Products
 router.get("/products/search", productController.searchProducts);
 router.get("/products", productController.getProducts);
-// ✅ FIX: Thêm route stock-info cho product
-router.get("/product/stock-info/:id", productController.getInventoryInfo);
+// FIX: Thêm route stock-info cho product
+// router.get("/product/stock-info/:id", productController.getInventoryInfo);
 router.post(
   "/products",
   auth,
@@ -64,7 +64,6 @@ router.put(
   productController.updateProduct
 );
 router.delete("/products/:id", auth, productController.deleteProduct);
-
 // ✅ THÊM: Inventory Management Routes
 router.post("/products/check-availability", productController.checkAvailability);
 router.get("/products/:id/inventory", productController.getInventoryInfo);
