@@ -194,6 +194,7 @@ const ProductDetail: React.FC = () => {
 
     fetchData();
 
+
     // ✅ Set interval để refresh stock info mỗi 30 giây
     const stockRefreshInterval = setInterval(() => {
       if (id) {
