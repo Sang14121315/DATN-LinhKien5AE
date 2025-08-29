@@ -276,10 +276,8 @@ const sendOrderConfirmationEmail = async (orderData) => {
     htmlInner,
     {
       href:
-        (process.env.FRONTEND_URL || "http://localhost:5173") +
-        "/orders/" +
-        orderData._id,
-      label: "Xem chi tiết đơn hàng",
+        (process.env.FRONTEND_URL || "http://localhost:5173"),
+      label: "Về trang chủ",
     }
   );
 
@@ -337,10 +335,8 @@ const sendOrderStatusUpdateEmail = async (orderData, oldStatus, newStatus) => {
     htmlInner,
     {
       href:
-        (process.env.FRONTEND_URL || "http://localhost:5173") +
-        "/orders/" +
-        orderData._id,
-      label: "Xem đơn hàng",
+        (process.env.FRONTEND_URL || "http://localhost:5173"),
+      label: "Về trang chủ",
     }
   );
 
@@ -418,9 +414,8 @@ const sendOrderNotificationToAdmin = async (orderData) => {
     ${renderSectionCard('💰', 'Tổng kết:', buildTotalsHtml(orderData))}
     <p style="margin:16px 0 0;"><a style="color:#2563eb;text-decoration:none;" href="${
       (process.env.FRONTEND_URL || "http://localhost:5173") +
-      "/admin/orders/" +
-      orderData._id
-    }">Mở chi tiết đơn hàng</a></p>
+      "/admin"
+    }">Mở trang Admin</a></p>
   `;
   const html = wrapEmail(
     `🛒 Đơn hàng mới #${orderData._id}`,
@@ -428,9 +423,8 @@ const sendOrderNotificationToAdmin = async (orderData) => {
     {
       href:
         (process.env.FRONTEND_URL || "http://localhost:5173") +
-        "/admin/orders/" +
-        orderData._id,
-      label: "Mở chi tiết trên Admin",
+        "/admin",
+      label: "Mở trang Admin",
     }
   );
 
