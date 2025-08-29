@@ -43,6 +43,20 @@ const getImageUrl = (url?: string): string => {
   return `http://localhost:5000/uploads/products/${url}`;
 };
 
+// Hàm format số tiền với dấu phẩy ngăn cách hàng nghìn
+const formatCurrency = (value: number): string => {
+  if (value === 0) return "";
+  return value.toLocaleString('vi-VN');
+};
+
+// Hàm parse số từ chuỗi có định dạng
+const parseFormattedNumber = (value: string): number => {
+  if (!value || value.trim() === "") return 0;
+  // Loại bỏ tất cả ký tự không phải số
+  const cleanValue = value.replace(/[^\d]/g, "");
+  return parseInt(cleanValue) || 0;
+};
+
 const ProductForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -183,9 +197,23 @@ const ProductForm: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     if (name === "price" || name === "stock" || name === "sale") {
-      const numValue = parseFloat(value);
-      if (isNaN(numValue) || numValue < 0) return;
-      setProduct({ ...product, [name]: numValue });
+      // Xử lý trường hợp input rỗng
+      if (value === "" || value === "-") {
+        setProduct({ ...product, [name]: 0 });
+        return;
+      }
+      
+      // Sử dụng hàm parse mới cho price và sale
+      if (name === "price" || name === "sale") {
+        const numValue = parseFormattedNumber(value);
+        if (numValue < 0) return;
+        setProduct(prev => ({ ...prev, [name]: numValue }));
+      } else {
+        // Xử lý stock như cũ
+        const numValue = parseFloat(value);
+        if (isNaN(numValue) || numValue < 0) return;
+        setProduct(prev => ({ ...prev, [name]: numValue }));
+      }
     } else {
       setProduct({ ...product, [name]: value });
     }
@@ -478,12 +506,10 @@ const ProductForm: React.FC = () => {
             <label className="half-width">
               Giá (VNĐ)
               <input
-                type="number"
+                type="text"
                 name="price"
-                value={product.price}
+                value={formatCurrency(product.price)}
                 onChange={handleInputChange}
-                min="0"
-                step="0.01"
                 placeholder="Nhập giá sản phẩm"
               />
             </label>
@@ -495,7 +521,7 @@ const ProductForm: React.FC = () => {
               <input
                 type="number"
                 name="stock"
-                value={product.stock}
+                value={product.stock === 0 ? "" : product.stock || ""}
                 onChange={handleInputChange}
                 min="0"
                 step="1"
@@ -505,12 +531,10 @@ const ProductForm: React.FC = () => {
             <label className="half-width">
               Giảm giá (VNĐ)
               <input
-                type="number"
+                type="text"
                 name="sale"
-                value={product.sale}
+                value={formatCurrency(product.sale)}
                 onChange={handleInputChange}
-                min="0"
-                max={product.price}
                 placeholder="Nhập số tiền giảm giá"
               />
               {product.price > 0 && product.sale > 0 && (
